@@ -10,7 +10,9 @@ const PROTECTED_SELECTORS = [
 ];
 const CONTINUE_TO_RESULT_SELECTORS = [
   "[data-wizard-step='result']",
+  "[data-wizard-step='gemini']",
   "[data-wizard-next='result']",
+  "[data-wizard-next='gemini']",
   "#section-audit [data-wizard-next]",
   "#section-audit .wizard-next",
   "#section-audit .next-button",
@@ -143,22 +145,30 @@ function isProtectedActionTarget(target) {
   return PROTECTED_SELECTORS.some((selector) => target.closest?.(selector));
 }
 
+function getProtectedStepButtons() {
+  return Array.from(document.querySelectorAll("[data-wizard-step='result'], [data-wizard-step='gemini'], [data-wizard-next='result'], [data-wizard-next='gemini']"));
+}
+
 function getContinueToResultButtons() {
   const candidates = new Set();
   CONTINUE_TO_RESULT_SELECTORS.forEach((selector) => {
     document.querySelectorAll(selector).forEach((button) => candidates.add(button));
   });
 
+  getProtectedStepButtons().forEach((button) => candidates.add(button));
+
   return [...candidates].filter((button) => {
     if (!(button instanceof HTMLElement)) return false;
     const text = normalize(button.textContent);
     const step = button.dataset?.wizardStep || button.dataset?.wizardNext || "";
     return (
-      step === "result" ||
+      PROTECTED_STEPS.has(step) ||
       text.includes("resultado final") ||
       text.includes("continuar a resultado") ||
       text.includes("ver resultado") ||
-      text.includes("resultado")
+      text.includes("resultado") ||
+      text.includes("revision gemini") ||
+      text.includes("revisión gemini")
     );
   });
 }
@@ -252,6 +262,8 @@ function injectAuditGateStyles() {
     }
     .audit-gate-hidden {
       display: none !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
     }
     button.is-disabled, .is-disabled {
       opacity: .52 !important;
@@ -278,7 +290,7 @@ function installAuditGate() {
     if (isAuditBlocking()) blockProtectedAction(event);
   });
 
-  window.setInterval(updateAuditGateUi, 500);
+  window.setInterval(updateAuditGateUi, 250);
 }
 
 if (document.readyState === "loading") {
