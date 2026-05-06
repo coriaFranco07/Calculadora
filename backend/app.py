@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import re
 from pathlib import Path
 from typing import Any
 
@@ -67,14 +68,62 @@ app.add_middleware(
 
 
 def parse_gemini_json(text: str) -> Any:
-    cleaned = text.strip()
-    if cleaned.startswith("```"):
-        cleaned = cleaned.strip("`")
-        cleaned = cleaned.removeprefix("json").strip()
-    try:
-        return json.loads(cleaned)
-    except json.JSONDecodeError:
-        return {"estado": "respuesta_no_json", "raw": text}
+    raw = text.strip()
+    candidates: list[str] = []
+
+    fenced = re.findall(r"```(?:json|JSON)?\s*([\s\S]*?)\s*```", raw)
+    candidates.extend(item.strip() for item in fenced if item.strip())
+    candidates.append(raw)
+
+    start = raw.find("{")
+    end = raw.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        candidates.append(raw[start:end + 1])
+
+    for candidate in candidates:
+        cleaned = candidate.strip().removeprefix("json").strip()
+        try:
+            return json.loads(cleaned)
+        except json.JSONDecodeError:
+            continue
+
+    return {"estado": "respuesta_no_json", "raw": text}
+
+
+def normalize_calculator_payload(payload: Any, file_name: str) -> dict[str, Any]:
+    if not isinstance(payload, dict):
+        return {
+            "estado": "payload_invalido",
+            "archivo_fuente": file_name,
+            "convenio": {"nombre": "CCT cargado"},
+            "categorias": [],
+            "adicionales": [],
+            "pendientes_revision": ["La IA no devolvio un objeto JSON util"],
+            "raw": payload,
+        }
+
+    payload.setdefault("archivo_fuente", file_name)
+    payload.setdefault("estado", "json_calculadora_generado")
+    payload.setdefault("convenio", {})
+    payload.setdefault("categorias", [])
+    payload.setdefault("adicionales", [])
+    payload.setdefault("reglas_liquidacion", {})
+    payload.setdefault("pendientes_revision", [])
+    payload.setdefault("alertas", [])
+    payload.setdefault("nivel_confianza", 0)
+
+    if not isinstance(payload["convenio"], dict):
+        payload["convenio"] = {"nombre": str(payload["convenio"])}
+    if not isinstance(payload["categorias"], list):
+        payload["categorias"] = []
+    if not isinstance(payload["adicionales"], list):
+        payload["adicionales"] = []
+    if not isinstance(payload["pendientes_revision"], list):
+        payload["pendientes_revision"] = [str(payload["pendientes_revision"])]
+    if not isinstance(payload["alertas"], list):
+        payload["alertas"] = [str(payload["alertas"])]
+
+    return payload
 
 
 def extract_text_from_pdf_bytes(content: bytes) -> str:
@@ -99,11 +148,12 @@ def extract_cct_from_text(file_name: str, text: str) -> dict[str, Any]:
         status_code = 503 if "API_KEY" in str(exc) else 502
         raise HTTPException(status_code=status_code, detail=str(exc)) from exc
 
+    parsed = normalize_calculator_payload(parse_gemini_json(gemini_text), file_name)
     return {
         "mode": "gemini-cct",
         "model": os.getenv("GEMINI_MODEL", DEFAULT_MODEL),
         "text_length": len(text),
-        "result": parse_gemini_json(gemini_text),
+        "result": parsed,
     }
 
 
