@@ -1,5 +1,8 @@
 {
   "name": "cct-244-94-preventive-audit",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "pdfjs-dist": "4.3.136"
+  }
 }
