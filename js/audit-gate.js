@@ -8,6 +8,14 @@ const PROTECTED_SELECTORS = [
   ".export-button",
   ".print-button"
 ];
+const CONTINUE_TO_RESULT_SELECTORS = [
+  "[data-wizard-step='result']",
+  "[data-wizard-next='result']",
+  "#section-audit [data-wizard-next]",
+  "#section-audit .wizard-next",
+  "#section-audit .next-button",
+  "#section-audit button"
+];
 
 function getAudit() {
   if (typeof window.getPayrollAuditContext !== "function") return null;
@@ -135,6 +143,54 @@ function isProtectedActionTarget(target) {
   return PROTECTED_SELECTORS.some((selector) => target.closest?.(selector));
 }
 
+function getContinueToResultButtons() {
+  const candidates = new Set();
+  CONTINUE_TO_RESULT_SELECTORS.forEach((selector) => {
+    document.querySelectorAll(selector).forEach((button) => candidates.add(button));
+  });
+
+  return [...candidates].filter((button) => {
+    if (!(button instanceof HTMLElement)) return false;
+    const text = normalize(button.textContent);
+    const step = button.dataset?.wizardStep || button.dataset?.wizardNext || "";
+    return (
+      step === "result" ||
+      text.includes("resultado final") ||
+      text.includes("continuar a resultado") ||
+      text.includes("ver resultado") ||
+      text.includes("resultado")
+    );
+  });
+}
+
+function ensureBlockedContinueNotice(blocked) {
+  let notice = document.querySelector("#audit-gate-continue-notice");
+  const auditPane = document.querySelector("#section-audit");
+  if (!blocked) {
+    notice?.remove();
+    return;
+  }
+  if (!auditPane) return;
+
+  if (!notice) {
+    notice = document.createElement("article");
+    notice.id = "audit-gate-continue-notice";
+    notice.className = "audit-gate-continue-notice";
+    auditPane.append(notice);
+  }
+  notice.innerHTML = `<strong>Resultado final no disponible</strong><p>${escapeHtml(getAuditSummary())} El botón para continuar se habilitará automáticamente cuando la auditoría quede sin bloqueantes.</p>`;
+}
+
+function updateContinueButtons(blocked) {
+  getContinueToResultButtons().forEach((button) => {
+    button.classList.toggle("audit-gate-hidden", blocked);
+    button.setAttribute("aria-hidden", blocked ? "true" : "false");
+    button.disabled = blocked;
+    button.tabIndex = blocked ? -1 : 0;
+  });
+  ensureBlockedContinueNotice(blocked);
+}
+
 function updateAuditGateUi() {
   const blocked = isAuditBlocking();
   document.documentElement.classList.toggle("audit-gate-blocked", blocked);
@@ -147,6 +203,8 @@ function updateAuditGateUi() {
       button.title = blocked ? "Bloqueado por auditoría preventiva" : "";
     });
   });
+
+  updateContinueButtons(blocked);
 
   const exportCard = document.querySelector("#audit-export-card");
   if (exportCard) exportCard.classList.toggle("audit-gate-hard-block", blocked);
@@ -171,7 +229,8 @@ function injectAuditGateStyles() {
   const style = document.createElement("style");
   style.id = "audit-gate-styles";
   style.textContent = `
-    .audit-gate-banner {
+    .audit-gate-banner,
+    .audit-gate-continue-notice {
       margin: 0 0 16px;
       padding: 16px 18px;
       border: 1px solid rgba(160, 43, 43, .22);
@@ -180,11 +239,19 @@ function injectAuditGateStyles() {
       color: #4a1f1f;
       box-shadow: 0 12px 28px rgba(160, 43, 43, .08);
     }
-    .audit-gate-banner strong { display: block; font-size: 1rem; margin-bottom: 5px; }
-    .audit-gate-banner p { margin: 0; color: #6d3530; line-height: 1.45; }
+    .audit-gate-continue-notice {
+      margin-top: 16px;
+    }
+    .audit-gate-banner strong,
+    .audit-gate-continue-notice strong { display: block; font-size: 1rem; margin-bottom: 5px; }
+    .audit-gate-banner p,
+    .audit-gate-continue-notice p { margin: 0; color: #6d3530; line-height: 1.45; }
     .audit-gate-hard-block {
       outline: 2px solid rgba(160, 43, 43, .22);
       box-shadow: 0 0 0 5px rgba(160, 43, 43, .06);
+    }
+    .audit-gate-hidden {
+      display: none !important;
     }
     button.is-disabled, .is-disabled {
       opacity: .52 !important;
@@ -211,7 +278,7 @@ function installAuditGate() {
     if (isAuditBlocking()) blockProtectedAction(event);
   });
 
-  window.setInterval(updateAuditGateUi, 900);
+  window.setInterval(updateAuditGateUi, 500);
 }
 
 if (document.readyState === "loading") {
