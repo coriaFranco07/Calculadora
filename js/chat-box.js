@@ -187,25 +187,91 @@ function injectStyles() {
   const style = document.createElement("style");
   style.id = "ai-chat-box-styles";
   style.textContent = `
-    .ai-chat-launcher { position: fixed; right: 22px; bottom: 22px; z-index: 120; display: inline-flex; align-items: center; gap: 10px; padding: 13px 18px; border: 0; border-radius: 999px; background: linear-gradient(135deg, var(--accent, #d06224), #e18a41); color: #fff; box-shadow: 0 18px 42px rgba(54, 40, 22, 0.28); font-weight: 800; cursor: pointer; }
-    .ai-chat-panel { position: fixed; right: 22px; bottom: 84px; z-index: 121; width: min(460px, calc(100vw - 28px)); max-height: min(720px, calc(100vh - 112px)); display: none; grid-template-rows: auto auto 1fr auto; overflow: hidden; border-radius: 24px; border: 1px solid var(--line-strong, rgba(27, 35, 33, 0.16)); background: rgba(255, 253, 248, 0.98); box-shadow: 0 28px 80px rgba(15, 21, 19, 0.24); backdrop-filter: blur(16px); }
+    .ai-chat-launcher {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 120;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 18px;
+      border: 0;
+      border-radius: 999px;
+      background: radial-gradient(circle at 18% 18%, #ffe4bb, transparent 32%), linear-gradient(135deg, #1f6a52, #d06224 78%);
+      color: #fff;
+      box-shadow: 0 20px 55px rgba(31, 106, 82, 0.3), 0 8px 24px rgba(208, 98, 36, 0.24);
+      font-weight: 900;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .ai-chat-launcher:hover { transform: translateY(-2px); box-shadow: 0 24px 70px rgba(31, 106, 82, 0.34), 0 10px 26px rgba(208, 98, 36, 0.28); }
+    .ai-chat-launcher-dot { width: 9px; height: 9px; border-radius: 50%; background: #8ff0b7; box-shadow: 0 0 0 5px rgba(143, 240, 183, .2); }
+    .ai-chat-panel {
+      position: fixed;
+      right: 22px;
+      bottom: 86px;
+      z-index: 121;
+      width: min(480px, calc(100vw - 28px));
+      max-height: min(760px, calc(100vh - 112px));
+      display: none;
+      grid-template-rows: auto auto 1fr auto;
+      overflow: hidden;
+      border-radius: 28px;
+      border: 1px solid rgba(255, 255, 255, 0.58);
+      background: linear-gradient(180deg, rgba(255,253,248,.98), rgba(255,248,237,.97));
+      box-shadow: 0 34px 95px rgba(15, 21, 19, 0.28), 0 0 0 1px rgba(27, 35, 33, .06);
+      backdrop-filter: blur(18px);
+      transform-origin: bottom right;
+      animation: aiChatIn .18s ease-out;
+    }
     .ai-chat-panel.is-open { display: grid; }
-    .ai-chat-header { display: flex; justify-content: space-between; gap: 14px; padding: 18px 18px 14px; border-bottom: 1px solid var(--line, rgba(27, 35, 33, 0.08)); }
-    .ai-chat-header strong { display: block; font-size: 1.05rem; }
-    .ai-chat-header small, .ai-chat-docs small { color: var(--muted, #53615d); line-height: 1.35; }
-    .ai-chat-close { width: 34px; height: 34px; border: 1px solid var(--line, rgba(27, 35, 33, 0.08)); border-radius: 50%; background: rgba(255, 255, 255, 0.78); cursor: pointer; font-weight: 900; }
-    .ai-chat-docs { padding: 12px 16px; border-bottom: 1px solid var(--line, rgba(27, 35, 33, 0.08)); background: rgba(31, 106, 82, 0.06); }
-    .ai-chat-messages { display: grid; align-content: start; gap: 12px; padding: 16px; overflow: auto; min-height: 260px; }
-    .ai-chat-message { max-width: 92%; padding: 12px 14px; border-radius: 16px; border: 1px solid var(--line, rgba(27, 35, 33, 0.08)); line-height: 1.45; white-space: pre-wrap; font-size: 0.94rem; }
-    .ai-chat-message.is-user { justify-self: end; background: rgba(208, 98, 36, 0.13); border-color: rgba(208, 98, 36, 0.24); }
-    .ai-chat-message.is-assistant { justify-self: start; background: rgba(255, 255, 255, 0.84); }
+    @keyframes aiChatIn { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .ai-chat-header {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 18px 18px 15px;
+      background: linear-gradient(135deg, rgba(31,106,82,.12), rgba(208,98,36,.10));
+      border-bottom: 1px solid rgba(27, 35, 33, 0.08);
+    }
+    .ai-chat-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #1f6a52, #d06224);
+      color: white;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.24), 0 8px 20px rgba(31,106,82,.22);
+      font-size: 1.15rem;
+    }
+    .ai-chat-title strong { display: block; font-size: 1.05rem; letter-spacing: -0.02em; color: #1b2321; }
+    .ai-chat-title small { display: block; color: #53615d; line-height: 1.35; margin-top: 2px; }
+    .ai-chat-status { display: inline-flex; align-items: center; gap: 6px; margin-top: 7px; padding: 4px 8px; border-radius: 999px; background: rgba(31,106,82,.10); color: #1f6a52; font-size: .76rem; font-weight: 800; }
+    .ai-chat-status::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #1f6a52; box-shadow: 0 0 0 4px rgba(31,106,82,.11); }
+    .ai-chat-close { width: 36px; height: 36px; border: 1px solid rgba(27, 35, 33, 0.08); border-radius: 50%; background: rgba(255, 255, 255, 0.8); cursor: pointer; font-weight: 900; color: #53615d; transition: transform .15s ease, background .15s ease; }
+    .ai-chat-close:hover { transform: rotate(90deg); background: #fff; color: #1b2321; }
+    .ai-chat-docs { padding: 12px 16px; border-bottom: 1px solid rgba(27, 35, 33, 0.08); background: rgba(31, 106, 82, 0.055); }
+    .ai-chat-doc-card { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 18px; border: 1px solid rgba(31,106,82,.12); background: rgba(255,255,255,.72); }
+    .ai-chat-doc-icon { width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; background: rgba(31,106,82,.11); }
+    .ai-chat-doc-card strong { display: block; color: #1b2321; font-size: .92rem; }
+    .ai-chat-doc-card small { display: block; color: #53615d; line-height: 1.35; margin-top: 2px; }
+    .ai-chat-messages { display: grid; align-content: start; gap: 14px; padding: 18px 16px; overflow: auto; min-height: 290px; scrollbar-width: thin; }
+    .ai-chat-message { max-width: 91%; padding: 13px 15px; border-radius: 18px; line-height: 1.48; white-space: pre-wrap; font-size: 0.94rem; box-shadow: 0 5px 18px rgba(15,21,19,.05); }
+    .ai-chat-message.is-user { justify-self: end; color: #fff; background: linear-gradient(135deg, #1f6a52, #2d7b62); border-bottom-right-radius: 7px; }
+    .ai-chat-message.is-assistant { justify-self: start; color: #1b2321; background: rgba(255,255,255,.86); border: 1px solid rgba(27,35,33,.08); border-bottom-left-radius: 7px; }
     .ai-chat-suggestions { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 12px; }
-    .ai-chat-chip { border: 1px solid var(--line, rgba(27, 35, 33, 0.08)); border-radius: 999px; padding: 8px 10px; background: rgba(255, 255, 255, 0.78); color: var(--muted, #53615d); font-size: 0.82rem; cursor: pointer; }
-    .ai-chat-form { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 14px 16px 16px; border-top: 1px solid var(--line, rgba(27, 35, 33, 0.08)); }
-    .ai-chat-input { width: 100%; min-height: 44px; max-height: 120px; resize: vertical; border-radius: 14px; border: 1px solid var(--line, rgba(27, 35, 33, 0.08)); padding: 11px 12px; background: #fffdf8; color: var(--text, #1b2321); font: inherit; }
-    .ai-chat-send { align-self: end; border: 0; border-radius: 14px; padding: 12px 14px; background: var(--green, #1f6a52); color: #fff; font-weight: 800; cursor: pointer; }
-    .ai-chat-send[disabled] { opacity: 0.55; cursor: not-allowed; }
-    @media (max-width: 560px) { .ai-chat-launcher { right: 14px; bottom: 14px; } .ai-chat-panel { right: 14px; bottom: 74px; } }
+    .ai-chat-chip { border: 1px solid rgba(31,106,82,.14); border-radius: 999px; padding: 8px 11px; background: rgba(255, 255, 255, 0.82); color: #53615d; font-size: 0.81rem; cursor: pointer; transition: transform .14s ease, border-color .14s ease, color .14s ease; }
+    .ai-chat-chip:hover { transform: translateY(-1px); border-color: rgba(208,98,36,.34); color: #a54516; }
+    .ai-chat-form { display: grid; grid-template-columns: 1fr auto; gap: 10px; padding: 14px 16px 16px; border-top: 1px solid rgba(27, 35, 33, 0.08); background: rgba(255,255,255,.54); }
+    .ai-chat-input { width: 100%; min-height: 46px; max-height: 128px; resize: vertical; border-radius: 16px; border: 1px solid rgba(27, 35, 33, 0.11); padding: 12px 13px; background: #fffdf8; color: #1b2321; font: inherit; outline: none; transition: border-color .15s ease, box-shadow .15s ease; }
+    .ai-chat-input:focus { border-color: rgba(31,106,82,.38); box-shadow: 0 0 0 4px rgba(31,106,82,.09); }
+    .ai-chat-send { align-self: end; border: 0; border-radius: 16px; padding: 13px 15px; min-width: 84px; background: linear-gradient(135deg, #1f6a52, #d06224); color: #fff; font-weight: 900; cursor: pointer; box-shadow: 0 10px 22px rgba(31,106,82,.18); }
+    .ai-chat-send[disabled] { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
+    @media (max-width: 560px) { .ai-chat-launcher { right: 14px; bottom: 14px; } .ai-chat-panel { right: 14px; bottom: 74px; width: calc(100vw - 28px); } }
   `;
   document.head.append(style);
 }
@@ -250,22 +316,29 @@ function createChatDom() {
   const launcher = document.createElement("button");
   launcher.type = "button";
   launcher.className = "ai-chat-launcher";
-  launcher.innerHTML = "💬 Asistente IA";
+  launcher.innerHTML = `<span class="ai-chat-launcher-dot"></span><span>Asistente IA</span>`;
 
   const panel = document.createElement("section");
   panel.className = "ai-chat-panel";
   panel.setAttribute("aria-label", "Copiloto preventivo");
   panel.innerHTML = `
     <header class="ai-chat-header">
-      <div>
+      <div class="ai-chat-avatar">✦</div>
+      <div class="ai-chat-title">
         <strong>Copiloto preventivo</strong>
-        <small>Preguntá sobre liquidación, revista, Serie 990, AFIP, CCT 244/94 y LCT.</small>
+        <small>Liquidación, revista, Serie 990, AFIP, CCT 244/94 y LCT.</small>
+        <span class="ai-chat-status">IA + base interna</span>
       </div>
       <button type="button" class="ai-chat-close" aria-label="Cerrar chat">×</button>
     </header>
     <section class="ai-chat-docs">
-      <strong>Base documental interna</strong><br>
-      <small>CCT 244/94 Alimentación + Ley de Contrato de Trabajo 20.744 cargadas internamente.</small>
+      <div class="ai-chat-doc-card">
+        <span class="ai-chat-doc-icon">📚</span>
+        <div>
+          <strong>Base documental interna</strong>
+          <small>CCT 244/94 Alimentación + Ley de Contrato de Trabajo 20.744.</small>
+        </div>
+      </div>
     </section>
     <div class="ai-chat-messages" role="log" aria-live="polite"></div>
     <div>
@@ -273,7 +346,7 @@ function createChatDom() {
         ${SUGGESTED_PROMPTS.map((prompt) => `<button type="button" class="ai-chat-chip" data-prompt="${escapeHtml(prompt)}">${escapeHtml(prompt)}</button>`).join("")}
       </div>
       <form class="ai-chat-form">
-        <textarea class="ai-chat-input" name="question" rows="1" placeholder="Ej: ¿qué dice el CCT sobre categorías?"></textarea>
+        <textarea class="ai-chat-input" name="question" rows="1" placeholder="Preguntá por un riesgo, categoría o control AFIP…"></textarea>
         <button type="submit" class="ai-chat-send">Enviar</button>
       </form>
     </div>
@@ -300,7 +373,7 @@ export function initPayrollChatBox() {
 
   addMessage(
     "assistant",
-    "Hola. Soy el copiloto preventivo. Ya tengo cargada una base interna con CCT 244/94 Alimentación y LCT 20.744. Puedo explicar hallazgos del auditor y responder sobre esas fuentes.",
+    "Hola. Soy tu copiloto preventivo. Ya tengo cargada la base interna con CCT 244/94 Alimentación y LCT 20.744. Puedo ayudarte a interpretar riesgos, controles AFIP, revista, Serie 990 y hallazgos de la liquidación.",
     refs
   );
 
@@ -320,7 +393,7 @@ export function initPayrollChatBox() {
     refs.send.disabled = true;
     refs.input.value = "";
     addMessage("user", question, refs);
-    addMessage("assistant", "Analizando auditoría y base documental interna…", refs);
+    addMessage("assistant", "Analizando contexto preventivo y base documental…", refs);
 
     const loadingIndex = CHAT_STATE.messages.length - 1;
     const answer = await askGemini(question);
