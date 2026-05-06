@@ -8,72 +8,65 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 BASE_URL = "http://127.0.0.1:8000/Calculadora_CCT_244_94_Alimentacion.html"
 
-DAYS_SELECTORS = [
-    "input[name='workedDays']",
-    "input[name='daysWorked']",
-    "input[name='worked-days']",
-    "input[name='days']",
-    "#worked-days",
-    "#days-worked",
-    "#workedDays",
-    "#daysWorked",
-    "input[type='number']"
-]
+FIELD_SELECTORS = {
+    "worked_days": ["input[name='workedDays']", "#worked-days", "#workedDays"],
+    "licensed_days": ["input[name='licensedDays']", "#licensed-days", "#licensedDays"],
+    "suspension_days": ["input[name='suspensionDays']", "#suspension-days", "#suspensionDays"],
+    "absence_days": ["input[name='absenceDays']", "#absence-days", "#absenceDays"],
+    "overtime_50": ["input[name='overtime50Hours']", "#overtime-50", "#overtime50Hours"],
+    "overtime_100": ["input[name='overtime100Hours']", "#overtime-100", "#overtime100Hours"],
+}
 
 AUDIT_GATE_SCENARIOS = [
-pytest.param(
-    {
-        "worked_days": 30,
-        "segments": [
-            {"code": "ACTIVO", "from": 1, "to": 28}
-        ],
-        "expected_blocked": True,
-    },
-    id="tramo-revista-cubre-solo-28-bloquea",
-),
-pytest.param(
-    {
-        "worked_days": 30,
-        "segments": [
-            {"code": "ACTIVO", "from": 1, "to": 30}
-        ],
-        "expected_blocked": False,
-    },
-    id="tramo-revista-cubre-30-permite",
-),
-pytest.param(
-    {
-        "worked_days": 30,
-        "segments": [
-            {"code": "ACTIVO", "from": 1, "to": 15},
-            {"code": "LICENCIA", "from": 16, "to": 30}
-        ],
-        "expected_blocked": False,
-    },
-    id="dos-tramos-completan-30-permite",
-),
-pytest.param(
-    {
-        "worked_days": 30,
-        "segments": [
-            {"code": "ACTIVO", "from": 1, "to": 20},
-            {"code": "SUSPENSION", "from": 20, "to": 30}
-        ],
-        "expected_blocked": True,
-    },
-    id="tramos-solapados-bloquea",
-),
-pytest.param(
-    {
-        "worked_days": 30,
-        "segments": [
-            {"code": "ACTIVO", "from": 1, "to": 10},
-            {"code": "LICENCIA", "from": 12, "to": 30}
-        ],
-        "expected_blocked": True,
-    },
-    id="tramos-con-hueco-bloquea",
-),
+    pytest.param(
+        {
+            "times": {"worked_days": 30},
+            "segments": [{"code": "ACTIVO", "from": 1, "to": 28}],
+            "expected": {"blocked": True},
+        },
+        id="tramo-revista-cubre-solo-28-bloquea",
+    ),
+    pytest.param(
+        {
+            "times": {"worked_days": 30},
+            "segments": [{"code": "ACTIVO", "from": 1, "to": 30}],
+            "expected": {"blocked": False},
+        },
+        id="tramo-revista-cubre-30-permite",
+    ),
+    pytest.param(
+        {
+            "times": {"worked_days": 30},
+            "segments": [
+                {"code": "ACTIVO", "from": 1, "to": 15},
+                {"code": "LICENCIA", "from": 16, "to": 30},
+            ],
+            "expected": {"blocked": False},
+        },
+        id="dos-tramos-completan-30-permite",
+    ),
+    pytest.param(
+        {
+            "times": {"worked_days": 30},
+            "segments": [
+                {"code": "ACTIVO", "from": 1, "to": 20},
+                {"code": "SUSPENSION", "from": 20, "to": 30},
+            ],
+            "expected": {"blocked": True},
+        },
+        id="tramos-solapados-bloquea",
+    ),
+    pytest.param(
+        {
+            "times": {"worked_days": 30},
+            "segments": [
+                {"code": "ACTIVO", "from": 1, "to": 10},
+                {"code": "LICENCIA", "from": 12, "to": 30},
+            ],
+            "expected": {"blocked": True},
+        },
+        id="tramos-con-hueco-bloquea",
+    ),
 ]
 
 
@@ -174,10 +167,53 @@ def go_to_times_step(driver):
     raise AssertionError(f"No se pudo navegar a Novedades y tiempos. Visibles: {visible_controls_debug(driver)}")
 
 
-def prepare_audit_scenario(driver, worked_days):
+def legacy_to_structured_scenario(scenario):
+    if "times" in scenario or "expected" in scenario:
+        return scenario
+    return {
+        "times": {"worked_days": scenario.get("worked_days")},
+        "segments": scenario.get("segments", []),
+        "expected": {"blocked": scenario.get("expected_blocked")},
+    }
+
+
+def fill_times_fields(driver, times):
+    for field_name, value in times.items():
+        if value is None:
+            continue
+        selectors = FIELD_SELECTORS.get(field_name)
+        if not selectors:
+            raise AssertionError(f"Campo de tiempos no soportado por Selenium: {field_name}")
+        input_element = first_visible(driver, selectors)
+        set_input_value(driver, input_element, value)
+
+
+def fill_revista_segments(driver, segments):
+    for index, segment in enumerate(segments, start=1):
+        if index > 3:
+            raise AssertionError("El LSD solo admite hasta 3 tramos de revista en esta pantalla")
+        set_input_value(
+            driver,
+            first_visible(driver, f"input[name='revistaSegment{index}Code']"),
+            segment.get("code", ""),
+        )
+        set_input_value(
+            driver,
+            first_visible(driver, f"input[name='revistaSegment{index}From']"),
+            segment.get("from", ""),
+        )
+        set_input_value(
+            driver,
+            first_visible(driver, f"input[name='revistaSegment{index}To']"),
+            segment.get("to", ""),
+        )
+
+
+def prepare_audit_scenario(driver, scenario):
+    scenario = legacy_to_structured_scenario(scenario)
     go_to_times_step(driver)
-    days_input = first_visible(driver, DAYS_SELECTORS)
-    set_input_value(driver, days_input, str(worked_days))
+    fill_times_fields(driver, scenario.get("times", {}))
+    fill_revista_segments(driver, scenario.get("segments", []))
     click_button_by_text(driver, "continuar a conceptos")
     click_button_by_text(driver, "continuar a auditor", "auditoria preventiva", "auditoría preventiva")
 
@@ -192,6 +228,7 @@ def visible_result_buttons(driver):
 
 @pytest.mark.parametrize("scenario", AUDIT_GATE_SCENARIOS)
 def test_audit_gate_result_visibility_by_scenario(scenario):
+    scenario = legacy_to_structured_scenario(scenario)
     driver = create_driver()
     wait = WebDriverWait(driver, 25)
 
@@ -199,9 +236,10 @@ def test_audit_gate_result_visibility_by_scenario(scenario):
         driver.get(BASE_URL)
         wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
 
-        prepare_audit_scenario(driver, scenario["worked_days"])
+        prepare_audit_scenario(driver, scenario)
+        expected_blocked = bool(scenario["expected"]["blocked"])
 
-        if scenario["expected_blocked"]:
+        if expected_blocked:
             wait.until(
                 EC.presence_of_element_located(
                     (
