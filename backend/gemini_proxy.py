@@ -24,112 +24,53 @@ class GeminiProxyError(RuntimeError):
 def build_prompt(payload: Mapping[str, Any]) -> str:
     return f"""
 Actua como auditor preventivo senior de payroll argentino, AFIP, Libro de Sueldos Digital y normativa laboral argentina.
+Responde breve, en espanol, usando el contexto documental si existe.
 
-Reglas de respuesta:
-- Responde la pregunta concreta del usuario.
-- Usa primero el contexto documental interno si fue provisto.
-- NO recalcules la liquidacion completa.
-- NO inventes normas que no surjan del contexto.
-- Si el contexto documental no alcanza, decilo explicitamente.
-- Prioriza riesgos operativos, AFIP, SAC, bases imponibles y consistencia previa a exportacion.
-- Responde en espanol claro, breve y ejecutivo.
-- Si mencionas una fuente, usa el nombre y fragmento provisto.
-
-Pregunta del usuario:
-{payload.get("pregunta_usuario", "")}
-
-Periodo:
-{payload.get("periodo", "")}
-
-Resumen de totalizadores:
-{json.dumps(payload.get("resumen_totalizadores", {}), ensure_ascii=False, indent=2)}
-
-Resumen de revista:
-{json.dumps(payload.get("resumen_revista", {}), ensure_ascii=False, indent=2)}
-
-Hallazgos deterministas previos:
-{json.dumps(payload.get("errores_detectados", []), ensure_ascii=False, indent=2)}
-
-Contexto documental interno:
-{json.dumps(payload.get("contexto_documental", []), ensure_ascii=False, indent=2)}
-
-Quiero:
-1. Respuesta directa a la pregunta.
-2. Fundamento con base interna cuando exista.
-3. Riesgo laboral/AFIP si corresponde.
-4. Accion sugerida si corresponde.
+Pregunta: {payload.get("pregunta_usuario", "")}
+Periodo: {payload.get("periodo", "")}
+Totalizadores: {json.dumps(payload.get("resumen_totalizadores", {}), ensure_ascii=False)}
+Revista: {json.dumps(payload.get("resumen_revista", {}), ensure_ascii=False)}
+Hallazgos: {json.dumps(payload.get("errores_detectados", []), ensure_ascii=False)}
+Contexto: {json.dumps(payload.get("contexto_documental", []), ensure_ascii=False)}
 """.strip()
 
 
 def build_cct_extraction_prompt(payload: Mapping[str, Any]) -> str:
-    cct_text = str(payload.get("text", ""))[:120000]
+    cct_text = str(payload.get("text", ""))[:65000]
     file_name = payload.get("file_name", "CCT.pdf")
     return f"""
-Actua como analista senior de convenios colectivos argentinos y arquitecto de calculadoras salariales.
+Sos un procesador argentino de CCT para crear calculadoras salariales.
+Devolve SOLO JSON puro, sin markdown, sin ```json, sin comentarios.
+No inventes importes ni porcentajes. Si falta dato, null y pendientes_revision.
+Mantenelo compacto: maximo 12 categorias, 12 adicionales, fuente_textual maximo 120 caracteres.
 
-Objetivo:
-Leer el texto extraido de un PDF de CCT/acuerdo salarial y devolver SOLO un JSON valido para alimentar una calculadora de liquidacion.
+CONOCIMIENTO BASE OBLIGATORIO:
+- LCT no puede ser empeorada por CCT.
+- Orden calculadora: 101 basico proporcional, 102 antiguedad, 103 presentismo, base compuesta si aplica, adicionales, valor hora, extras, bruto, aportes, neto, no remunerativos, bolsillo.
+- Aportes empleado default: jubilacion 11%, PAMI 3%, obra social 3% salvo CCT, sindicato si CCT lo indica.
+- Horas extra LCT: 50% dias comunes, 100% sabado tarde/domingo/feriado salvo mejora.
+- Si el CCT no define divisor mensual, usar 30 y marcar pendiente.
 
-Reglas obligatorias:
-- Devolve exclusivamente JSON valido. Sin markdown, sin explicaciones fuera del JSON.
-- No inventes escalas, importes, porcentajes ni vigencias.
-- Si un dato no esta en el texto, usar null y agregarlo en pendientes_revision.
-- Separar categorias, jornada, adicionales, antiguedad, zona, presentismo, horas extra, licencias y no remunerativos si aparecen.
-- Indicar fuente_textual breve en cada regla cuando sea posible.
-- Incluir nivel_confianza de 0 a 1.
-- El JSON debe estar en espanol y listo para ser revisado por un liquidador.
-
-Estructura requerida:
+JSON exacto requerido:
 {{
-  "version": "YYYY-MM-DD",
-  "archivo_fuente": "{file_name}",
-  "convenio": {{
-    "nombre": null,
-    "actividad": null,
-    "ambito": null,
-    "vigencia_detectada": null
-  }},
-  "categorias": [
-    {{
-      "id": "slug",
-      "nombre": "",
-      "tipo": "jornalizado|mensualizado|administrativo|otro|null",
-      "descripcion": "",
-      "valor_hora": null,
-      "sueldo_mensual": null,
-      "fuente_textual": ""
-    }}
-  ],
-  "jornada": {{
-    "horas_mensuales": null,
-    "dias_mensuales": null,
-    "horas_diarias": null,
-    "fuente_textual": null
-  }},
-  "adicionales": [
-    {{
-      "nombre": "",
-      "tipo": "porcentaje|importe|formula|otro",
-      "valor": null,
-      "base": null,
-      "condicion": null,
-      "fuente_textual": ""
-    }}
-  ],
-  "reglas_liquidacion": {{
-    "antiguedad": null,
-    "zona_desfavorable": null,
-    "presentismo": null,
-    "horas_extra": null,
-    "licencias": [],
-    "no_remunerativos": []
-  }},
-  "pendientes_revision": [],
-  "alertas": [],
-  "nivel_confianza": 0
+ "version":"YYYY-MM-DD",
+ "archivo_fuente":"{file_name}",
+ "convenio":{{"nombre":null,"actividad":null,"ambito":null,"cct_numero":null,"vigencia_detectada":null}},
+ "parametros":{{"divisor_mensual":30,"horas_mensuales":null,"horas_semanales":null,"base_calculo":"simple|compuesta|integrada|null"}},
+ "categorias":[{{"id":"slug","nombre":"","tipo":"jornalizado|mensualizado|administrativo|otro|null","descripcion":"","valor_hora":null,"sueldo_mensual":null,"fuente_textual":""}}],
+ "conceptos":[
+  {{"codigo":"101","nombre":"Sueldo Basico Proporcional","tipo":"remunerativo","formula":"escala_categoria*dias/divisor","lsd":"001","ganancias":"gravado","incidencia":{{"jubilacion":true,"obra_social":true,"sindicato":true}}}},
+  {{"codigo":"102","nombre":"Antiguedad","tipo":"remunerativo","formula":null,"lsd":"005","ganancias":"gravado","incidencia":{{"jubilacion":true,"obra_social":true,"sindicato":true}}}}
+ ],
+ "adicionales":[{{"nombre":"","tipo":"porcentaje|importe|formula|otro","valor":null,"base":null,"condicion":null,"codigo_sugerido":"1xx","lsd":null,"fuente_textual":""}}],
+ "reglas_liquidacion":{{"antiguedad":null,"presentismo":null,"zona_desfavorable":null,"horas_extra":null,"licencias":[],"no_remunerativos":[]}},
+ "matriz_tecnica":[{{"paso":1,"codigo":"101","concepto":"Sueldo Basico Proporcional","formula":"escala_categoria*dias/divisor","lsd":"001","ganancias":"gravado","incidencia":"SI/SI/SI"}}],
+ "pendientes_revision":[],
+ "alertas":[],
+ "nivel_confianza":0.0
 }}
 
-Texto extraido del PDF:
+TEXTO PDF:
 {cct_text}
 """.strip()
 
@@ -141,35 +82,17 @@ def _call_gemini_once(prompt: str, active_model: str, api_key: str) -> str:
     )
 
     body = {
-        "contents": [
-            {
-                "role": "user",
-                "parts": [{"text": prompt}],
-            }
-        ],
-        "generationConfig": {
-            "temperature": 0.15,
-            "topP": 0.9,
-            "maxOutputTokens": 3500,
-        },
+        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+        "generationConfig": {"temperature": 0.05, "topP": 0.8, "maxOutputTokens": 8192},
     }
 
     data = json.dumps(body).encode("utf-8")
-    req = request.Request(
-        url,
-        data=data,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
+    req = request.Request(url, data=data, headers={"Content-Type": "application/json"}, method="POST")
 
     with request.urlopen(req, timeout=90) as response:
         payload = json.loads(response.read().decode("utf-8"))
 
-    parts = (
-        payload.get("candidates", [{}])[0]
-        .get("content", {})
-        .get("parts", [])
-    )
+    parts = payload.get("candidates", [{}])[0].get("content", {}).get("parts", [])
     text = "\n".join(part.get("text", "") for part in parts if part.get("text"))
     if not text.strip():
         raise GeminiProxyError("Gemini no devolvio texto util.")
