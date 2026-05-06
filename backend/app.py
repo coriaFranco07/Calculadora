@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+import io
 import json
 import os
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
+from pypdf import PdfReader
 
 from backend.gemini_proxy import (
     DEFAULT_MODEL,
@@ -64,6 +66,47 @@ app.add_middleware(
 )
 
 
+def parse_gemini_json(text: str) -> Any:
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        cleaned = cleaned.strip("`")
+        cleaned = cleaned.removeprefix("json").strip()
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        return {"estado": "respuesta_no_json", "raw": text}
+
+
+def extract_text_from_pdf_bytes(content: bytes) -> str:
+    reader = PdfReader(io.BytesIO(content))
+    pages: list[str] = []
+    for page in reader.pages:
+        pages.append(page.extract_text() or "")
+    text = "\n\n".join(pages).strip()
+    if len(text) < 80:
+        raise HTTPException(
+            status_code=422,
+            detail="El PDF se pudo abrir, pero no contiene suficiente texto seleccionable. Probablemente es escaneado/imagen y requiere OCR.",
+        )
+    return text
+
+
+def extract_cct_from_text(file_name: str, text: str) -> dict[str, Any]:
+    prompt = build_cct_extraction_prompt({"file_name": file_name, "text": text})
+    try:
+        gemini_text = call_gemini(prompt, os.getenv("GEMINI_MODEL", DEFAULT_MODEL))
+    except GeminiProxyError as exc:
+        status_code = 503 if "API_KEY" in str(exc) else 502
+        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
+
+    return {
+        "mode": "gemini-cct",
+        "model": os.getenv("GEMINI_MODEL", DEFAULT_MODEL),
+        "text_length": len(text),
+        "result": parse_gemini_json(gemini_text),
+    }
+
+
 @app.get("/health")
 def health() -> dict[str, Any]:
     return {
@@ -91,27 +134,16 @@ def audit(payload: AuditRequest) -> dict[str, Any]:
 
 @app.post("/extract-cct")
 def extract_cct(payload: CctExtractionRequest) -> dict[str, Any]:
-    prompt = build_cct_extraction_prompt(payload.model_dump())
-    try:
-        text = call_gemini(prompt, os.getenv("GEMINI_MODEL", DEFAULT_MODEL))
-    except GeminiProxyError as exc:
-        status_code = 503 if "API_KEY" in str(exc) else 502
-        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
+    return extract_cct_from_text(payload.file_name, payload.text)
 
-    parsed: Any
-    try:
-        parsed = json.loads(text)
-    except json.JSONDecodeError:
-        parsed = {
-            "estado": "respuesta_no_json",
-            "raw": text,
-        }
 
-    return {
-        "mode": "gemini-cct",
-        "model": os.getenv("GEMINI_MODEL", DEFAULT_MODEL),
-        "result": parsed,
-    }
+@app.post("/extract-cct-pdf")
+async def extract_cct_pdf(file: UploadFile = File(...)) -> dict[str, Any]:
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Solo se aceptan archivos PDF.")
+    content = await file.read()
+    text = extract_text_from_pdf_bytes(content)
+    return extract_cct_from_text(file.filename, text)
 
 
 app.mount("/", StaticFiles(directory=str(ROOT_DIR), html=True), name="static")
