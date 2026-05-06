@@ -1,6 +1,5 @@
-import "./chat-box.js";
-import "./audit-gate.js";
+import "./cct-loader.js";
 
-// Bootstrap modules for the payroll assistant experience.
-// Chat handles IA + documentation.
-// Audit gate blocks export/result flows when deterministic audit fails.
+// Nuevo enfoque del producto:
+// CCT -> JSON estructurado -> Calculadora.
+// El loader genera una base preliminar reutilizable para futuras liquidaciones.
