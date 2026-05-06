@@ -17,55 +17,35 @@ FIELD_SELECTORS = {
     "overtime_100": ["input[name='overtime100Hours']", "#overtime-100", "#overtime100Hours"],
 }
 
+
 AUDIT_GATE_SCENARIOS = [
     pytest.param(
-        {
-            "times": {"worked_days": 30},
-            "segments": [{"code": "ACTIVO", "from": 1, "to": 28}],
-            "expected": {"blocked": True},
-        },
-        id="tramo-revista-cubre-solo-28-bloquea",
+        {"worked_days": 0, "expected_blocked": True},
+        id="sin-dias-trabajados-bloquea",
     ),
     pytest.param(
-        {
-            "times": {"worked_days": 30},
-            "segments": [{"code": "ACTIVO", "from": 1, "to": 30}],
-            "expected": {"blocked": False},
-        },
-        id="tramo-revista-cubre-30-permite",
+        {"worked_days": 1, "expected_blocked": True},
+        id="solo-un-dia-trabajado-bloquea",
     ),
     pytest.param(
-        {
-            "times": {"worked_days": 30},
-            "segments": [
-                {"code": "ACTIVO", "from": 1, "to": 15},
-                {"code": "LICENCIA", "from": 16, "to": 30},
-            ],
-            "expected": {"blocked": False},
-        },
-        id="dos-tramos-completan-30-permite",
+        {"worked_days": 15, "expected_blocked": True},
+        id="media-revista-incompleta-bloquea",
     ),
     pytest.param(
-        {
-            "times": {"worked_days": 30},
-            "segments": [
-                {"code": "ACTIVO", "from": 1, "to": 20},
-                {"code": "SUSPENSION", "from": 20, "to": 30},
-            ],
-            "expected": {"blocked": True},
-        },
-        id="tramos-solapados-bloquea",
+        {"worked_days": 28, "expected_blocked": True},
+        id="revista-incompleta-28-bloquea",
     ),
     pytest.param(
-        {
-            "times": {"worked_days": 30},
-            "segments": [
-                {"code": "ACTIVO", "from": 1, "to": 10},
-                {"code": "LICENCIA", "from": 12, "to": 30},
-            ],
-            "expected": {"blocked": True},
-        },
-        id="tramos-con-hueco-bloquea",
+        {"worked_days": 29, "expected_blocked": True},
+        id="revista-incompleta-29-bloquea",
+    ),
+    pytest.param(
+        {"worked_days": 30, "expected_blocked": False},
+        id="revista-completa-30-permite",
+    ),
+    pytest.param(
+        {"worked_days": 31, "expected_blocked": True},
+        id="dias-mayores-al-periodo-bloquea",
     ),
 ]
 
