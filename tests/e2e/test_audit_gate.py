@@ -36,17 +36,8 @@ def visible_enabled(element):
     return element.is_displayed() and element.is_enabled()
 
 
-def first_visible(driver, selectors):
-    if isinstance(selectors, str):
-        selectors = [selectors]
-
-    for selector in selectors:
-        elements = driver.find_elements(By.CSS_SELECTOR, selector)
-        for element in elements:
-            if visible_enabled(element):
-                return element
-
-    visible_inputs = driver.execute_script(
+def visible_controls_debug(driver):
+    return driver.execute_script(
         """
         return Array.from(document.querySelectorAll('input, select, textarea, button')).map((el) => ({
           tag: el.tagName,
@@ -60,8 +51,19 @@ def first_visible(driver, selectors):
         """
     )
 
+
+def first_visible(driver, selectors):
+    if isinstance(selectors, str):
+        selectors = [selectors]
+
+    for selector in selectors:
+        elements = driver.find_elements(By.CSS_SELECTOR, selector)
+        for element in elements:
+            if visible_enabled(element):
+                return element
+
     raise AssertionError(
-        f"No se encontró elemento visible para selectores: {selectors}. Visibles: {visible_inputs}"
+        f"No se encontró elemento visible para selectores: {selectors}. Visibles: {visible_controls_debug(driver)}"
     )
 
 
@@ -81,11 +83,26 @@ def set_input_value(driver, element, value):
     )
 
 
-def click_visible(driver, selectors):
-    element = first_visible(driver, selectors)
+def click_element(driver, element):
     driver.execute_script("arguments[0].scrollIntoView({ block: 'center' });", element)
     element.click()
+
+
+def click_visible(driver, selectors):
+    element = first_visible(driver, selectors)
+    click_element(driver, element)
     return element
+
+
+def click_button_by_text(driver, *text_options):
+    normalized_options = [text.lower() for text in text_options]
+    buttons = driver.find_elements(By.CSS_SELECTOR, "button, a")
+    for button in buttons:
+        text = (button.text or "").lower()
+        if visible_enabled(button) and any(option in text for option in normalized_options):
+            click_element(driver, button)
+            return button
+    raise AssertionError(f"No se encontró botón visible con textos {text_options}. Visibles: {visible_controls_debug(driver)}")
 
 
 def go_to_times_step(driver):
@@ -100,12 +117,10 @@ def go_to_times_step(driver):
             "novedades" in text or
             "tiempos" in text
         ):
-            driver.execute_script(
-                "arguments[0].scrollIntoView({ block: 'center' });",
-                candidate
-            )
-            candidate.click()
+            click_element(driver, candidate)
             return
+
+    raise AssertionError(f"No se pudo navegar a Novedades y tiempos. Visibles: {visible_controls_debug(driver)}")
 
 
 def test_audit_gate_blocks_result_button():
@@ -122,14 +137,8 @@ def test_audit_gate_blocks_result_button():
         days_input = first_visible(driver, DAYS_SELECTORS)
         set_input_value(driver, days_input, "28")
 
-        click_visible(
-            driver,
-            [
-                "button[type='submit']",
-                "#calculate-button",
-                "[data-action='calculate']"
-            ]
-        )
+        click_button_by_text(driver, "continuar a conceptos")
+        click_button_by_text(driver, "continuar a auditor", "auditoria preventiva", "auditoría preventiva")
 
         wait.until(
             EC.presence_of_element_located(
