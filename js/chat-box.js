@@ -11,8 +11,10 @@ const STORAGE_KEY = "cct244_chat_documents_v1";
 const MAX_CONTEXT_CHUNKS = 5;
 const MAX_CHUNK_LENGTH = 1400;
 const PDFJS_VERSION = "4.3.136";
-const PDFJS_SCRIPT = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}/pdf.min.js`;
-const PDFJS_WORKER = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}/pdf.worker.min.js`;
+const PDFJS_SCRIPT =
+  "/node_modules/pdfjs-dist/build/pdf.min.mjs";
+const PDFJS_WORKER =
+  "/node_modules/pdfjs-dist/build/pdf.worker.min.mjs";
 
 let pdfJsLoadingPromise = null;
 
