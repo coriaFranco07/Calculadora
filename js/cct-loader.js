@@ -101,8 +101,11 @@ function saveDraft(payload) {
 
 async function ensurePdfJs() {
   if (window.pdfjsLib) return window.pdfjsLib;
-  const module = await import("../node_modules/pdfjs-dist/build/pdf.mjs");
-  module.GlobalWorkerOptions.workerSrc = "../node_modules/pdfjs-dist/build/pdf.worker.mjs";
+
+  const pdfModuleUrl = new URL("../node_modules/pdfjs-dist/build/pdf.mjs", import.meta.url).href;
+  const workerUrl = new URL("../node_modules/pdfjs-dist/build/pdf.worker.mjs", import.meta.url).href;
+  const module = await import(pdfModuleUrl);
+  module.GlobalWorkerOptions.workerSrc = workerUrl;
   window.pdfjsLib = module;
   return module;
 }
@@ -112,15 +115,21 @@ async function extractPdfText(file, onProgress) {
   const buffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
   const pages = [];
+  let totalItems = 0;
 
   for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
     onProgress?.(`Analizando PDF… página ${pageNumber} de ${pdf.numPages}`);
     const page = await pdf.getPage(pageNumber);
     const content = await page.getTextContent();
+    totalItems += content.items.length;
     pages.push(content.items.map((item) => item.str || "").join(" "));
   }
 
-  return pages.join("\n\n");
+  const text = pages.join("\n\n").trim();
+  if (!text || totalItems === 0 || text.length < 80) {
+    throw new Error("El PDF se pudo abrir, pero no contiene suficiente texto seleccionable. Probablemente es escaneado/imagen. Para esta versión necesitás un PDF con texto seleccionable o agregar OCR.");
+  }
+  return text;
 }
 
 async function analyzeWithGemini(fileName, text) {
@@ -260,7 +269,7 @@ async function handlePdf(file, refs) {
 
   try {
     const text = await extractPdfText(file, (message) => setStatus(refs.status, message));
-    setStatus(refs.status, "Analizando PDF… consultando IA");
+    setStatus(refs.status, `Analizando PDF… texto extraído (${text.length.toLocaleString("es-AR")} caracteres). Consultando IA`);
 
     let payload;
     try {
@@ -279,8 +288,9 @@ async function handlePdf(file, refs) {
     setStatus(refs.status, "PDF analizado. Ya podés crear la calculadora.");
   } catch (error) {
     setFlowStep(refs.shell, 0);
-    refs.output.textContent = String(error?.message || error);
-    setStatus(refs.status, "No pude analizar el PDF. Revisá que sea texto seleccionable o que PDF.js esté instalado.", true);
+    const detail = error?.message || String(error);
+    refs.output.textContent = `No pude analizar el PDF.\n\nDetalle técnico:\n${detail}`;
+    setStatus(refs.status, `No pude analizar el PDF: ${detail}`, true);
   }
 }
 
