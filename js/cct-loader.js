@@ -1,4 +1,5 @@
-const CCT_STORAGE_KEY = "cct_calculator_draft_v1";
+const CCT_STORAGE_KEY = "cct_calculator_draft_v2";
+let lastExtractedJson = null;
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -16,6 +17,13 @@ function normalizeText(value) {
     .toLowerCase();
 }
 
+function slugify(value) {
+  return normalizeText(value)
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 48) || "categoria";
+}
+
 function extractCategories(text) {
   const lines = String(text || "")
     .split(/\r?\n/)
@@ -26,48 +34,64 @@ function extractCategories(text) {
   return lines
     .filter((line) => categoryHints.some((hint) => normalizeText(line).includes(normalizeText(hint))))
     .slice(0, 18)
-    .map((line, index) => ({ id: `cat_${index + 1}`, nombre: line.slice(0, 120), fuente: "texto_cct" }));
+    .map((line, index) => ({ id: slugify(line) || `cat_${index + 1}`, nombre: line.slice(0, 120), fuente_textual: line.slice(0, 180) }));
 }
 
 function extractPercentages(text) {
   const matches = [...String(text || "").matchAll(/(.{0,55})(\d{1,2}(?:[,.]\d{1,2})?)\s*%(.{0,55})/g)];
   return matches.slice(0, 18).map((match, index) => ({
-    id: `adicional_${index + 1}`,
-    descripcion: `${match[1]}${match[2]}%${match[3]}`.replace(/\s+/g, " ").trim(),
-    porcentaje: Number(String(match[2]).replace(",", ".")),
+    nombre: `Adicional detectado ${index + 1}`,
+    tipo: "porcentaje",
+    valor: Number(String(match[2]).replace(",", ".")),
+    base: null,
+    condicion: null,
+    fuente_textual: `${match[1]}${match[2]}%${match[3]}`.replace(/\s+/g, " ").trim(),
   }));
 }
 
-function buildCctJson(rawText) {
+function buildCctJson(rawText, fileName = "CCT.pdf") {
   const text = String(rawText || "").trim();
-  const categories = extractCategories(text);
-  const percentages = extractPercentages(text);
   return {
     version: new Date().toISOString().slice(0, 10),
-    estado: text ? "borrador_generado" : "sin_texto",
+    archivo_fuente: fileName,
+    estado: text ? "borrador_local" : "sin_texto",
     convenio: {
       nombre: "CCT cargado por usuario",
-      fuente: "texto_pegado",
-      observaciones: "Borrador estructurado localmente. Revisar escalas, vigencias y artículos antes de usar en producción."
+      actividad: null,
+      ambito: null,
+      vigencia_detectada: null,
+      observaciones: "Borrador local de respaldo. Revisar con IA o liquidador antes de usar."
     },
-    categorias: categories,
-    adicionales_detectados: percentages,
+    categorias: extractCategories(text),
     jornada: {
-      mensual_horas: null,
-      mensual_dias: null,
-      pendiente_revision: true
+      horas_mensuales: text.match(/200\s*horas/i) ? 200 : null,
+      dias_mensuales: text.match(/25\s*d[ií]as/i) ? 25 : null,
+      horas_diarias: null,
+      fuente_textual: null
     },
-    pendientes: [
+    adicionales: extractPercentages(text),
+    reglas_liquidacion: {
+      antiguedad: null,
+      zona_desfavorable: null,
+      presentismo: null,
+      horas_extra: null,
+      licencias: [],
+      no_remunerativos: []
+    },
+    pendientes_revision: [
       "Confirmar vigencia salarial",
-      "Cargar escalas remunerativas por categoría",
-      "Validar reglas de antigüedad",
+      "Cargar o validar escalas por categoria",
       "Validar adicionales convencionales",
-      "Revisar jornada y proporcionalidad"
-    ]
+      "Validar jornada y proporcionalidad",
+      "Revisar formulas antes de liquidar"
+    ],
+    alertas: ["JSON generado como borrador local por fallback"],
+    nivel_confianza: 0.35
   };
 }
 
 function saveDraft(payload) {
+  lastExtractedJson = payload;
   try {
     localStorage.setItem(CCT_STORAGE_KEY, JSON.stringify(payload));
   } catch (_error) {
@@ -75,43 +99,103 @@ function saveDraft(payload) {
   }
 }
 
+async function ensurePdfJs() {
+  if (window.pdfjsLib) return window.pdfjsLib;
+  const module = await import("../node_modules/pdfjs-dist/build/pdf.mjs");
+  module.GlobalWorkerOptions.workerSrc = "../node_modules/pdfjs-dist/build/pdf.worker.mjs";
+  window.pdfjsLib = module;
+  return module;
+}
+
+async function extractPdfText(file, onProgress) {
+  const pdfjsLib = await ensurePdfJs();
+  const buffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+  const pages = [];
+
+  for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+    onProgress?.(`Analizando PDF… página ${pageNumber} de ${pdf.numPages}`);
+    const page = await pdf.getPage(pageNumber);
+    const content = await page.getTextContent();
+    pages.push(content.items.map((item) => item.str || "").join(" "));
+  }
+
+  return pages.join("\n\n");
+}
+
+async function analyzeWithGemini(fileName, text) {
+  const response = await fetch("/extract-cct", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ file_name: fileName, text })
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(detail || `HTTP ${response.status}`);
+  }
+
+  const payload = await response.json();
+  return payload.result || payload;
+}
+
 function injectStyles() {
   if (document.querySelector("#cct-loader-styles")) return;
   const style = document.createElement("style");
   style.id = "cct-loader-styles";
   style.textContent = `
-    .cct-loader-shell {
-      margin: 22px auto;
-      max-width: 1180px;
-      border: 1px solid rgba(31,106,82,.14);
-      border-radius: 28px;
-      overflow: hidden;
-      background: linear-gradient(180deg, rgba(255,253,248,.98), rgba(255,248,237,.96));
-      box-shadow: 0 22px 70px rgba(15,21,19,.10);
-    }
-    .cct-loader-hero {
-      padding: 28px;
-      background: radial-gradient(circle at 15% 10%, rgba(208,98,36,.18), transparent 34%), linear-gradient(135deg, rgba(31,106,82,.14), rgba(208,98,36,.10));
-      display: grid;
-      gap: 12px;
-    }
-    .cct-loader-hero small { color: #53615d; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
-    .cct-loader-hero h2 { margin: 0; font-size: clamp(1.8rem, 3vw, 3rem); color: #1b2321; letter-spacing: -.04em; }
-    .cct-loader-hero p { margin: 0; max-width: 760px; color: #53615d; line-height: 1.55; }
-    .cct-loader-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, .85fr); gap: 18px; padding: 22px; }
-    .cct-loader-card { border: 1px solid rgba(27,35,33,.08); border-radius: 22px; background: rgba(255,255,255,.78); padding: 18px; }
+    .cct-loader-shell { margin: 22px auto; max-width: 1180px; border: 1px solid rgba(31,106,82,.14); border-radius: 30px; overflow: hidden; background: linear-gradient(180deg, rgba(255,253,248,.98), rgba(255,248,237,.96)); box-shadow: 0 22px 70px rgba(15,21,19,.10); }
+    .cct-loader-hero { padding: 30px; background: radial-gradient(circle at 15% 10%, rgba(208,98,36,.18), transparent 34%), linear-gradient(135deg, rgba(31,106,82,.14), rgba(208,98,36,.10)); display: grid; gap: 12px; }
+    .cct-loader-hero small { color: #53615d; font-weight: 900; text-transform: uppercase; letter-spacing: .08em; }
+    .cct-loader-hero h2 { margin: 0; font-size: clamp(1.9rem, 3vw, 3.2rem); color: #1b2321; letter-spacing: -.045em; }
+    .cct-loader-hero p { margin: 0; max-width: 820px; color: #53615d; line-height: 1.55; }
+    .cct-flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; padding: 18px 22px 0; }
+    .cct-flow-step { border: 1px solid rgba(27,35,33,.08); border-radius: 18px; padding: 12px; background: rgba(255,255,255,.68); color: #53615d; font-weight: 800; }
+    .cct-flow-step.is-active { background: rgba(31,106,82,.11); color: #1f6a52; border-color: rgba(31,106,82,.22); }
+    .cct-loader-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(360px, 1.1fr); gap: 18px; padding: 22px; }
+    .cct-loader-card { border: 1px solid rgba(27,35,33,.08); border-radius: 24px; background: rgba(255,255,255,.80); padding: 18px; }
     .cct-loader-card h3 { margin: 0 0 10px; color: #1b2321; }
-    .cct-loader-textarea { width: 100%; min-height: 330px; resize: vertical; border: 1px solid rgba(27,35,33,.13); border-radius: 18px; padding: 14px; font: inherit; background: #fffdf8; color: #1b2321; outline: none; }
-    .cct-loader-textarea:focus { border-color: rgba(31,106,82,.38); box-shadow: 0 0 0 4px rgba(31,106,82,.08); }
-    .cct-loader-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
-    .cct-loader-button { border: 0; border-radius: 14px; padding: 12px 15px; background: linear-gradient(135deg, #1f6a52, #d06224); color: white; font-weight: 900; cursor: pointer; }
+    .cct-dropzone { position: relative; display: grid; place-items: center; min-height: 235px; border: 2px dashed rgba(31,106,82,.25); border-radius: 22px; background: rgba(31,106,82,.055); text-align: center; padding: 24px; cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+    .cct-dropzone:hover { border-color: rgba(208,98,36,.38); background: rgba(208,98,36,.055); }
+    .cct-dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .cct-dropzone strong { display: block; font-size: 1.15rem; color: #1b2321; margin-bottom: 6px; }
+    .cct-dropzone span { color: #53615d; }
+    .cct-status { margin-top: 14px; padding: 13px 14px; border-radius: 16px; background: rgba(31,106,82,.08); color: #1f6a52; font-weight: 800; }
+    .cct-status.is-error { background: rgba(160,43,43,.10); color: #8d2929; }
+    .cct-loader-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .cct-loader-button { border: 0; border-radius: 15px; padding: 12px 15px; background: linear-gradient(135deg, #1f6a52, #d06224); color: white; font-weight: 900; cursor: pointer; }
     .cct-loader-button.secondary { background: rgba(31,106,82,.10); color: #1f6a52; }
-    .cct-loader-output { white-space: pre-wrap; overflow: auto; max-height: 430px; padding: 14px; border-radius: 16px; background: #1b2321; color: #f7efe2; font-size: .86rem; line-height: 1.45; }
-    .cct-loader-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-    .cct-loader-pill { border-radius: 999px; padding: 7px 10px; background: rgba(31,106,82,.10); color: #1f6a52; font-size: .82rem; font-weight: 800; }
-    @media (max-width: 900px) { .cct-loader-grid { grid-template-columns: 1fr; } }
+    .cct-loader-button[disabled] { opacity: .48; cursor: not-allowed; filter: grayscale(.2); }
+    .cct-loader-output { white-space: pre-wrap; overflow: auto; max-height: 500px; padding: 14px; border-radius: 16px; background: #1b2321; color: #f7efe2; font-size: .86rem; line-height: 1.45; }
+    .generated-calculator { margin-top: 16px; padding: 16px; border-radius: 20px; background: rgba(31,106,82,.08); border: 1px solid rgba(31,106,82,.16); }
+    .generated-calculator h4 { margin: 0 0 8px; color: #1f6a52; }
+    .generated-calculator ul { margin: 8px 0 0; padding-left: 20px; }
+    @media (max-width: 900px) { .cct-loader-grid, .cct-flow { grid-template-columns: 1fr; } }
   `;
   document.head.append(style);
+}
+
+function setFlowStep(shell, index) {
+  shell.querySelectorAll(".cct-flow-step").forEach((item, itemIndex) => {
+    item.classList.toggle("is-active", itemIndex <= index);
+  });
+}
+
+function renderGeneratedCalculator(container, payload) {
+  const convenio = payload?.convenio || {};
+  const categorias = Array.isArray(payload?.categorias) ? payload.categorias : [];
+  const adicionales = Array.isArray(payload?.adicionales) ? payload.adicionales : [];
+  container.innerHTML = `
+    <div class="generated-calculator">
+      <h4>Calculadora creada</h4>
+      <p><strong>Convenio:</strong> ${escapeHtml(convenio.nombre || "CCT cargado")}</p>
+      <p><strong>Categorías detectadas:</strong> ${categorias.length}</p>
+      <p><strong>Adicionales detectados:</strong> ${adicionales.length}</p>
+      <ul>
+        ${categorias.slice(0, 8).map((cat) => `<li>${escapeHtml(cat.nombre || cat.id || "Categoría")}</li>`).join("") || "<li>Sin categorías detectadas automáticamente</li>"}
+      </ul>
+    </div>
+  `;
 }
 
 function createShell() {
@@ -123,27 +207,36 @@ function createShell() {
   shell.className = "cct-loader-shell";
   shell.innerHTML = `
     <div class="cct-loader-hero">
-      <small>Nuevo enfoque del producto</small>
-      <h2>CCT → Calculadora</h2>
-      <p>Pegá el texto de un convenio colectivo o acuerdo salarial. Esta página genera un primer JSON estructurado para alimentar la calculadora: categorías, adicionales detectados, jornada pendiente y reglas a revisar.</p>
+      <small>Constructor IA de calculadoras</small>
+      <h2>Subí un CCT en PDF y creá la calculadora</h2>
+      <p>Flujo: subís el PDF, la IA lo analiza, revisás el JSON generado y presionás “Crear calculadora” para dejar una calculadora preliminar basada en ese convenio.</p>
+    </div>
+    <div class="cct-flow">
+      <div class="cct-flow-step is-active">1. Subir PDF</div>
+      <div class="cct-flow-step">2. Analizando PDF</div>
+      <div class="cct-flow-step">3. Crear calculadora</div>
+      <div class="cct-flow-step">4. Calculadora creada</div>
     </div>
     <div class="cct-loader-grid">
       <article class="cct-loader-card">
-        <h3>1. Pegar CCT o acuerdo</h3>
-        <textarea class="cct-loader-textarea" placeholder="Pegá acá el texto del CCT, acuerdo salarial, escala o artículo relevante..."></textarea>
+        <h3>1. Cargar CCT en PDF</h3>
+        <label class="cct-dropzone">
+          <input type="file" accept="application/pdf,.pdf" data-cct-pdf>
+          <div>
+            <strong>Arrastrá o seleccioná el PDF del CCT</strong>
+            <span>La IA extraerá categorías, jornada, adicionales y reglas liquidables.</span>
+          </div>
+        </label>
+        <div class="cct-status" data-cct-status>Esperando PDF del CCT...</div>
         <div class="cct-loader-actions">
-          <button type="button" class="cct-loader-button" data-cct-generate>Generar JSON preliminar</button>
-          <button type="button" class="cct-loader-button secondary" data-cct-example>Cargar ejemplo</button>
+          <button type="button" class="cct-loader-button" data-cct-create disabled>Crear calculadora</button>
+          <button type="button" class="cct-loader-button secondary" data-cct-example>Cargar ejemplo sin PDF</button>
         </div>
+        <div data-cct-calculator-preview></div>
       </article>
       <article class="cct-loader-card">
-        <h3>2. JSON para la calculadora</h3>
-        <pre class="cct-loader-output">Esperando texto del CCT...</pre>
-        <div class="cct-loader-pills">
-          <span class="cct-loader-pill">Extractor local inicial</span>
-          <span class="cct-loader-pill">Preparado para Gemini</span>
-          <span class="cct-loader-pill">Revisión humana requerida</span>
-        </div>
+        <h3>2. Resultado del análisis IA</h3>
+        <pre class="cct-loader-output" data-cct-output>Esperando análisis del PDF...</pre>
       </article>
     </div>
   `;
@@ -153,23 +246,79 @@ function createShell() {
   return shell;
 }
 
+function setStatus(statusNode, message, isError = false) {
+  statusNode.textContent = message;
+  statusNode.classList.toggle("is-error", isError);
+}
+
+async function handlePdf(file, refs) {
+  refs.create.disabled = true;
+  refs.preview.innerHTML = "";
+  setFlowStep(refs.shell, 1);
+  setStatus(refs.status, "Analizando PDF… extrayendo texto");
+  refs.output.textContent = "Analizando PDF…";
+
+  try {
+    const text = await extractPdfText(file, (message) => setStatus(refs.status, message));
+    setStatus(refs.status, "Analizando PDF… consultando IA");
+
+    let payload;
+    try {
+      payload = await analyzeWithGemini(file.name, text);
+    } catch (error) {
+      console.warn("Gemini no pudo analizar el CCT; usando fallback local", error);
+      payload = buildCctJson(text, file.name);
+      payload.alertas = [...(payload.alertas || []), "Gemini no respondió; se generó borrador local"];
+    }
+
+    saveDraft(payload);
+    lastExtractedJson = payload;
+    refs.output.textContent = JSON.stringify(payload, null, 2);
+    refs.create.disabled = false;
+    setFlowStep(refs.shell, 2);
+    setStatus(refs.status, "PDF analizado. Ya podés crear la calculadora.");
+  } catch (error) {
+    setFlowStep(refs.shell, 0);
+    refs.output.textContent = String(error?.message || error);
+    setStatus(refs.status, "No pude analizar el PDF. Revisá que sea texto seleccionable o que PDF.js esté instalado.", true);
+  }
+}
+
 function initCctLoader() {
   injectStyles();
   const shell = createShell();
-  const textarea = shell.querySelector(".cct-loader-textarea");
-  const output = shell.querySelector(".cct-loader-output");
-  const generate = shell.querySelector("[data-cct-generate]");
-  const example = shell.querySelector("[data-cct-example]");
+  const refs = {
+    shell,
+    file: shell.querySelector("[data-cct-pdf]"),
+    status: shell.querySelector("[data-cct-status]"),
+    output: shell.querySelector("[data-cct-output]"),
+    create: shell.querySelector("[data-cct-create]"),
+    example: shell.querySelector("[data-cct-example]"),
+    preview: shell.querySelector("[data-cct-calculator-preview]")
+  };
 
-  generate.addEventListener("click", () => {
-    const payload = buildCctJson(textarea.value);
-    saveDraft(payload);
-    output.textContent = JSON.stringify(payload, null, 2);
+  refs.file.addEventListener("change", async () => {
+    const file = refs.file.files?.[0];
+    if (!file) return;
+    await handlePdf(file, refs);
   });
 
-  example.addEventListener("click", () => {
-    textarea.value = `CCT ejemplo Alimentación\nCategoría Operario: tareas generales.\nCategoría Operario Calificado: responsabilidad en elaboración.\nCategoría Administrativo I: trabajos simples.\nAdicional zona desfavorable 20%.\nAntigüedad 1% por año.\nJornada mensual 200 horas.`;
-    generate.click();
+  refs.create.addEventListener("click", () => {
+    if (!lastExtractedJson) return;
+    setFlowStep(shell, 3);
+    saveDraft({ ...lastExtractedJson, estado: "calculadora_creada" });
+    setStatus(refs.status, "Calculadora creada desde el CCT. Revisá categorías y completá escalas pendientes.");
+    renderGeneratedCalculator(refs.preview, lastExtractedJson);
+  });
+
+  refs.example.addEventListener("click", () => {
+    const text = `CCT ejemplo Alimentación\nCategoría Operario: tareas generales.\nCategoría Operario Calificado: responsabilidad en elaboración.\nCategoría Administrativo I: trabajos simples.\nAdicional zona desfavorable 20%.\nAntigüedad 1% por año.\nJornada mensual 200 horas.`;
+    const payload = buildCctJson(text, "ejemplo-cct.txt");
+    saveDraft(payload);
+    refs.output.textContent = JSON.stringify(payload, null, 2);
+    refs.create.disabled = false;
+    setFlowStep(shell, 2);
+    setStatus(refs.status, "Ejemplo analizado. Ya podés crear la calculadora.");
   });
 }
 
