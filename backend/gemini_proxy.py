@@ -9,7 +9,10 @@ from urllib import error, parse, request
 DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 FALLBACK_MODELS = [
     item.strip()
-    for item in os.getenv("GEMINI_FALLBACK_MODELS", "gemini-1.5-flash,gemini-1.5-flash-8b").split(",")
+    for item in os.getenv(
+        "GEMINI_FALLBACK_MODELS",
+        "gemini-2.0-flash,gemini-2.0-flash-lite,gemini-1.5-flash-latest",
+    ).split(",")
     if item.strip()
 ]
 
@@ -118,6 +121,8 @@ def call_gemini(prompt: str, model: str | None = None) -> str:
         except error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")
             errors.append(f"{active_model}: {detail}")
+            if exc.code == 404:
+                continue
             if exc.code not in {429, 500, 502, 503, 504}:
                 break
         except error.URLError as exc:
@@ -126,4 +131,4 @@ def call_gemini(prompt: str, model: str | None = None) -> str:
             errors.append(f"{active_model}: {exc}")
             break
 
-    raise GeminiProxyError("Gemini no pudo responder con los modelos disponibles: " + " | ".join(errors))
+    raise GeminiProxyError("Gemini no pudo responder temporalmente. Ultimos errores: " + " | ".join(errors[-2:]))
