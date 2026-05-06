@@ -10,9 +10,8 @@ const CHAT_STATE = {
 const STORAGE_KEY = "cct244_chat_documents_v1";
 const MAX_CONTEXT_CHUNKS = 5;
 const MAX_CHUNK_LENGTH = 1400;
-const PDFJS_VERSION = "4.3.136";
-const PDFJS_SCRIPT = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}/pdf.min.js`;
-const PDFJS_WORKER = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}/pdf.worker.min.js`;
+const PDFJS_MODULE = "/node_modules/pdfjs-dist/build/pdf.mjs";
+const PDFJS_WORKER = "/node_modules/pdfjs-dist/build/pdf.worker.mjs";
 
 let pdfJsLoadingPromise = null;
 
@@ -158,35 +157,17 @@ function buildPayload(question, context) {
 }
 
 async function ensurePdfJs() {
-  if (window.pdfjsLib) {
-    window.pdfjsLib.GlobalWorkerOptions.workerSrc = window.pdfjsLib.GlobalWorkerOptions.workerSrc || PDFJS_WORKER;
-    return window.pdfjsLib;
-  }
-
   if (!pdfJsLoadingPromise) {
-    pdfJsLoadingPromise = new Promise((resolve, reject) => {
-      const existingScript = document.querySelector(`script[src="${PDFJS_SCRIPT}"]`);
-      if (existingScript) {
-        existingScript.addEventListener("load", () => resolve(window.pdfjsLib));
-        existingScript.addEventListener("error", () => reject(new Error("No se pudo cargar PDF.js.")));
-        return;
-      }
-
-      const script = document.createElement("script");
-      script.src = PDFJS_SCRIPT;
-      script.async = true;
-      script.onload = () => resolve(window.pdfjsLib);
-      script.onerror = () => reject(new Error("No se pudo cargar PDF.js. Verificá conexión a internet o agregá PDF.js local."));
-      document.head.append(script);
-    });
+    pdfJsLoadingPromise = import(PDFJS_MODULE)
+      .then((pdfjs) => {
+        pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+        return pdfjs;
+      })
+      .catch((error) => {
+        throw new Error(`No se pudo cargar PDF.js local. Ejecutá npm install y verificá node_modules. Detalle: ${error.message || error}`);
+      });
   }
-
-  const pdfjs = await pdfJsLoadingPromise;
-  if (!pdfjs) {
-    throw new Error("PDF.js no quedó disponible después de cargar el script.");
-  }
-  pdfjs.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
-  return pdfjs;
+  return pdfJsLoadingPromise;
 }
 
 function injectStyles() {
