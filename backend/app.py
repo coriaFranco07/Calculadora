@@ -10,7 +10,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from backend.gemini_proxy import DEFAULT_MODEL, GeminiProxyError, build_prompt, call_gemini
+from backend.gemini_proxy import (
+    DEFAULT_MODEL,
+    GeminiProxyError,
+    build_cct_extraction_prompt,
+    build_prompt,
+    call_gemini,
+)
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 BACKEND_DIR = Path(__file__).resolve().parent
@@ -43,7 +49,12 @@ class AuditRequest(BaseModel):
     contexto_documental: list[dict[str, Any]] = Field(default_factory=list)
 
 
-app = FastAPI(title="Motor de Auditoria Preventiva Laboral y AFIP")
+class CctExtractionRequest(BaseModel):
+    file_name: str = "CCT.pdf"
+    text: str = ""
+
+
+app = FastAPI(title="Motor IA para Convenios y Calculadoras")
 
 app.add_middleware(
     CORSMiddleware,
@@ -75,6 +86,31 @@ def audit(payload: AuditRequest) -> dict[str, Any]:
         "mode": "gemini",
         "model": os.getenv("GEMINI_MODEL", DEFAULT_MODEL),
         "text": text,
+    }
+
+
+@app.post("/extract-cct")
+def extract_cct(payload: CctExtractionRequest) -> dict[str, Any]:
+    prompt = build_cct_extraction_prompt(payload.model_dump())
+    try:
+        text = call_gemini(prompt, os.getenv("GEMINI_MODEL", DEFAULT_MODEL))
+    except GeminiProxyError as exc:
+        status_code = 503 if "API_KEY" in str(exc) else 502
+        raise HTTPException(status_code=status_code, detail=str(exc)) from exc
+
+    parsed: Any
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError:
+        parsed = {
+            "estado": "respuesta_no_json",
+            "raw": text,
+        }
+
+    return {
+        "mode": "gemini-cct",
+        "model": os.getenv("GEMINI_MODEL", DEFAULT_MODEL),
+        "result": parsed,
     }
 
 
