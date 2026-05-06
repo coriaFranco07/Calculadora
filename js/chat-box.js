@@ -10,16 +10,8 @@ const CHAT_STATE = {
 const STORAGE_KEY = "cct244_chat_documents_v1";
 const MAX_CONTEXT_CHUNKS = 5;
 const MAX_CHUNK_LENGTH = 1400;
-<<<<<<< HEAD
-const PDFJS_VERSION = "4.3.136";
-const PDFJS_SCRIPT =
-  "/node_modules/pdfjs-dist/build/pdf.min.mjs";
-const PDFJS_WORKER =
-  "/node_modules/pdfjs-dist/build/pdf.worker.min.mjs";
-=======
 const PDFJS_MODULE = "/node_modules/pdfjs-dist/build/pdf.mjs";
 const PDFJS_WORKER = "/node_modules/pdfjs-dist/build/pdf.worker.mjs";
->>>>>>> 85ea56885623af1650df5881cd82e55b2bc486de
 
 let pdfJsLoadingPromise = null;
 
