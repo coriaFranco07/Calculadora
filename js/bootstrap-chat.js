@@ -1,5 +1,6 @@
 import "./chat-box.js";
+import "./audit-gate.js";
 
-// This file intentionally only imports the chat module.
-// It lets the HTML enable the floating AI assistant without coupling it
-// to the payroll calculation or audit modules.
+// Bootstrap modules for the payroll assistant experience.
+// Chat handles IA + documentation.
+// Audit gate blocks export/result flows when deterministic audit fails.
