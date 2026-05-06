@@ -8,26 +8,35 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 BASE_URL = "http://127.0.0.1:8000/Calculadora_CCT_244_94_Alimentacion.html"
 
-DAYS_SELECTORS = [
-    "input[name='workedDays']",
-    "input[name='daysWorked']",
-    "input[name='worked-days']",
-    "input[name='days']",
-    "#worked-days",
-    "#days-worked",
-    "#workedDays",
-    "#daysWorked",
-    "input[type='number']"
-]
+FIELD_SELECTORS = {
+    "worked_days": ["input[name='workedDays']", "#worked-days", "#workedDays"],
+    "licensed_days": ["input[name='licensedDays']", "#licensed-days", "#licensedDays"],
+    "suspension_days": ["input[name='suspensionDays']", "#suspension-days", "#suspensionDays"],
+    "absence_days": ["input[name='absenceDays']", "#absence-days", "#absenceDays"],
+    "overtime_50": ["input[name='overtime50Hours']", "#overtime-50", "#overtime50Hours"],
+    "overtime_100": ["input[name='overtime100Hours']", "#overtime-100", "#overtime100Hours"],
+}
 
 AUDIT_GATE_SCENARIOS = [
     pytest.param(
-        {"worked_days": 28, "expected_blocked": True},
+        {"times": {"worked_days": 28}, "expected": {"blocked": True}},
         id="revista-incompleta-bloquea",
     ),
     pytest.param(
-        {"worked_days": 30, "expected_blocked": False},
+        {"times": {"worked_days": 30}, "expected": {"blocked": False}},
         id="revista-completa-permite",
+    ),
+    pytest.param(
+        {
+            "times": {
+                "worked_days": 28,
+                "licensed_days": 2,
+                "suspension_days": 0,
+                "absence_days": 0,
+            },
+            "expected": {"blocked": False},
+        },
+        id="28-trabajados-2-licencia-permite",
     ),
 ]
 
@@ -129,10 +138,30 @@ def go_to_times_step(driver):
     raise AssertionError(f"No se pudo navegar a Novedades y tiempos. Visibles: {visible_controls_debug(driver)}")
 
 
-def prepare_audit_scenario(driver, worked_days):
+def legacy_to_structured_scenario(scenario):
+    if "times" in scenario:
+        return scenario
+    return {
+        "times": {"worked_days": scenario.get("worked_days")},
+        "expected": {"blocked": scenario.get("expected_blocked")},
+    }
+
+
+def fill_times_fields(driver, times):
+    for field_name, value in times.items():
+        if value is None:
+            continue
+        selectors = FIELD_SELECTORS.get(field_name)
+        if not selectors:
+            raise AssertionError(f"Campo de tiempos no soportado por Selenium: {field_name}")
+        input_element = first_visible(driver, selectors)
+        set_input_value(driver, input_element, value)
+
+
+def prepare_audit_scenario(driver, scenario):
+    scenario = legacy_to_structured_scenario(scenario)
     go_to_times_step(driver)
-    days_input = first_visible(driver, DAYS_SELECTORS)
-    set_input_value(driver, days_input, str(worked_days))
+    fill_times_fields(driver, scenario.get("times", {}))
     click_button_by_text(driver, "continuar a conceptos")
     click_button_by_text(driver, "continuar a auditor", "auditoria preventiva", "auditoría preventiva")
 
@@ -147,6 +176,7 @@ def visible_result_buttons(driver):
 
 @pytest.mark.parametrize("scenario", AUDIT_GATE_SCENARIOS)
 def test_audit_gate_result_visibility_by_scenario(scenario):
+    scenario = legacy_to_structured_scenario(scenario)
     driver = create_driver()
     wait = WebDriverWait(driver, 25)
 
@@ -154,9 +184,10 @@ def test_audit_gate_result_visibility_by_scenario(scenario):
         driver.get(BASE_URL)
         wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
 
-        prepare_audit_scenario(driver, scenario["worked_days"])
+        prepare_audit_scenario(driver, scenario)
+        expected_blocked = bool(scenario["expected"]["blocked"])
 
-        if scenario["expected_blocked"]:
+        if expected_blocked:
             wait.until(
                 EC.presence_of_element_located(
                     (
