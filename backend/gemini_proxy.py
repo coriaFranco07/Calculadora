@@ -61,6 +61,79 @@ Quiero:
 """.strip()
 
 
+def build_cct_extraction_prompt(payload: Mapping[str, Any]) -> str:
+    cct_text = str(payload.get("text", ""))[:120000]
+    file_name = payload.get("file_name", "CCT.pdf")
+    return f"""
+Actua como analista senior de convenios colectivos argentinos y arquitecto de calculadoras salariales.
+
+Objetivo:
+Leer el texto extraido de un PDF de CCT/acuerdo salarial y devolver SOLO un JSON valido para alimentar una calculadora de liquidacion.
+
+Reglas obligatorias:
+- Devolve exclusivamente JSON valido. Sin markdown, sin explicaciones fuera del JSON.
+- No inventes escalas, importes, porcentajes ni vigencias.
+- Si un dato no esta en el texto, usar null y agregarlo en pendientes_revision.
+- Separar categorias, jornada, adicionales, antiguedad, zona, presentismo, horas extra, licencias y no remunerativos si aparecen.
+- Indicar fuente_textual breve en cada regla cuando sea posible.
+- Incluir nivel_confianza de 0 a 1.
+- El JSON debe estar en espanol y listo para ser revisado por un liquidador.
+
+Estructura requerida:
+{{
+  "version": "YYYY-MM-DD",
+  "archivo_fuente": "{file_name}",
+  "convenio": {{
+    "nombre": null,
+    "actividad": null,
+    "ambito": null,
+    "vigencia_detectada": null
+  }},
+  "categorias": [
+    {{
+      "id": "slug",
+      "nombre": "",
+      "tipo": "jornalizado|mensualizado|administrativo|otro|null",
+      "descripcion": "",
+      "valor_hora": null,
+      "sueldo_mensual": null,
+      "fuente_textual": ""
+    }}
+  ],
+  "jornada": {{
+    "horas_mensuales": null,
+    "dias_mensuales": null,
+    "horas_diarias": null,
+    "fuente_textual": null
+  }},
+  "adicionales": [
+    {{
+      "nombre": "",
+      "tipo": "porcentaje|importe|formula|otro",
+      "valor": null,
+      "base": null,
+      "condicion": null,
+      "fuente_textual": ""
+    }}
+  ],
+  "reglas_liquidacion": {{
+    "antiguedad": null,
+    "zona_desfavorable": null,
+    "presentismo": null,
+    "horas_extra": null,
+    "licencias": [],
+    "no_remunerativos": []
+  }},
+  "pendientes_revision": [],
+  "alertas": [],
+  "nivel_confianza": 0
+}}
+
+Texto extraido del PDF:
+{cct_text}
+""".strip()
+
+
 def _call_gemini_once(prompt: str, active_model: str, api_key: str) -> str:
     url = (
         "https://generativelanguage.googleapis.com/v1beta/models/"
@@ -75,9 +148,9 @@ def _call_gemini_once(prompt: str, active_model: str, api_key: str) -> str:
             }
         ],
         "generationConfig": {
-            "temperature": 0.2,
+            "temperature": 0.15,
             "topP": 0.9,
-            "maxOutputTokens": 900,
+            "maxOutputTokens": 3500,
         },
     }
 
@@ -89,7 +162,7 @@ def _call_gemini_once(prompt: str, active_model: str, api_key: str) -> str:
         method="POST",
     )
 
-    with request.urlopen(req, timeout=45) as response:
+    with request.urlopen(req, timeout=90) as response:
         payload = json.loads(response.read().decode("utf-8"))
 
     parts = (
