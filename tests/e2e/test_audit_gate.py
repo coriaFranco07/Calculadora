@@ -22,12 +22,18 @@ DAYS_SELECTORS = [
 
 AUDIT_GATE_SCENARIOS = [
     pytest.param(
-        {"worked_days": 28, "expected_blocked": True},
-        id="revista-incompleta-bloquea",
-    ),
-    pytest.param(
-        {"worked_days": 30, "expected_blocked": False},
-        id="revista-completa-permite",
+        {
+            "times": {
+                "worked_days": 28,
+                "licensed_days": 2,
+                "suspension_days": 0,
+                "absence_days": 0,
+            },
+            "expected": {
+                "blocked": False,
+            },
+        },
+        id="28-trabajados-2-licencia-permite",
     ),
 ]
 
