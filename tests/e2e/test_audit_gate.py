@@ -1,3 +1,4 @@
+import pytest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -17,6 +18,17 @@ DAYS_SELECTORS = [
     "#workedDays",
     "#daysWorked",
     "input[type='number']"
+]
+
+AUDIT_GATE_SCENARIOS = [
+    pytest.param(
+        {"worked_days": 28, "expected_blocked": True},
+        id="revista-incompleta-bloquea",
+    ),
+    pytest.param(
+        {"worked_days": 30, "expected_blocked": False},
+        id="revista-completa-permite",
+    ),
 ]
 
 
@@ -88,12 +100,6 @@ def click_element(driver, element):
     element.click()
 
 
-def click_visible(driver, selectors):
-    element = first_visible(driver, selectors)
-    click_element(driver, element)
-    return element
-
-
 def click_button_by_text(driver, *text_options):
     normalized_options = [text.lower() for text in text_options]
     buttons = driver.find_elements(By.CSS_SELECTOR, "button, a")
@@ -123,42 +129,50 @@ def go_to_times_step(driver):
     raise AssertionError(f"No se pudo navegar a Novedades y tiempos. Visibles: {visible_controls_debug(driver)}")
 
 
-def test_audit_gate_blocks_result_button():
+def prepare_audit_scenario(driver, worked_days):
+    go_to_times_step(driver)
+    days_input = first_visible(driver, DAYS_SELECTORS)
+    set_input_value(driver, days_input, str(worked_days))
+    click_button_by_text(driver, "continuar a conceptos")
+    click_button_by_text(driver, "continuar a auditor", "auditoria preventiva", "auditoría preventiva")
+
+
+def visible_result_buttons(driver):
+    result_buttons = driver.find_elements(
+        By.XPATH,
+        "//button[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'resultado')]"
+    )
+    return [button for button in result_buttons if button.is_displayed()]
+
+
+@pytest.mark.parametrize("scenario", AUDIT_GATE_SCENARIOS)
+def test_audit_gate_result_visibility_by_scenario(scenario):
     driver = create_driver()
     wait = WebDriverWait(driver, 25)
 
     try:
         driver.get(BASE_URL)
-
         wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
 
-        go_to_times_step(driver)
+        prepare_audit_scenario(driver, scenario["worked_days"])
 
-        days_input = first_visible(driver, DAYS_SELECTORS)
-        set_input_value(driver, days_input, "28")
-
-        click_button_by_text(driver, "continuar a conceptos")
-        click_button_by_text(driver, "continuar a auditor", "auditoria preventiva", "auditoría preventiva")
-
-        wait.until(
-            EC.presence_of_element_located(
-                (
-                    By.XPATH,
-                    "//*[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'bloque')]"
+        if scenario["expected_blocked"]:
+            wait.until(
+                EC.presence_of_element_located(
+                    (
+                        By.XPATH,
+                        "//*[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'bloque')]"
+                    )
                 )
             )
-        )
-
-        result_buttons = driver.find_elements(
-            By.XPATH,
-            "//button[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), 'resultado')]"
-        )
-
-        visible_buttons = [button for button in result_buttons if button.is_displayed()]
-
-        assert len(visible_buttons) == 0, (
-            "El botón de continuar a resultado final sigue visible aun con auditoría bloqueante"
-        )
+            assert len(visible_result_buttons(driver)) == 0, (
+                "El botón de continuar a resultado final sigue visible aun con auditoría bloqueante"
+            )
+        else:
+            wait.until(lambda current_driver: len(visible_result_buttons(current_driver)) > 0)
+            assert len(visible_result_buttons(driver)) > 0, (
+                "El botón de resultado final debería estar visible cuando la auditoría no bloquea"
+            )
 
     finally:
         driver.quit()
