@@ -174,6 +174,14 @@ function buildDocumentOnlyAnswer(question) {
   return `${intro}\n\n${bullets.join("\n")}${sourceLine(matches.slice(0, 4))}`;
 }
 
+function friendlyGeminiFallback(question) {
+  return [
+    buildDocumentOnlyAnswer(question),
+    "",
+    "La capa Gemini está configurada, pero en este momento no pudo responder por cuota, disponibilidad o saturación del servicio. La respuesta anterior usa el motor local y la base interna para no dejarte sin asistencia."
+  ].join("\n");
+}
+
 function injectStyles() {
   if (document.querySelector("#ai-chat-box-styles")) return;
   const style = document.createElement("style");
@@ -231,9 +239,10 @@ async function askGemini(question) {
       return localParts.join("\n\n");
     }
     const response = await client.audit(buildPayload(question, context));
-    return response.text || "Gemini no devolvió una respuesta útil.";
+    return response.text || friendlyGeminiFallback(question);
   } catch (error) {
-    return `No pude consultar Gemini.\n\n${buildDocumentOnlyAnswer(question)}\n\nDetalle técnico: ${error.message || error}`;
+    console.warn("Gemini no pudo responder; usando fallback local", error);
+    return friendlyGeminiFallback(question);
   }
 }
 
