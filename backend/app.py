@@ -20,6 +20,8 @@ class AuditRequest(BaseModel):
     resumen_totalizadores: dict[str, float] = Field(default_factory=dict)
     resumen_revista: dict[str, Any] = Field(default_factory=dict)
     errores_detectados: list[dict[str, Any]] = Field(default_factory=list)
+    pregunta_usuario: str = ""
+    contexto_documental: list[dict[str, Any]] = Field(default_factory=list)
 
 
 app = FastAPI(title="Motor de Auditoria Preventiva Laboral y AFIP")
