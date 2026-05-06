@@ -11,6 +11,7 @@ import {
 } from "./calculadora.js";
 import { ejecutarAuditoria } from "./auditor.js";
 import { createGeminiClient } from "./gemini-client.js";
+import { initPayrollChatBox } from "./chat-box.js";
 
 const currencyFormatter = new Intl.NumberFormat("es-AR", {
   style: "currency",
@@ -75,6 +76,17 @@ const appState = {
   currentStep: "general",
   isDirty: false
 };
+
+
+window.getPayrollAuditContext = function () {
+  return {
+    liquidacion: appState.latestLiquidation,
+    auditoria: appState.latestAudit,
+    entrada: appState.latestInput,
+    ai: appState.latestAiText
+  };
+};
+
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -1597,4 +1609,10 @@ if (typeof document !== "undefined") {
   } else {
     bootstrap();
   }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initPayrollChatBox);
+} else {
+  initPayrollChatBox();
 }
