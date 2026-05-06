@@ -1,0 +1,29 @@
+{
+  "version": "2026.05.06",
+  "records": [
+    {
+      "articulo": "Art. 11",
+      "tema": "Mensualizacion del salario de obreros",
+      "keywords": ["mensualizacion", "25 dias", "200 horas", "jornada"],
+      "reglas_relacionadas": ["AUXILIAR_A_JORNADA"]
+    },
+    {
+      "articulo": "Art. 27",
+      "tema": "Retribuciones pagadas separadamente por concepto",
+      "keywords": ["conceptos", "retribuciones", "separadamente", "recibo"],
+      "reglas_relacionadas": ["CONCEPTOS_HUERFANOS", "TOTALIZADORES_VS_CONCEPTOS"]
+    },
+    {
+      "articulo": "Art. 29",
+      "tema": "Descanso pago en turnos de horario corrido",
+      "keywords": ["turnos", "horario corrido", "descanso", "media hora paga"],
+      "reglas_relacionadas": []
+    },
+    {
+      "articulo": "Art. 30",
+      "tema": "Listado mensual con personal, retenciones y aportes",
+      "keywords": ["listado mensual", "retenciones", "aportes"],
+      "reglas_relacionadas": ["TOTALIZADORES_VS_CONCEPTOS", "AFIP_TIPO_SERIE"]
+    }
+  ]
+}

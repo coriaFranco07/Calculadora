@@ -1,0 +1,82 @@
+{
+  "version": "2026.05.06",
+  "records": [
+    {
+      "concepto": "basico_convenio",
+      "formula": "BASICO_MENSUAL / 30 * DIAS_TRABAJADOS * AUXILIAR_A",
+      "requiere_auxiliar_a": true,
+      "usa_jornada": true,
+      "totalizadores_afectados": ["993"]
+    },
+    {
+      "concepto": "antiguedad",
+      "formula": "BASICO_PROPORCIONAL * PORCENTAJE_ANTIGUEDAD * AUXILIAR_A",
+      "requiere_auxiliar_a": true,
+      "usa_jornada": true,
+      "totalizadores_afectados": ["993"]
+    },
+    {
+      "concepto": "zona_desfavorable",
+      "formula": "BASICO_PROPORCIONAL * PORCENTAJE_ZONA * AUXILIAR_A",
+      "requiere_auxiliar_a": true,
+      "usa_jornada": true,
+      "totalizadores_afectados": ["993"]
+    },
+    {
+      "concepto": "horas_extras_50",
+      "formula": "VALOR_HORA * HORAS_50 * 1.5",
+      "requiere_auxiliar_a": false,
+      "usa_jornada": false,
+      "totalizadores_afectados": ["993"]
+    },
+    {
+      "concepto": "horas_extras_100",
+      "formula": "VALOR_HORA * HORAS_100 * 2",
+      "requiere_auxiliar_a": false,
+      "usa_jornada": false,
+      "totalizadores_afectados": ["993"]
+    },
+    {
+      "concepto": "presentismo",
+      "formula": "BASE_PRESENTISMO * PORCENTAJE_PRESENTISMO * AUXILIAR_A",
+      "requiere_auxiliar_a": true,
+      "usa_jornada": true,
+      "totalizadores_afectados": ["993"]
+    },
+    {
+      "concepto": "premio_productividad",
+      "formula": "MONTO_BONO",
+      "requiere_auxiliar_a": false,
+      "usa_jornada": false,
+      "totalizadores_afectados": ["993"]
+    },
+    {
+      "concepto": "acuerdo_nr",
+      "formula": "MONTO_ACUERDO o MONTO_ACUERDO * DIAS_TRABAJADOS / 30",
+      "requiere_auxiliar_a": false,
+      "usa_jornada": false,
+      "totalizadores_afectados": ["994"]
+    },
+    {
+      "concepto": "asignacion_no_rem",
+      "formula": "MONTO_ASIGNACION",
+      "requiere_auxiliar_a": false,
+      "usa_jornada": false,
+      "totalizadores_afectados": ["997"]
+    },
+    {
+      "concepto": "sac_proporcional",
+      "formula": "BASE_SAC / 12 * DIAS_SEMESTRE / 180",
+      "requiere_auxiliar_a": false,
+      "usa_jornada": false,
+      "totalizadores_afectados": ["993"]
+    },
+    {
+      "concepto": "vacaciones_no_gozadas",
+      "formula": "BASE_VACACIONES / 25 * DIAS_NO_GOZADOS",
+      "requiere_auxiliar_a": false,
+      "usa_jornada": false,
+      "totalizadores_afectados": ["994"]
+    }
+  ]
+}

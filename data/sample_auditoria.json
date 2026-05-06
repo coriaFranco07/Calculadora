@@ -1,0 +1,104 @@
+{
+  "periodo": "2026-04",
+  "dias_periodo": 30,
+  "situacion_general": "01",
+  "coeficiente_jornada": 0.5,
+  "dias_trabajados_f931": 30,
+  "horas_trabajadas_f931": 8,
+  "totalizadores": {
+    "993": 800000,
+    "994": 50000,
+    "995": 150000,
+    "996": 800000,
+    "997": 0,
+    "neto_impreso": 800000
+  },
+  "revista": [
+    {
+      "codigo": "01",
+      "etiqueta": "Activo",
+      "desde": 1,
+      "hasta": 15
+    },
+    {
+      "codigo": "01",
+      "etiqueta": "Activo",
+      "desde": 16,
+      "hasta": 29
+    }
+  ],
+  "conceptos": [
+    {
+      "descripcion": "Basico convenio",
+      "importe": 650000,
+      "serie": "993",
+      "lado": "haber",
+      "codigo_afip": "110000",
+      "formula": "BASICO_MENSUAL / 30 * DIAS_TRABAJADOS",
+      "usa_auxiliar_a": false
+    },
+    {
+      "descripcion": "Adicional por antiguedad",
+      "importe": 50000,
+      "serie": "993",
+      "lado": "haber",
+      "codigo_afip": "160001",
+      "formula": "BASICO_PROPORCIONAL * PORCENTAJE_ANTIGUEDAD",
+      "usa_auxiliar_a": false
+    },
+    {
+      "descripcion": "Bono Productividad",
+      "importe": 100000,
+      "serie": "sin_tanque",
+      "lado": "haber",
+      "codigo_afip": "",
+      "formula": "MONTO_BONO",
+      "usa_auxiliar_a": false
+    },
+    {
+      "descripcion": "Acuerdo no remunerativo",
+      "importe": 50000,
+      "serie": "994",
+      "lado": "haber",
+      "codigo_afip": "531000",
+      "formula": "MONTO_ACUERDO",
+      "usa_auxiliar_a": false
+    },
+    {
+      "descripcion": "Aporte jubilacion 11%",
+      "importe": 88000,
+      "serie": "995",
+      "lado": "descuento",
+      "codigo_afip": "810000",
+      "formula": "BASE_JUBILACION * 0.11",
+      "usa_auxiliar_a": false
+    },
+    {
+      "descripcion": "PAMI",
+      "importe": 24000,
+      "serie": "995",
+      "lado": "descuento",
+      "codigo_afip": "810001",
+      "formula": "BASE_JUBILACION * 0.03",
+      "usa_auxiliar_a": false
+    },
+    {
+      "descripcion": "Obra social",
+      "importe": 26000,
+      "serie": "995",
+      "lado": "descuento",
+      "codigo_afip": "810002",
+      "formula": "BASE_OS * 0.03",
+      "usa_auxiliar_a": false
+    },
+    {
+      "descripcion": "Cuota sindical",
+      "importe": 12000,
+      "serie": "995",
+      "lado": "descuento",
+      "codigo_afip": "810004",
+      "formula": "BASE_SINDICATO * 0.02",
+      "usa_auxiliar_a": false
+    }
+  ]
+}

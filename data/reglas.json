@@ -1,0 +1,129 @@
+{
+  "version": "2026.05.06",
+  "records": [
+    {
+      "codigo": "REVISTA_30_DIAS",
+      "descripcion": "La suma de tramos de situacion de revista debe cerrar contra los dias esperados del periodo.",
+      "dominio": "revista",
+      "severidad": "error",
+      "condicion": {
+        "type": "revista_total_days_equals_expected"
+      },
+      "accion": "Bloquear exportacion y exigir correccion de tramos.",
+      "bloquea_exportacion": true
+    },
+    {
+      "codigo": "REVISTA_SIN_SUPERPOSICION",
+      "descripcion": "Los tramos de revista no deben superponerse ni dejar huecos.",
+      "dominio": "revista",
+      "severidad": "error",
+      "condicion": {
+        "type": "revista_no_gaps_or_overlaps"
+      },
+      "accion": "Marcar segmentos inconsistentes antes de exportar.",
+      "bloquea_exportacion": true
+    },
+    {
+      "codigo": "REVISTA_MAX_3_TRAMOS",
+      "descripcion": "El registro mensual no debe superar tres situaciones de revista informadas.",
+      "dominio": "revista",
+      "severidad": "error",
+      "condicion": {
+        "type": "revista_max_segments",
+        "params": {
+          "max": 3
+        }
+      },
+      "accion": "Reducir o consolidar tramos para cumplir el formato LSD.",
+      "bloquea_exportacion": true
+    },
+    {
+      "codigo": "REVISTA_SITUACION_GENERAL",
+      "descripcion": "La situacion de revista general debe coincidir con el codigo del ultimo tramo.",
+      "dominio": "revista",
+      "severidad": "error",
+      "condicion": {
+        "type": "revista_general_matches_last"
+      },
+      "accion": "Sincronizar cabecera con el ultimo tramo cargado.",
+      "bloquea_exportacion": true
+    },
+    {
+      "codigo": "F931_DIAS_O_HORAS",
+      "descripcion": "Dias trabajados y horas trabajadas no deben informarse simultaneamente.",
+      "dominio": "f931",
+      "severidad": "error",
+      "condicion": {
+        "type": "worked_days_or_hours_exclusive"
+      },
+      "accion": "Dejar solo uno de los dos campos con valor positivo.",
+      "bloquea_exportacion": true
+    },
+    {
+      "codigo": "SERIE_990_ECUACION",
+      "descripcion": "El neto 996 debe reconstruirse como 993 + 994 + 997 - 995.",
+      "dominio": "totalizadores",
+      "severidad": "error",
+      "condicion": {
+        "type": "serie_990_equation"
+      },
+      "accion": "Revisar etiquetas y totalizadores antes de exportar.",
+      "bloquea_exportacion": true
+    },
+    {
+      "codigo": "TOTALIZADORES_VS_CONCEPTOS",
+      "descripcion": "Los totalizadores cargados deben reconciliar contra la suma de conceptos.",
+      "dominio": "totalizadores",
+      "severidad": "error",
+      "condicion": {
+        "type": "totals_match_concepts"
+      },
+      "accion": "Localizar conceptos mal etiquetados o faltantes.",
+      "bloquea_exportacion": true
+    },
+    {
+      "codigo": "CONCEPTOS_HUERFANOS",
+      "descripcion": "No deben existir conceptos impresos que no impacten ningun tanque interno.",
+      "dominio": "conceptos",
+      "severidad": "error",
+      "condicion": {
+        "type": "orphan_concepts"
+      },
+      "accion": "Asignar totalizador y mapeo antes de emitir recibo o exportar.",
+      "bloquea_exportacion": true
+    },
+    {
+      "codigo": "AUXILIAR_A_JORNADA",
+      "descripcion": "Si la jornada es parcial, las formulas sensibles deben usar AUXILIAR_A.",
+      "dominio": "formulas",
+      "severidad": "warning",
+      "condicion": {
+        "type": "auxiliar_a_required"
+      },
+      "accion": "Revisar formulas personalizadas y proporcionalidad.",
+      "bloquea_exportacion": false
+    },
+    {
+      "codigo": "AFIP_TIPO_SERIE",
+      "descripcion": "El tipo de codigo AFIP debe ser compatible con la serie interna usada por el concepto.",
+      "dominio": "afip",
+      "severidad": "error",
+      "condicion": {
+        "type": "afip_type_matches_series"
+      },
+      "accion": "Corregir serie o codigo AFIP para evitar bases incorrectas.",
+      "bloquea_exportacion": true
+    },
+    {
+      "codigo": "AFIP_MAPEO_ESPERADO",
+      "descripcion": "Los conceptos conocidos deben mapearse al codigo AFIP esperado o a un rango libre coherente.",
+      "dominio": "afip",
+      "severidad": "warning",
+      "condicion": {
+        "type": "afip_expected_mapping"
+      },
+      "accion": "Revisar mapeo AFIP y restricciones del concepto.",
+      "bloquea_exportacion": false
+    }
+  ]
+}

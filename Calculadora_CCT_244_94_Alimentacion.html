@@ -1,0 +1,2676 @@
+﻿<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculadora CCT 244/94</title>
+    <style>
+      :root {
+        --bg: #f7f2e8;
+        --bg-soft: rgba(255, 255, 255, 0.76);
+        --surface: rgba(255, 251, 245, 0.9);
+        --surface-strong: #fffdf8;
+        --text: #1b2321;
+        --muted: #53615d;
+        --line: rgba(27, 35, 33, 0.08);
+        --line-strong: rgba(27, 35, 33, 0.16);
+        --accent: #d06224;
+        --accent-deep: #a54516;
+        --green: #1f6a52;
+        --warning-soft: rgba(182, 91, 25, 0.14);
+        --error-soft: rgba(158, 47, 47, 0.12);
+        --green-soft: rgba(31, 106, 82, 0.14);
+        --shadow: 0 24px 60px rgba(54, 40, 22, 0.12);
+        --radius-xl: 28px;
+        --radius-lg: 22px;
+        --radius-md: 16px;
+        --radius-sm: 12px;
+        --font-display: "Rockwell", "Georgia", serif;
+        --font-body: "Aptos", "Bahnschrift", "Trebuchet MS", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: var(--font-body);
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(214, 131, 73, 0.22), transparent 28%),
+          radial-gradient(circle at right 18%, rgba(64, 132, 107, 0.18), transparent 24%),
+          linear-gradient(180deg, #f7f0e2 0%, #f4efe7 36%, #eef4f0 100%);
+      }
+
+      button,
+      input,
+      select,
+      summary {
+        font: inherit;
+      }
+
+      .page-shell {
+        width: min(1440px, calc(100% - 32px));
+        margin: 24px auto 40px;
+      }
+
+      .hero,
+      .panel {
+        backdrop-filter: blur(14px);
+        background: var(--bg-soft);
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.9fr);
+        gap: 24px;
+        padding: 28px;
+        border-radius: var(--radius-xl);
+      }
+
+      .eyebrow,
+      .section-label {
+        margin: 0 0 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        font-size: 0.72rem;
+        color: var(--accent-deep);
+        font-weight: 700;
+      }
+
+      .hero h1,
+      .panel h2,
+      .breakdown-card h3 {
+        margin: 0;
+        font-family: var(--font-display);
+        letter-spacing: -0.02em;
+      }
+
+      .hero h1 {
+        font-size: clamp(2.2rem, 4vw, 3.6rem);
+        line-height: 0.98;
+        max-width: 12ch;
+      }
+
+      .hero-text {
+        margin: 18px 0 0;
+        max-width: 62ch;
+        line-height: 1.6;
+        color: var(--muted);
+        font-size: 1.02rem;
+      }
+
+      .hero-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .hero-pills span,
+      .toggle-card small,
+      .row-title small,
+      .message small {
+        color: var(--muted);
+      }
+
+      .hero-pills span {
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid var(--line);
+        font-size: 0.92rem;
+      }
+
+      .hero-panel {
+        padding: 22px;
+        border-radius: var(--radius-lg);
+        background:
+          linear-gradient(160deg, rgba(208, 98, 36, 0.14), transparent 40%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.52));
+        border: 1px solid var(--line);
+      }
+
+      .hero-panel p {
+        margin: 10px 0 20px;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .hero-metrics {
+        display: grid;
+        gap: 14px;
+        margin: 0;
+      }
+
+      .hero-metrics div {
+        display: grid;
+        gap: 4px;
+      }
+
+      .hero-metrics dt {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+      }
+
+      .hero-metrics dd {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(360px, 460px) minmax(0, 1fr);
+        gap: 24px;
+        margin-top: 24px;
+      }
+
+      .panel {
+        padding: 24px;
+        border-radius: var(--radius-xl);
+      }
+
+      .panel-heading {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 20px;
+      }
+
+      .panel-heading h2 {
+        font-size: 1.6rem;
+      }
+
+      .field-grid,
+      .toggle-grid,
+      .summary-grid,
+      .indicator-grid,
+      .breakdown-grid,
+      .agreement-options {
+        display: grid;
+        gap: 14px;
+      }
+
+      .field-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .field-full {
+        grid-column: 1 / -1;
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .field span {
+        font-weight: 700;
+        font-size: 0.95rem;
+      }
+
+      .field input,
+      .field select {
+        width: 100%;
+        padding: 13px 14px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--line);
+        background: var(--surface-strong);
+        color: var(--text);
+      }
+
+      .field input:focus,
+      .field select:focus {
+        outline: none;
+        border-color: rgba(208, 98, 36, 0.45);
+        box-shadow: 0 0 0 4px rgba(208, 98, 36, 0.14);
+      }
+
+      .toggle-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 18px;
+      }
+
+      .toggle-card {
+        position: relative;
+        display: grid;
+        gap: 6px;
+        padding: 16px 16px 16px 48px;
+        border-radius: var(--radius-md);
+        background: var(--surface);
+        border: 1px solid var(--line);
+        cursor: pointer;
+      }
+
+      .toggle-card input {
+        position: absolute;
+        inset: 18px auto auto 16px;
+        width: 18px;
+        height: 18px;
+        accent-color: var(--accent);
+      }
+
+      .toggle-card span {
+        font-weight: 700;
+      }
+
+      .advanced-box,
+      .detail-box {
+        margin-top: 18px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--line);
+        background: var(--surface);
+        overflow: hidden;
+      }
+
+      .advanced-box summary,
+      .detail-box summary {
+        cursor: pointer;
+        padding: 16px 18px;
+        font-weight: 700;
+      }
+
+      .agreement-card {
+        padding: 16px;
+        border-radius: var(--radius-sm);
+        background: var(--surface-strong);
+        border: 1px solid var(--line);
+      }
+
+      .agreement-card h4 {
+        margin: 0 0 8px;
+      }
+
+      .agreement-card p {
+        margin: 0 0 12px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .agreement-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .agreement-option {
+        display: flex;
+        gap: 10px;
+        align-items: start;
+        font-size: 0.92rem;
+      }
+
+      .agreement-option input {
+        margin-top: 2px;
+        accent-color: var(--accent);
+      }
+
+      .form-actions {
+        margin-top: 20px;
+      }
+
+      .primary-button,
+      .ghost-button {
+        border-radius: 999px;
+        padding: 13px 20px;
+        font-weight: 700;
+        border: 1px solid transparent;
+        cursor: pointer;
+      }
+
+      .primary-button {
+        background: linear-gradient(135deg, var(--accent), #e18a41);
+        color: white;
+      }
+
+      .ghost-button {
+        background: rgba(255, 255, 255, 0.74);
+        color: var(--text);
+        border-color: var(--line);
+      }
+
+      .result-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .skill-button[disabled] {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      .message-stack {
+        display: grid;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .message {
+        padding: 14px 16px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--line);
+      }
+
+      .message-warning {
+        background: var(--warning-soft);
+      }
+
+      .message-error {
+        background: var(--error-soft);
+      }
+
+      .message-info {
+        background: var(--green-soft);
+      }
+
+      .summary-grid,
+      .indicator-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .summary-card,
+      .indicator-card,
+      .breakdown-card {
+        padding: 18px;
+        border-radius: var(--radius-lg);
+        background: var(--surface);
+        border: 1px solid var(--line);
+      }
+
+      .summary-card,
+      .indicator-card {
+        display: grid;
+        gap: 8px;
+      }
+
+      .summary-card span,
+      .indicator-card span {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .summary-card strong,
+      .indicator-card strong {
+        font-family: var(--font-display);
+        font-size: 1.65rem;
+        letter-spacing: -0.03em;
+      }
+
+      .highlight-card {
+        background:
+          linear-gradient(160deg, rgba(31, 106, 82, 0.18), transparent 50%),
+          var(--surface-strong);
+      }
+
+      .indicator-grid {
+        margin-top: 14px;
+      }
+
+      .breakdown-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 18px;
+      }
+
+      .breakdown-card h3 {
+        font-size: 1.2rem;
+        margin-bottom: 14px;
+      }
+
+      .rows,
+      .steps,
+      .debug-steps,
+      .narrative,
+      .sources-panel,
+      .agreements-container {
+        display: grid;
+        gap: 10px;
+        padding: 16px 18px 18px;
+      }
+
+      .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 10px 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .row:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+
+      .row-title {
+        display: grid;
+        gap: 4px;
+      }
+
+      .row-title strong {
+        font-size: 0.95rem;
+      }
+
+      .row-value {
+        text-align: right;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .narrative p,
+      .source-item p,
+      .step-card p {
+        margin: 0;
+        line-height: 1.65;
+        color: var(--muted);
+      }
+
+      .step-card,
+      .source-item {
+        padding: 14px 16px;
+        border-radius: var(--radius-sm);
+        background: var(--surface-strong);
+        border: 1px solid var(--line);
+      }
+
+      .skill-modal {
+        position: fixed;
+        inset: 0;
+        display: none;
+        z-index: 80;
+      }
+
+      .skill-modal.is-open {
+        display: block;
+      }
+
+      .skill-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 21, 19, 0.45);
+        backdrop-filter: blur(6px);
+      }
+
+      .skill-dialog {
+        position: relative;
+        width: min(980px, calc(100% - 32px));
+        max-height: calc(100vh - 48px);
+        margin: 24px auto;
+        overflow: auto;
+        border-radius: var(--radius-xl);
+        border: 1px solid var(--line-strong);
+        background:
+          linear-gradient(180deg, rgba(255, 253, 248, 0.98), rgba(250, 246, 240, 0.98));
+        box-shadow: 0 28px 80px rgba(15, 21, 19, 0.25);
+      }
+
+      .skill-header {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 18px;
+        padding: 22px 24px 18px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 253, 248, 0.97);
+      }
+
+      .skill-header p {
+        margin: 0 0 8px;
+      }
+
+      .skill-header h3 {
+        margin: 0;
+        font-family: var(--font-display);
+        font-size: 1.9rem;
+      }
+
+      .skill-body {
+        display: grid;
+        gap: 18px;
+        padding: 22px 24px 26px;
+      }
+
+      .skill-topline {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .status-badge,
+      .type-badge,
+      .formula-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+
+      .status-ok {
+        background: rgba(31, 106, 82, 0.14);
+        color: var(--green);
+      }
+
+      .status-warning {
+        background: rgba(182, 91, 25, 0.14);
+        color: #9d4f16;
+      }
+
+      .status-error {
+        background: rgba(158, 47, 47, 0.14);
+        color: #952727;
+      }
+
+      .badge-rem {
+        background: rgba(31, 106, 82, 0.1);
+        color: var(--green);
+      }
+
+      .badge-nr {
+        background: rgba(208, 98, 36, 0.12);
+        color: var(--accent-deep);
+      }
+
+      .badge-desc {
+        background: rgba(27, 35, 33, 0.08);
+        color: var(--text);
+      }
+
+      .badge-warn {
+        background: rgba(182, 91, 25, 0.14);
+        color: #9d4f16;
+      }
+
+      .badge-info {
+        background: rgba(83, 97, 93, 0.12);
+        color: var(--muted);
+      }
+
+      .skill-section {
+        padding: 18px;
+        border-radius: var(--radius-lg);
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid var(--line);
+      }
+
+      .skill-section h4 {
+        margin: 0 0 12px;
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+      }
+
+      .skill-summary-card {
+        display: grid;
+        gap: 12px;
+        padding: 18px;
+        border-radius: var(--radius-lg);
+        background:
+          linear-gradient(160deg, rgba(208, 98, 36, 0.12), transparent 45%),
+          rgba(255, 255, 255, 0.82);
+        border: 1px solid var(--line);
+      }
+
+      .skill-summary-metrics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .skill-metric {
+        padding: 12px 14px;
+        border-radius: var(--radius-sm);
+        background: rgba(255, 255, 255, 0.74);
+        border: 1px solid var(--line);
+      }
+
+      .skill-metric span {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      .skill-metric strong {
+        font-size: 1rem;
+      }
+
+      .skill-step-list,
+      .skill-formula-list,
+      .skill-observation-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .skill-step-card,
+      .skill-formula-card,
+      .skill-observation-card {
+        padding: 14px 16px;
+        border-radius: var(--radius-sm);
+        background: var(--surface-strong);
+        border: 1px solid var(--line);
+      }
+
+      .skill-step-card header,
+      .skill-formula-card header,
+      .skill-observation-card header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 14px;
+        margin-bottom: 10px;
+      }
+
+      .skill-step-card p,
+      .skill-formula-card p,
+      .skill-observation-card p {
+        margin: 0;
+        line-height: 1.62;
+        color: var(--muted);
+      }
+
+      .skill-step-card code,
+      .skill-formula-card code {
+        display: block;
+        margin-top: 8px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: rgba(31, 106, 82, 0.08);
+        color: var(--green);
+        font-family: Consolas, "Courier New", monospace;
+        white-space: pre-wrap;
+      }
+
+      .skill-detail-list {
+        display: grid;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .skill-detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        gap: 12px;
+        padding-top: 8px;
+        border-top: 1px solid var(--line);
+      }
+
+      .skill-detail-item:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+
+      .skill-empty {
+        padding: 14px 16px;
+        border-radius: var(--radius-sm);
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px dashed var(--line-strong);
+        color: var(--muted);
+      }
+
+      .step-card header {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 8px;
+      }
+
+      .step-card code {
+        display: block;
+        margin-top: 8px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: rgba(31, 106, 82, 0.08);
+        color: var(--green);
+        font-family: Consolas, "Courier New", monospace;
+        white-space: pre-wrap;
+      }
+
+      .conditional-field {
+        display: none;
+      }
+
+      .conditional-field.is-visible {
+        display: grid;
+      }
+
+      .app-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 20px;
+        padding: 16px 20px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.74);
+        box-shadow: 0 16px 36px rgba(51, 39, 24, 0.08);
+        backdrop-filter: blur(14px);
+      }
+
+      .app-brand {
+        display: grid;
+        gap: 4px;
+      }
+
+      .app-brand strong {
+        font-size: 1.08rem;
+      }
+
+      .app-brand small {
+        color: var(--muted);
+      }
+
+      .brand-kicker {
+        display: inline-flex;
+        width: fit-content;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(208, 98, 36, 0.12);
+        color: var(--accent-deep);
+        font-size: 0.74rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .app-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .app-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 9px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.85);
+        color: var(--muted);
+        font-size: 0.84rem;
+        font-weight: 700;
+      }
+
+      .quick-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .nav-chip {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.82);
+        color: var(--muted);
+        border-radius: 999px;
+        padding: 11px 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.18s ease, border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+      }
+
+      .nav-chip:hover,
+      .nav-chip.is-active {
+        color: var(--accent-deep);
+        border-color: rgba(208, 98, 36, 0.34);
+        background: rgba(208, 98, 36, 0.12);
+        transform: translateY(-1px);
+      }
+
+      .workflow-strip {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .workflow-step {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 12px;
+        align-items: center;
+        padding: 14px 16px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.76);
+        box-shadow: 0 10px 24px rgba(51, 39, 24, 0.06);
+      }
+
+      .workflow-step strong {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(31, 106, 82, 0.12);
+        color: var(--green);
+        font-size: 0.96rem;
+      }
+
+      .workflow-step span {
+        display: block;
+        font-weight: 800;
+      }
+
+      .workflow-step small {
+        display: block;
+        margin-top: 2px;
+        color: var(--muted);
+      }
+
+      .wizard-shell {
+        display: grid;
+        gap: 18px;
+        margin-top: 20px;
+      }
+
+      .wizard-progress-card {
+        padding: 22px 24px;
+        border-radius: var(--radius-xl);
+        border: 1px solid var(--line);
+        background:
+          linear-gradient(160deg, rgba(208, 98, 36, 0.12), transparent 42%),
+          rgba(255, 255, 255, 0.78);
+        box-shadow: var(--shadow);
+      }
+
+      .wizard-progress-card h2 {
+        font-size: 1.5rem;
+        margin-top: 2px;
+      }
+
+      .wizard-progress-caption {
+        margin: 10px 0 16px;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .wizard-progress-track {
+        width: 100%;
+        height: 12px;
+        border-radius: 999px;
+        background: rgba(27, 35, 33, 0.08);
+        overflow: hidden;
+      }
+
+      .wizard-progress-fill {
+        display: block;
+        height: 100%;
+        width: 16.66%;
+        border-radius: inherit;
+        background: linear-gradient(135deg, var(--accent), #e18a41);
+        transition: width 0.22s ease;
+      }
+
+      .wizard-stepper {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .wizard-step-button {
+        display: grid;
+        gap: 8px;
+        align-content: start;
+        padding: 16px;
+        text-align: left;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.8);
+        color: var(--text);
+        cursor: pointer;
+        transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+      }
+
+      .wizard-step-button:hover {
+        transform: translateY(-1px);
+      }
+
+      .wizard-step-button strong {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(31, 106, 82, 0.12);
+        color: var(--green);
+        font-size: 1rem;
+      }
+
+      .wizard-step-button span {
+        display: block;
+        font-weight: 800;
+      }
+
+      .wizard-step-button small {
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .wizard-step-button.is-active {
+        border-color: rgba(208, 98, 36, 0.34);
+        background: rgba(208, 98, 36, 0.12);
+      }
+
+      .wizard-step-button.is-active strong {
+        background: rgba(208, 98, 36, 0.16);
+        color: var(--accent-deep);
+      }
+
+      .wizard-step-button.is-complete {
+        border-color: rgba(31, 106, 82, 0.24);
+        background: rgba(31, 106, 82, 0.1);
+      }
+
+      .wizard-step-button.is-complete strong {
+        background: rgba(31, 106, 82, 0.18);
+      }
+
+      .wizard-grid {
+        display: grid;
+        gap: 24px;
+        grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+      }
+
+      .wizard-stack {
+        display: grid;
+        gap: 24px;
+      }
+
+      .step-intro {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        align-items: start;
+        margin-bottom: 18px;
+      }
+
+      .step-intro p:last-child {
+        margin: 0;
+        max-width: 58ch;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .step-note {
+        padding: 16px 18px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .step-note p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .wizard-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-top: 20px;
+      }
+
+      .wizard-actions-right {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .revista-grid {
+        display: grid;
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .revista-row,
+      .mini-field-grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .revista-row {
+        grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(80px, 0.7fr));
+      }
+
+      .mini-field-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .revista-row input,
+      .mini-field-grid input,
+      .mini-field-grid select {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--line);
+        background: var(--surface-strong);
+        color: var(--text);
+      }
+
+      .step-kpi-grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .step-kpi {
+        padding: 14px 16px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.76);
+      }
+
+      .step-kpi span,
+      .step-kpi small {
+        display: block;
+        color: var(--muted);
+      }
+
+      .step-kpi strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 1.15rem;
+      }
+
+      .gemini-grid {
+        display: grid;
+        gap: 24px;
+        grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+      }
+
+      .section-pane {
+        display: none;
+        margin-top: 24px;
+      }
+
+      .section-pane.is-active {
+        display: block;
+      }
+
+      .section-grid {
+        display: grid;
+        gap: 24px;
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .section-intro {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        align-items: end;
+        margin-bottom: 18px;
+      }
+
+      .section-intro p:last-child {
+        margin: 0;
+        max-width: 60ch;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .result-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+        margin-bottom: 18px;
+      }
+
+      .result-tab {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.82);
+        color: var(--muted);
+        border-radius: 999px;
+        padding: 10px 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.18s ease;
+      }
+
+      .result-tab:hover,
+      .result-tab.is-active {
+        color: var(--green);
+        border-color: rgba(31, 106, 82, 0.28);
+        background: rgba(31, 106, 82, 0.12);
+      }
+
+      .result-pane {
+        display: none;
+      }
+
+      .result-pane.is-active {
+        display: block;
+      }
+
+      .receipt-view {
+        display: grid;
+        gap: 16px;
+      }
+
+      .receipt-hero {
+        display: grid;
+        gap: 10px;
+        padding: 20px 22px;
+        border-radius: var(--radius-lg);
+        color: #fff;
+        background:
+          linear-gradient(145deg, rgba(16, 58, 51, 0.96), rgba(31, 106, 82, 0.94)),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent);
+      }
+
+      .receipt-hero strong {
+        font-size: 1.34rem;
+      }
+
+      .receipt-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 18px;
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 0.92rem;
+      }
+
+      .receipt-columns {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+      }
+
+      .receipt-column {
+        padding: 18px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.82);
+      }
+
+      .receipt-column h4 {
+        margin: 0 0 14px;
+        font-size: 0.84rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+      }
+
+      .receipt-row,
+      .receipt-total {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: start;
+      }
+
+      .receipt-row {
+        padding: 7px 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .receipt-row:last-child {
+        border-bottom: none;
+      }
+
+      .receipt-row span:first-child {
+        color: var(--muted);
+      }
+
+      .receipt-row span:last-child,
+      .receipt-total strong:last-child {
+        text-align: right;
+      }
+
+      .receipt-total {
+        padding: 16px 18px;
+        border-radius: var(--radius-md);
+        background: linear-gradient(135deg, rgba(208, 98, 36, 0.14), rgba(31, 106, 82, 0.12));
+        border: 1px solid rgba(208, 98, 36, 0.16);
+      }
+
+      .receipt-total strong:first-child {
+        color: var(--muted);
+      }
+
+      .receipt-total strong:last-child {
+        font-size: 1.24rem;
+      }
+
+      .matrix-stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .mini-stat {
+        padding: 16px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.86);
+      }
+
+      .mini-stat span {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+      }
+
+      .mini-stat strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 1.18rem;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.82);
+      }
+
+      .tech-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.94rem;
+      }
+
+      .tech-table th,
+      .tech-table td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+
+      .tech-table th {
+        text-align: left;
+        background: rgba(31, 106, 82, 0.08);
+        color: var(--text);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .tech-table td small {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+      }
+
+      .pill-rem {
+        background: rgba(31, 106, 82, 0.14);
+        color: var(--green);
+      }
+
+      .pill-nr {
+        background: rgba(208, 98, 36, 0.14);
+        color: var(--accent-deep);
+      }
+
+      .pill-info {
+        background: rgba(84, 97, 93, 0.12);
+        color: var(--muted);
+      }
+
+      .scale-deck,
+      .agreement-deck {
+        display: grid;
+        gap: 16px;
+      }
+
+      .scale-card {
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        background: rgba(255, 255, 255, 0.8);
+        overflow: hidden;
+      }
+
+      .scale-card header {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        align-items: start;
+        padding: 18px 20px;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .scale-card h3 {
+        margin: 0 0 4px;
+      }
+
+      .scale-card p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .scale-card details {
+        border-top: 1px solid var(--line);
+      }
+
+      .scale-card summary {
+        list-style: none;
+        padding: 14px 18px;
+        cursor: pointer;
+        font-weight: 700;
+      }
+
+      .scale-card summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .scale-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .scale-table th,
+      .scale-table td {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--line);
+        text-align: left;
+        font-size: 0.92rem;
+      }
+
+      .scale-table th {
+        background: rgba(208, 98, 36, 0.08);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .scale-table td:last-child,
+      .scale-table th:last-child {
+        text-align: right;
+      }
+
+      .guide-grid {
+        display: grid;
+        gap: 24px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .guide-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .guide-list article {
+        padding: 14px 16px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.8);
+      }
+
+      .guide-list strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .guide-list p,
+      .guide-list li {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .guide-list ul {
+        margin: 8px 0 0;
+        padding-left: 18px;
+      }
+
+      .audit-layout {
+        display: grid;
+        gap: 24px;
+        grid-template-columns: minmax(360px, 1.1fr) minmax(0, 0.9fr);
+      }
+
+      .audit-inline-panel {
+        margin: 18px 0 22px;
+      }
+
+      .audit-toolbar,
+      .audit-table-actions,
+      .audit-inline-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .audit-toolbar {
+        margin-bottom: 18px;
+      }
+
+      .audit-table-wrap {
+        overflow: auto;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.78);
+      }
+
+      .audit-table {
+        width: 100%;
+        min-width: 760px;
+        border-collapse: collapse;
+      }
+
+      .audit-table th,
+      .audit-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+
+      .audit-table th {
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        text-align: left;
+        background: rgba(31, 106, 82, 0.08);
+      }
+
+      .audit-table input,
+      .audit-table select,
+      .audit-table textarea,
+      .audit-json-box,
+      .audit-ai-output {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
+        font: inherit;
+        background: var(--surface-strong);
+        color: var(--text);
+      }
+
+      .audit-table textarea,
+      .audit-json-box {
+        min-height: 80px;
+        resize: vertical;
+      }
+
+      .audit-ai-output {
+        min-height: 180px;
+        white-space: pre-wrap;
+        line-height: 1.6;
+      }
+
+      .audit-remove {
+        min-width: 44px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: rgba(158, 47, 47, 0.08);
+        color: #8f2e2e;
+        cursor: pointer;
+      }
+
+      .audit-findings {
+        display: grid;
+        gap: 12px;
+      }
+
+      .audit-finding {
+        padding: 14px 16px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.8);
+      }
+
+      .audit-finding strong,
+      .audit-finding small {
+        display: block;
+      }
+
+      .audit-finding p,
+      .audit-empty p {
+        margin: 6px 0 0;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .audit-finding.is-error {
+        border-color: rgba(158, 47, 47, 0.22);
+        background: var(--error-soft);
+      }
+
+      .audit-finding.is-blocker,
+      .audit-finding.is-critical {
+        border-color: rgba(158, 47, 47, 0.22);
+        background: var(--error-soft);
+      }
+
+      .audit-finding.is-warning {
+        border-color: rgba(208, 98, 36, 0.22);
+        background: var(--warning-soft);
+      }
+
+      .audit-finding.is-info {
+        border-color: rgba(31, 106, 82, 0.18);
+        background: var(--green-soft);
+      }
+
+      .audit-empty {
+        padding: 18px;
+        border-radius: var(--radius-md);
+        border: 1px dashed var(--line);
+        background: rgba(255, 255, 255, 0.62);
+      }
+
+      .audit-caption {
+        margin: 0 0 14px;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .audit-status-strip {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .audit-status-card {
+        padding: 16px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.84);
+      }
+
+      .audit-status-card span,
+      .audit-status-card small {
+        display: block;
+        color: var(--muted);
+      }
+
+      .audit-status-card strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 1.25rem;
+      }
+
+      .audit-status-card.is-blocked {
+        border-color: rgba(158, 47, 47, 0.24);
+        background: var(--error-soft);
+      }
+
+      .audit-status-card.is-ready {
+        border-color: rgba(31, 106, 82, 0.22);
+        background: var(--green-soft);
+      }
+
+      .audit-json-box,
+      .audit-ai-output {
+        margin-top: 12px;
+      }
+
+      .audit-source-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .audit-source-list article {
+        padding: 12px 14px;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.76);
+      }
+
+      .toast-stack {
+        position: fixed;
+        top: 18px;
+        right: 18px;
+        display: grid;
+        gap: 10px;
+        z-index: 50;
+      }
+
+      .toast-card {
+        min-width: 260px;
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.94);
+        box-shadow: 0 18px 36px rgba(51, 39, 24, 0.12);
+        animation: toast-in 0.2s ease;
+      }
+
+      .toast-card strong {
+        display: block;
+        margin-bottom: 2px;
+      }
+
+      .toast-card small {
+        color: var(--muted);
+      }
+
+      .toast-card.is-ok {
+        border-color: rgba(31, 106, 82, 0.24);
+      }
+
+      .toast-card.is-warn {
+        border-color: rgba(208, 98, 36, 0.24);
+      }
+
+      .toast-card.is-error {
+        border-color: rgba(158, 47, 47, 0.24);
+      }
+
+      @keyframes toast-in {
+        from {
+          opacity: 0;
+          transform: translateY(-6px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 1120px) {
+        .workspace,
+        .hero,
+        .wizard-grid,
+        .gemini-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .summary-grid,
+        .indicator-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .wizard-stepper,
+        .workflow-strip,
+        .matrix-stats,
+        .guide-grid,
+        .audit-status-strip {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .page-shell {
+          width: min(100%, calc(100% - 20px));
+          margin: 12px auto 28px;
+        }
+
+        .hero,
+        .panel {
+          padding: 18px;
+          border-radius: 20px;
+        }
+
+        .app-bar,
+        .section-intro,
+        .step-intro,
+        .scale-card header {
+          flex-direction: column;
+          align-items: start;
+        }
+
+        .app-actions {
+          justify-content: start;
+        }
+
+        .wizard-stepper,
+        .workflow-strip,
+        .matrix-stats,
+        .guide-grid,
+        .receipt-columns,
+        .audit-layout,
+        .audit-status-strip {
+          grid-template-columns: 1fr;
+        }
+
+        .field-grid,
+        .toggle-grid,
+        .summary-grid,
+        .indicator-grid,
+        .breakdown-grid,
+        .agreement-options,
+        .step-kpi-grid,
+        .mini-field-grid,
+        .revista-row {
+          grid-template-columns: 1fr;
+        }
+
+        .wizard-actions {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .wizard-actions-right {
+          width: 100%;
+          justify-content: stretch;
+        }
+
+        .wizard-actions button,
+        .wizard-actions-right button {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+
+    <div class="page-shell">
+      <div class="app-bar">
+        <div class="app-brand">
+          <span class="brand-kicker">Meta-modelo + CCT 244/94</span>
+          <strong>Suite de liquidaciÃ³n para Industria de la AlimentaciÃ³n</strong>
+          <small>HTML Ãºnico, offline y trazable, tomando como base el meta-modelo y una experiencia tipo UOCRA.</small>
+        </div>
+        <div class="app-actions">
+          <span class="app-pill">Remunerativos + NR</span>
+          <span class="app-pill">ExplicaciÃ³n + skill</span>
+          <button id="print-button" type="button" class="ghost-button">Imprimir</button>
+        </div>
+      </div>
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">LiquidaciÃ³n profesional y trazable</p>
+          <h1>Calculadora avanzada CCT 244/94</h1>
+          <p class="hero-text">
+            Calculadora autosuficiente en un Ãºnico HTML para liquidar sueldos,
+            vacaciones y liquidaciÃ³n final bÃ¡sica del CCT 244/94, separando
+            remunerativos y no remunerativos con detalle paso a paso.
+          </p>
+          <div class="hero-pills">
+            <span>Escalas por fecha</span>
+            <span>ExplicaciÃ³n del cÃ¡lculo</span>
+            <span>Modo debug</span>
+            <span>Preparada para otros CCT</span>
+          </div>
+        </div>
+        <aside class="hero-panel">
+          <h2>Fuente activa</h2>
+          <p id="active-scale-caption">Resolviendo escala vigenteâ€¦</p>
+          <dl class="hero-metrics">
+            <div>
+              <dt>Convenio</dt>
+              <dd>CCT 244/94</dd>
+            </div>
+            <div>
+              <dt>Divisor mensual</dt>
+              <dd>30 dÃ­as</dd>
+            </div>
+            <div>
+              <dt>Valor hora base</dt>
+              <dd>200 horas</dd>
+            </div>
+            <div>
+              <dt>Vacaciones</dt>
+              <dd>Divisor 25</dd>
+            </div>
+          </dl>
+        </aside>
+      </header>
+
+      <div class="wizard-shell">
+        <section class="wizard-progress-card">
+          <p class="section-label">Proceso guiado enterprise</p>
+          <h2 id="wizard-progress-title">Paso 1 de 6 Â· Datos generales</h2>
+          <p id="wizard-progress-caption" class="wizard-progress-caption">
+            Configura el contexto del legajo antes de cargar novedades, conceptos y controles preventivos.
+          </p>
+          <div class="wizard-progress-track">
+            <span id="wizard-progress-fill" class="wizard-progress-fill"></span>
+          </div>
+        </section>
+
+        <nav class="wizard-stepper" aria-label="Pasos del proceso">
+          <button type="button" class="wizard-step-button is-active" data-wizard-step="general">
+            <strong>1</strong>
+            <div>
+              <span>Datos generales</span>
+              <small>Fecha, tipo, categoria, jornada y configuracion base.</small>
+            </div>
+          </button>
+          <button type="button" class="wizard-step-button" data-wizard-step="times">
+            <strong>2</strong>
+            <div>
+              <span>Novedades y tiempos</span>
+              <small>Dias, horas extra, ausencias y tramos de revista.</small>
+            </div>
+          </button>
+          <button type="button" class="wizard-step-button" data-wizard-step="concepts">
+            <strong>3</strong>
+            <div>
+              <span>Conceptos</span>
+              <small>Adicionales, NR, presentismo y configuracion de acuerdos.</small>
+            </div>
+          </button>
+          <button type="button" class="wizard-step-button" data-wizard-step="audit">
+            <strong>4</strong>
+            <div>
+              <span>Auditoria preventiva</span>
+              <small>Score, blockers, conciliaciones, revista y AFIP.</small>
+            </div>
+          </button>
+          <button type="button" class="wizard-step-button" data-wizard-step="result">
+            <strong>5</strong>
+            <div>
+              <span>Resultado final</span>
+              <small>Recibo, bruto, neto, descuentos, bases y salida operativa.</small>
+            </div>
+          </button>
+          <button type="button" class="wizard-step-button" data-wizard-step="gemini">
+            <strong>6</strong>
+            <div>
+              <span>Revision Gemini</span>
+              <small>Interpretacion opcional del resultado de auditoria.</small>
+            </div>
+          </button>
+        </nav>
+      </div>
+
+      <form id="calculator-form" novalidate>
+        <section id="section-general" class="section-pane is-active">
+          <div class="step-intro">
+            <div>
+              <p class="section-label">Paso 1</p>
+              <h2>Datos generales del legajo y de la liquidacion</h2>
+            </div>
+            <p>
+              Esta etapa define el contexto del calculo: periodo, tipo de liquidacion, categoria, jornada y parametros
+              base del convenio. El objetivo es dejar claro el punto de partida antes de cargar novedades.
+            </p>
+          </div>
+
+          <div class="wizard-grid">
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-label">Configuracion base</p>
+                  <h2>Contexto operativo</h2>
+                </div>
+                <button id="reset-button" type="button" class="ghost-button">Simular otro caso</button>
+              </div>
+
+              <div class="field-grid">
+                <label class="field">
+                  <span>Fecha de liquidacion</span>
+                  <input id="liquidation-date" name="liquidationDate" type="date" required />
+                </label>
+
+                <label class="field">
+                  <span>Tipo de liquidacion</span>
+                  <select id="liquidation-type" name="liquidationType">
+                    <option value="mensual">Mensual</option>
+                    <option value="vacaciones">Vacaciones</option>
+                    <option value="final">Liquidacion final (basica)</option>
+                  </select>
+                </label>
+
+                <label class="field field-full">
+                  <span>Categoria</span>
+                  <select id="category-id" name="categoryId" required></select>
+                </label>
+
+                <label class="field">
+                  <span>Antiguedad (anos)</span>
+                  <input id="seniority-years" name="seniorityYears" type="number" min="0" max="60" step="1" value="0" />
+                </label>
+
+                <label class="field">
+                  <span>Antiguedad (meses)</span>
+                  <input id="seniority-months" name="seniorityMonths" type="number" min="0" max="11" step="1" value="0" />
+                </label>
+
+                <label class="field">
+                  <span>Coeficiente de jornada</span>
+                  <input id="jornada-coefficient" name="jornadaCoefficient" type="number" min="0.10" max="1" step="0.05" value="1" />
+                </label>
+
+                <label class="field">
+                  <span>Modo de trabajo</span>
+                  <select id="liquidation-mode" name="liquidationMode">
+                    <option value="normal">Operacion normal</option>
+                    <option value="revision">Revision interna</option>
+                    <option value="cierre">Cierre previo a exportacion</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="toggle-grid">
+                <label class="toggle-card">
+                  <input id="union-toggle" name="applyUnion" type="checkbox" checked />
+                  <span>Aplicar sindicato</span>
+                  <small>2% configurable como descuento convencional.</small>
+                </label>
+
+                <label class="toggle-card">
+                  <input id="zone-toggle" name="zoneUnfavorable" type="checkbox" />
+                  <span>Zona desfavorable</span>
+                  <small>Aplica adicional patagonico del 20%.</small>
+                </label>
+
+                <label class="toggle-card">
+                  <input id="debug-toggle" name="debugMode" type="checkbox" />
+                  <span>Modo debug</span>
+                  <small>Muestra formulas, bases y trazas internas en resultado final.</small>
+                </label>
+
+                <label class="toggle-card">
+                  <input id="state-persistence-toggle" name="persistWizardState" type="checkbox" checked />
+                  <span>Persistir avance</span>
+                  <small>Guarda estado local para continuar luego dentro del wizard.</small>
+                </label>
+              </div>
+
+              <div class="wizard-actions">
+                <div class="step-note">
+                  <strong>Objetivo del paso</strong>
+                  <p>Definir el marco de calculo antes de cargar novedades y conceptos.</p>
+                </div>
+                <div class="wizard-actions-right">
+                  <button type="button" class="primary-button" data-wizard-next="times">Continuar a novedades</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="wizard-stack">
+              <section class="panel">
+                <div class="panel-heading">
+                  <div>
+                    <p class="section-label">Fuente activa</p>
+                    <h2>Escala y convenio aplicados</h2>
+                  </div>
+                </div>
+                <div class="step-note">
+                  <strong>Escala resuelta</strong>
+                  <p id="active-scale-step-caption">Resolviendo escala vigente...</p>
+                </div>
+                <div class="step-kpi-grid" style="margin-top: 16px;">
+                  <article class="step-kpi">
+                    <span>Convenio</span>
+                    <strong>CCT 244/94</strong>
+                    <small>Industria de la Alimentacion</small>
+                  </article>
+                  <article class="step-kpi">
+                    <span>Divisores</span>
+                    <strong>30 / 25 / 200</strong>
+                    <small>Mes, vacaciones y valor hora</small>
+                  </article>
+                  <article class="step-kpi">
+                    <span>Jornada</span>
+                    <strong id="jornada-kpi">1,00</strong>
+                    <small>Coeficiente aplicado a formulas sensibles</small>
+                  </article>
+                  <article class="step-kpi">
+                    <span>Modo</span>
+                    <strong id="mode-kpi">Operacion normal</strong>
+                    <small>Define el contexto del flujo de trabajo</small>
+                  </article>
+                </div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-heading">
+                  <div>
+                    <p class="section-label">Guia operativa</p>
+                    <h2>Resumen rapido del convenio</h2>
+                  </div>
+                </div>
+                <div class="guide-list">
+                  <article>
+                    <strong>Familias de categorias</strong>
+                    <p>Elaboracion, mantenimiento, administracion y personal mensualizado cargados por escala.</p>
+                  </article>
+                  <article>
+                    <strong>Orden de calculo</strong>
+                    <p>Basico, antiguedad, base, adicionales, bruto, descuentos, neto, NR y bolsillo.</p>
+                  </article>
+                  <article>
+                    <strong>Principio UX</strong>
+                    <p>El calculo se prepara primero, la auditoria se muestra en una pantalla exclusiva y Gemini queda al final.</p>
+                  </article>
+                </div>
+              </section>
+            </section>
+          </div>
+        </section>
+
+        <section id="section-times" class="section-pane">
+          <div class="step-intro">
+            <div>
+              <p class="section-label">Paso 2</p>
+              <h2>Novedades, tiempos y situacion de revista</h2>
+            </div>
+            <p>
+              Carga las novedades del periodo y define, si hace falta, los tramos de revista de manera explicita. Esta
+              pantalla prepara el â€œtetrisâ€ temporal que luego audita AFIP.
+            </p>
+          </div>
+
+          <div class="wizard-grid">
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-label">Novedades del periodo</p>
+                  <h2>Tiempos y eventos liquidables</h2>
+                </div>
+              </div>
+
+              <div class="field-grid">
+                <label class="field">
+                  <span id="days-label">Dias trabajados</span>
+                  <input id="worked-days" name="workedDays" type="number" min="0" max="30" step="1" value="30" />
+                </label>
+
+                <label class="field">
+                  <span>Horas extra 50%</span>
+                  <input id="overtime-50" name="overtime50Hours" type="number" min="0" step="0.5" value="0" />
+                </label>
+
+                <label class="field">
+                  <span>Horas extra 100%</span>
+                  <input id="overtime-100" name="overtime100Hours" type="number" min="0" step="0.5" value="0" />
+                </label>
+
+                <label class="field">
+                  <span>Licencias</span>
+                  <input id="licensed-days" name="licensedDays" type="number" min="0" max="30" step="1" value="0" />
+                </label>
+
+                <label class="field">
+                  <span>Suspensiones</span>
+                  <input id="suspension-days" name="suspensionDays" type="number" min="0" max="30" step="1" value="0" />
+                </label>
+
+                <label class="field">
+                  <span>Ausencias</span>
+                  <input id="absence-days" name="absenceDays" type="number" min="0" max="30" step="1" value="0" />
+                </label>
+
+                <label class="field conditional-field" data-type="vacaciones">
+                  <span>Dias de vacaciones</span>
+                  <input id="vacation-days" name="vacationDays" type="number" min="0" max="35" step="1" value="14" />
+                </label>
+
+                <label class="field conditional-field" data-type="final">
+                  <span>Dias vacaciones no gozadas</span>
+                  <input id="unused-vacation-days" name="unusedVacationDays" type="number" min="0" max="35" step="1" value="0" />
+                </label>
+
+                <label class="field conditional-field" data-type="final">
+                  <span>Dias del semestre para SAC proporcional</span>
+                  <input id="semester-days-worked" name="semesterDaysWorked" type="number" min="0" max="184" step="1" value="90" />
+                </label>
+              </div>
+
+              <div class="wizard-actions">
+                <div class="step-note">
+                  <strong>Objetivo del paso</strong>
+                  <p>Cargar tiempos del periodo y dejar lista la integridad temporal para la auditoria preventiva.</p>
+                </div>
+                <div class="wizard-actions-right">
+                  <button type="button" class="ghost-button" data-wizard-prev="general">Volver</button>
+                  <button type="button" class="primary-button" data-wizard-next="concepts">Continuar a conceptos</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="wizard-stack">
+              <section class="panel">
+                <div class="panel-heading">
+                  <div>
+                    <p class="section-label">Tramos revista</p>
+                    <h2>Carga explicita para auditoria AFIP</h2>
+                  </div>
+                </div>
+                <p class="audit-caption">
+                  Si dejas los tramos vacios, el sistema deriva revista desde los dias trabajados. Si queres control
+                  fino, ingresa hasta tres segmentos con codigo LSD, desde y hasta.
+                </p>
+                <div class="revista-grid">
+                  <div class="revista-row">
+                    <input name="revistaSegment1Code" placeholder="Codigo tramo 1 (ej. 01)" />
+                    <input name="revistaSegment1From" type="number" min="1" max="30" placeholder="Desde" />
+                    <input name="revistaSegment1To" type="number" min="1" max="30" placeholder="Hasta" />
+                  </div>
+                  <div class="revista-row">
+                    <input name="revistaSegment2Code" placeholder="Codigo tramo 2" />
+                    <input name="revistaSegment2From" type="number" min="1" max="30" placeholder="Desde" />
+                    <input name="revistaSegment2To" type="number" min="1" max="30" placeholder="Hasta" />
+                  </div>
+                  <div class="revista-row">
+                    <input name="revistaSegment3Code" placeholder="Codigo tramo 3" />
+                    <input name="revistaSegment3From" type="number" min="1" max="30" placeholder="Desde" />
+                    <input name="revistaSegment3To" type="number" min="1" max="30" placeholder="Hasta" />
+                  </div>
+                </div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-heading">
+                  <div>
+                    <p class="section-label">Checklist previo</p>
+                    <h2>Que deberia quedar cerrado</h2>
+                  </div>
+                </div>
+                <div class="guide-list">
+                  <article>
+                    <strong>Revista</strong>
+                    <p>La suma de los tramos debe cerrar contra los 30 dias del periodo o quedar deliberadamente incompleta para revision.</p>
+                  </article>
+                  <article>
+                    <strong>Licencias y ausencias</strong>
+                    <p>Hoy se registran para trazabilidad y preparan la futura conciliacion automatica con revista.</p>
+                  </article>
+                  <article>
+                    <strong>Objetivo de UX</strong>
+                    <p>Separar los tiempos del calculo monetario para que el liquidador no mezcle conceptos con calendario.</p>
+                  </article>
+                </div>
+              </section>
+            </section>
+          </div>
+        </section>
+
+        <section id="section-concepts" class="section-pane">
+          <div class="step-intro">
+            <div>
+              <p class="section-label">Paso 3</p>
+              <h2>Conceptos, adicionales y acuerdos</h2>
+            </div>
+            <p>
+              Esta pantalla concentra los conceptos configurables. El objetivo es preparar la liquidacion completa antes
+              de ejecutar la auditoria preventiva sobre el objeto final.
+            </p>
+          </div>
+
+          <div class="wizard-grid">
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-label">Conceptos del periodo</p>
+                  <h2>Adicionales y no remunerativos</h2>
+                </div>
+              </div>
+
+              <div class="toggle-grid">
+                <label class="toggle-card">
+                  <input id="night-toggle" name="nightShift" type="checkbox" />
+                  <span>Trabajo nocturno</span>
+                  <small>Queda preparado como concepto configurable.</small>
+                </label>
+
+                <label class="toggle-card">
+                  <input id="non-rem-toggle" name="includeNonRemuneratives" type="checkbox" checked />
+                  <span>Incluir no remunerativos</span>
+                  <small>Activa acuerdos vigentes segun fecha.</small>
+                </label>
+
+                <label class="toggle-card">
+                  <input id="presentismo-toggle" name="presentismo" type="checkbox" />
+                  <span>Presentismo / asistencia</span>
+                  <small>Concepto preparado para escenarios que lo requieran.</small>
+                </label>
+
+                <label class="toggle-card">
+                  <input id="preview-audit-toggle" name="previewAudit" type="checkbox" checked />
+                  <span>Vista previa al auditar</span>
+                  <small>Recalcula en caliente para llegar al paso 4 con estado actualizado.</small>
+                </label>
+              </div>
+
+              <details class="advanced-box" open>
+                <summary>Configurar acuerdos no remunerativos</summary>
+                <div id="agreements-container" class="agreements-container"></div>
+              </details>
+
+              <div class="wizard-actions">
+                <div class="step-note">
+                  <strong>Salida del paso</strong>
+                  <p>Cuando avances, el sistema recalcula la liquidacion y entra al paso exclusivo de auditoria.</p>
+                </div>
+                <div class="wizard-actions-right">
+                  <button type="button" class="ghost-button" data-wizard-prev="times">Volver</button>
+                  <button id="calculate-audit-button" type="submit" class="primary-button">Calcular y pasar a auditoria</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="wizard-stack">
+              <section class="panel">
+                <div class="panel-heading">
+                  <div>
+                    <p class="section-label">Escalas salariales</p>
+                    <h2>Referencia por vigencia</h2>
+                  </div>
+                </div>
+                <div id="scale-deck" class="scale-deck"></div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-heading">
+                  <div>
+                    <p class="section-label">Acuerdos cargados</p>
+                    <h2>Conceptos configurables</h2>
+                  </div>
+                </div>
+                <div id="agreement-deck" class="agreement-deck"></div>
+              </section>
+            </section>
+          </div>
+        </section>
+      </form>
+
+      <section id="section-audit" class="section-pane">
+        <div class="step-intro">
+          <div>
+            <p class="section-label">Paso 4</p>
+            <h2>Auditoria preventiva laboral y AFIP</h2>
+          </div>
+          <p>
+            Pantalla exclusiva del auditor. Aqui no se mezclan haberes con control preventivo: primero ves score,
+            blockers, conciliaciones, trazabilidad y razones de aprobacion o fallo.
+          </p>
+        </div>
+
+        <div class="wizard-stack">
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-label">Motor preventivo</p>
+                <h2>Estado de la liquidacion auditada</h2>
+              </div>
+            </div>
+            <div id="messages" class="message-stack"></div>
+            <div id="audit-status-strip" class="audit-status-strip">
+              <article id="audit-export-card" class="audit-status-card is-ready">
+                <span>Estado</span>
+                <strong id="audit-export-status">Esperando liquidacion</strong>
+                <small id="audit-export-caption">La auditoria se ejecuta sobre la liquidacion terminada.</small>
+              </article>
+              <article class="audit-status-card">
+                <span>Score preventivo</span>
+                <strong id="audit-score">--/100</strong>
+                <small id="audit-score-caption">Sin evaluacion todavia.</small>
+              </article>
+              <article class="audit-status-card">
+                <span>Diferencia neto</span>
+                <strong id="audit-net-gap">$ 0,00</strong>
+                <small id="audit-net-gap-caption">Serie 990 y neto auditado.</small>
+              </article>
+              <article class="audit-status-card">
+                <span>Cobertura revista</span>
+                <strong id="audit-covered-days">0 / 30</strong>
+                <small id="audit-covered-caption">Integridad temporal del periodo.</small>
+              </article>
+            </div>
+            <div id="audit-findings" class="audit-findings">
+              <article class="audit-empty">
+                <strong>Motor listo.</strong>
+                <p>Al entrar con una liquidacion calculada, vas a ver blockers, warnings, trazabilidad y conciliaciones.</p>
+              </article>
+            </div>
+          </section>
+
+          <div class="section-grid">
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-label">Trazabilidad</p>
+                  <h2>Revista, AFIP y razones del veredicto</h2>
+                </div>
+              </div>
+              <div id="audit-sources" class="audit-source-list"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-label">Conciliacion tecnica</p>
+                  <h2>Serie 990 y flujo operativo</h2>
+                </div>
+              </div>
+              <div class="matrix-stats">
+                <article class="mini-stat">
+                  <span>Score preventivo</span>
+                  <strong id="confidence-score">100/100</strong>
+                </article>
+                <article class="mini-stat">
+                  <span>Tipo de base</span>
+                  <strong>Base simple</strong>
+                </article>
+                <article class="mini-stat">
+                  <span>Divisores</span>
+                  <strong>30 / 25 / 200</strong>
+                </article>
+                <article class="mini-stat">
+                  <span>Dia del gremio</span>
+                  <strong>10 de marzo</strong>
+                </article>
+              </div>
+              <div id="matrix-rule-list" class="rows" style="margin-top: 18px;"></div>
+              <div class="table-wrap" style="margin-top: 18px;">
+                <table class="tech-table">
+                  <thead>
+                    <tr>
+                      <th>Paso</th>
+                      <th>Concepto</th>
+                      <th>Regla</th>
+                      <th>Importe actual</th>
+                    </tr>
+                  </thead>
+                  <tbody id="matrix-flow-body"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+          <div class="wizard-actions">
+            <div class="step-note">
+              <strong>Objetivo del paso</strong>
+              <p>Tomar una decision informada antes de pasar al resultado final o de pedir interpretacion IA.</p>
+            </div>
+            <div class="wizard-actions-right">
+              <button type="button" class="ghost-button" data-wizard-prev="concepts">Volver a conceptos</button>
+              <button type="button" class="primary-button" data-wizard-next="result">Continuar a resultado final</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-result" class="section-pane">
+        <div class="step-intro">
+          <div>
+            <p class="section-label">Paso 5</p>
+            <h2>Resultado final y salida operativa</h2>
+          </div>
+          <p>
+            Esta pantalla concentra el recibo, el neto, el bruto, los descuentos y las bases. La auditoria ya quedo
+            separada en el paso anterior para no mezclar compliance con visualizacion salarial.
+          </p>
+        </div>
+
+        <div class="wizard-grid">
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-label">Resultado</p>
+                <h2>Liquidacion consolidada</h2>
+              </div>
+              <div class="result-actions">
+                <button id="explain-button" type="button" class="ghost-button skill-button" disabled>Explicar liquidacion</button>
+                <button id="print-result-button" type="button" class="ghost-button">Imprimir resultado</button>
+              </div>
+            </div>
+
+            <div class="result-tabs" role="tablist" aria-label="Vistas del resultado">
+              <button type="button" class="result-tab is-active" data-result-tab="summary">Resumen</button>
+              <button type="button" class="result-tab" data-result-tab="receipt">Vista recibo</button>
+              <button type="button" class="result-tab" data-result-tab="calc">Como se calculo</button>
+              <button type="button" class="result-tab" data-result-tab="debug">Debug y fuentes</button>
+            </div>
+
+            <div id="result-pane-summary" class="result-pane is-active">
+              <div class="summary-grid">
+                <article class="summary-card">
+                  <span>Bruto remunerativo</span>
+                  <strong id="gross-rem">$ 0,00</strong>
+                </article>
+                <article class="summary-card">
+                  <span>Descuentos</span>
+                  <strong id="deductions-total">$ 0,00</strong>
+                </article>
+                <article class="summary-card">
+                  <span>No remunerativos</span>
+                  <strong id="non-rem-total">$ 0,00</strong>
+                </article>
+                <article class="summary-card highlight-card">
+                  <span>Total en bolsillo</span>
+                  <strong id="take-home-total">$ 0,00</strong>
+                </article>
+              </div>
+
+              <div class="indicator-grid">
+                <article class="indicator-card">
+                  <span>Valor hora</span>
+                  <strong id="hour-value">$ 0,00</strong>
+                </article>
+                <article class="indicator-card">
+                  <span>Base seguridad social</span>
+                  <strong id="social-base">$ 0,00</strong>
+                </article>
+                <article class="indicator-card">
+                  <span>Base obra social / sindicato</span>
+                  <strong id="health-base">$ 0,00</strong>
+                </article>
+                <article class="indicator-card">
+                  <span>% descuentos s/rem</span>
+                  <strong id="discount-rate">0,00%</strong>
+                </article>
+              </div>
+
+              <div class="breakdown-grid">
+                <article class="breakdown-card">
+                  <h3>Remunerativos</h3>
+                  <div id="remunerative-breakdown" class="rows"></div>
+                </article>
+                <article class="breakdown-card">
+                  <h3>Descuentos</h3>
+                  <div id="deductions-breakdown" class="rows"></div>
+                </article>
+                <article class="breakdown-card">
+                  <h3>No remunerativos</h3>
+                  <div id="non-rem-breakdown" class="rows"></div>
+                </article>
+                <article class="breakdown-card">
+                  <h3>Contexto</h3>
+                  <div id="context-breakdown" class="rows"></div>
+                </article>
+              </div>
+            </div>
+
+            <div id="result-pane-receipt" class="result-pane">
+              <div id="receipt-view" class="receipt-view"></div>
+            </div>
+
+            <div id="result-pane-calc" class="result-pane">
+              <details class="detail-box" open>
+                <summary>Explicacion del calculo</summary>
+                <div id="explanation-text" class="narrative"></div>
+              </details>
+
+              <details class="detail-box">
+                <summary>Detalle paso a paso</summary>
+                <div id="step-by-step" class="steps"></div>
+              </details>
+            </div>
+
+            <div id="result-pane-debug" class="result-pane">
+              <details class="detail-box" id="debug-box">
+                <summary>Modo debug</summary>
+                <div id="debug-steps" class="debug-steps"></div>
+              </details>
+
+              <details class="detail-box">
+                <summary>Fuentes y supuestos</summary>
+                <div id="sources-panel" class="sources-panel"></div>
+              </details>
+            </div>
+          </section>
+
+          <section class="wizard-stack">
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-label">Salida</p>
+                  <h2>Que podes hacer ahora</h2>
+                </div>
+              </div>
+              <div class="guide-list">
+                <article>
+                  <strong>Impresion</strong>
+                  <p>La liquidacion final puede imprimirse desde esta pantalla sin navegar por auditoria o IA.</p>
+                </article>
+                <article>
+                  <strong>Reversion segura</strong>
+                  <p>Si el auditor encontro bloqueos, podes volver a pasos anteriores sin perder el estado cargado.</p>
+                </article>
+                <article>
+                  <strong>Proxima capa</strong>
+                  <p>Si queres una interpretacion experta, pasa al paso 6 sin volver a tocar el calculo.</p>
+                </article>
+              </div>
+            </section>
+
+            <div class="wizard-actions">
+              <div class="step-note">
+                <strong>Objetivo del paso</strong>
+                <p>Concentrar el resultado final sin mezclarlo con la auditoria preventiva ni con la revision IA.</p>
+              </div>
+              <div class="wizard-actions-right">
+                <button type="button" class="ghost-button" data-wizard-prev="audit">Volver a auditoria</button>
+                <button type="button" class="primary-button" data-wizard-next="gemini">Ir a revision Gemini</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="section-gemini" class="section-pane">
+        <div class="step-intro">
+          <div>
+            <p class="section-label">Paso 6</p>
+            <h2>Revision Gemini opcional</h2>
+          </div>
+          <p>
+            Gemini recibe solo un resumen de la auditoria. No calcula montos ni reemplaza reglas deterministicas: solo
+            interpreta, explica, sugiere y ayuda a priorizar riesgo.
+          </p>
+        </div>
+
+        <div class="gemini-grid">
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="section-label">Capa IA</p>
+                <h2>Interpretacion sobre auditoria ya cerrada</h2>
+              </div>
+              <div class="result-actions">
+                <button id="audit-ai-run" type="button" class="ghost-button">Pedir revision Gemini</button>
+              </div>
+            </div>
+            <div id="audit-ai-status" class="audit-empty">
+              <strong>Gemini no inicializado.</strong>
+              <p>La capa IA es opcional y solo agrega revision experta sobre hallazgos ya calculados localmente.</p>
+            </div>
+            <div id="audit-ai-output" class="audit-ai-output" hidden></div>
+          </section>
+
+          <section class="wizard-stack">
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <p class="section-label">Limites del modelo</p>
+                  <h2>Que hace y que no hace</h2>
+                </div>
+              </div>
+              <div class="guide-list">
+                <article>
+                  <strong>Si hace</strong>
+                  <p>Interpretar riesgos, explicar hallazgos, sugerir focos de revision y traducir impacto laboral/AFIP.</p>
+                </article>
+                <article>
+                  <strong>No hace</strong>
+                  <p>Calcular sueldo, decidir montos, reemplazar formulas ni convalidar matematicas basicas.</p>
+                </article>
+                <article>
+                  <strong>Payload enviado</strong>
+                  <p>Solo resumen de totalizadores, revista y errores detectados por el auditor local.</p>
+                </article>
+              </div>
+            </section>
+
+            <div class="wizard-actions">
+              <div class="step-note">
+                <strong>Cierre del flujo</strong>
+                <p>La IA queda al final del proceso para preservar trazabilidad, auditabilidad y separacion de responsabilidades.</p>
+              </div>
+              <div class="wizard-actions-right">
+                <button type="button" class="ghost-button" data-wizard-prev="result">Volver a resultado final</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+    <div id="skill-modal" class="skill-modal" aria-hidden="true">
+      <div class="skill-backdrop" data-close-skill="true"></div>
+      <section class="skill-dialog" role="dialog" aria-modal="true" aria-labelledby="skill-title">
+        <header class="skill-header">
+          <div>
+            <p class="section-label">Skill</p>
+            <h3 id="skill-title">ExplicaciÃ³n de la liquidaciÃ³n</h3>
+            <div class="skill-topline">
+              <span id="skill-status-badge" class="status-badge status-ok">OK</span>
+              <span id="skill-status-caption" class="type-badge badge-info">LiquidaciÃ³n interpretada</span>
+            </div>
+          </div>
+          <button id="close-skill-button" type="button" class="ghost-button">Cerrar</button>
+        </header>
+
+        <div class="skill-body">
+          <section class="skill-summary-card">
+            <div id="skill-summary-text" class="narrative"></div>
+            <div id="skill-summary-metrics" class="skill-summary-metrics"></div>
+          </section>
+
+          <section class="skill-section">
+            <h4>Detalle paso a paso</h4>
+            <div id="skill-step-list" class="skill-step-list"></div>
+          </section>
+
+          <section class="skill-section">
+            <h4>FÃ³rmulas aplicadas</h4>
+            <div id="skill-formula-list" class="skill-formula-list"></div>
+          </section>
+
+          <section class="skill-section">
+            <h4>Observaciones y advertencias</h4>
+            <div id="skill-observation-list" class="skill-observation-list"></div>
+          </section>
+        </div>
+      </section>
+    </div>
+
+        <script type="module" src="./js/ui.js"></script>
+  </body>
+</html>
+

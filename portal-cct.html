@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Portal de Calculadoras CCT</title>
+    <style>
+      :root {
+        --bg: #f4f6f3;
+        --surface: #ffffff;
+        --ink: #17221c;
+        --muted: #66736c;
+        --line: #d9e1db;
+        --brand: #155a43;
+        --brand-2: #b6502b;
+        --ok: #23704e;
+        --warn: #936500;
+        --shadow: 0 18px 45px rgba(23, 34, 28, 0.12);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Aptos, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          linear-gradient(135deg, rgba(21, 90, 67, 0.1), transparent 38%),
+          linear-gradient(180deg, #fbfcfa 0%, var(--bg) 100%);
+      }
+
+      .shell {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 30px 0 46px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 20px;
+      }
+
+      .brand small {
+        display: block;
+        color: var(--muted);
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      h1 {
+        margin: 4px 0 0;
+        font-size: clamp(28px, 4vw, 44px);
+        line-height: 1;
+      }
+
+      .actions,
+      .card-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .button {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 42px;
+        border-radius: 8px;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+        padding: 0 14px;
+        text-decoration: none;
+        font-weight: 850;
+        cursor: pointer;
+      }
+
+      .button.primary {
+        background: var(--brand);
+        border-color: var(--brand);
+        color: #fff;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 300px minmax(0, 1fr);
+        gap: 18px;
+        align-items: start;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.86);
+        box-shadow: var(--shadow);
+      }
+
+      .filters,
+      .content {
+        padding: 18px;
+      }
+
+      .filters {
+        position: sticky;
+        top: 18px;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      p {
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      label {
+        display: grid;
+        gap: 7px;
+        margin-top: 14px;
+      }
+
+      label span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      input,
+      select {
+        width: 100%;
+        min-height: 42px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 0 12px;
+        font: inherit;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .stat {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px;
+        background: #eef3ee;
+      }
+
+      .stat strong {
+        display: block;
+        font-size: 26px;
+      }
+
+      .cards {
+        display: grid;
+        gap: 12px;
+      }
+
+      .cct-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 18px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+        padding: 18px;
+      }
+
+      .cct-card[hidden] { display: none; }
+
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .badge {
+        border-radius: 999px;
+        padding: 5px 9px;
+        font-size: 12px;
+        font-weight: 900;
+        border: 1px solid transparent;
+      }
+
+      .badge.ok {
+        color: var(--ok);
+        background: #e6f3ed;
+        border-color: #b8dfcb;
+      }
+
+      .badge.warn {
+        color: var(--warn);
+        background: #fff5d7;
+        border-color: #ead28b;
+      }
+
+      .badge.type {
+        color: var(--brand-2);
+        background: #f8ece6;
+        border-color: #efcbbb;
+      }
+
+      .cct-card h3 {
+        margin: 0;
+        font-size: 24px;
+      }
+
+      .features {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 0;
+        margin: 14px 0 0;
+        list-style: none;
+      }
+
+      .features li {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 7px 9px;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 750;
+      }
+
+      .meta {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .meta div {
+        border-top: 1px solid var(--line);
+        padding-top: 10px;
+      }
+
+      .meta small {
+        display: block;
+        color: var(--muted);
+        font-weight: 800;
+      }
+
+      .empty {
+        display: none;
+        padding: 24px;
+        border: 1px dashed var(--line);
+        border-radius: 8px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .empty.is-visible { display: block; }
+
+      @media (max-width: 860px) {
+        .topbar,
+        .layout,
+        .cct-card {
+          display: block;
+        }
+
+        .actions,
+        .card-actions {
+          margin-top: 14px;
+        }
+
+        .filters {
+          position: static;
+          margin-bottom: 18px;
+        }
+
+        .meta {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div class="brand">
+          <small>Biblioteca laboral</small>
+          <h1>Portal de Calculadoras CCT</h1>
+        </div>
+        <div class="actions">
+          <a class="button" href="./Calculadora_CCT_244_94_Alimentacion.html">Alimentación</a>
+          <a class="button primary" href="./Calculadora_UOCRA_CCT_76_75.html">UOCRA</a>
+        </div>
+      </header>
+
+      <main class="layout">
+        <aside class="panel filters">
+          <h2>Buscar convenio</h2>
+          <p>Elegí el CCT y abrí su calculadora final lista para operar.</p>
+          <label>
+            <span>Buscar</span>
+            <input id="search" type="search" placeholder="Ej: alimentación, UOCRA, F.931" />
+          </label>
+          <label>
+            <span>Estado</span>
+            <select id="status">
+              <option value="all">Todos</option>
+              <option value="ready">Listos</option>
+              <option value="draft">En preparación</option>
+            </select>
+          </label>
+          <div class="stats">
+            <div class="stat"><strong id="ready-count">0</strong><small>Listos</small></div>
+            <div class="stat"><strong id="total-count">0</strong><small>Total</small></div>
+          </div>
+        </aside>
+
+        <section class="panel content">
+          <h2>Calculadoras disponibles</h2>
+          <p>Las tarjetas listas abren directamente el liquidador correspondiente.</p>
+          <div id="cards" class="cards"></div>
+          <div id="empty" class="empty">No hay convenios que coincidan con el filtro.</div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const conventions = [
+        {
+          title: "Industria de la Alimentación",
+          cct: "CCT 244/94",
+          status: "ready",
+          href: "./Calculadora_CCT_244_94_Alimentacion.html",
+          engine: "Motor universal + JSON",
+          scope: "Mensual, vacaciones, final básica",
+          validity: "Abril 2026",
+          summary: "Liquidación avanzada con escalas, acuerdos NR, explicación, auditoría, simulador, F.931 y costo empresa detallado.",
+          features: ["F.931", "Skill explicativa", "Auditoría", "Simulador", "Export JSON/CSV"]
+        },
+        {
+          title: "Construcción UOCRA",
+          cct: "CCT 76/75",
+          status: "ready",
+          href: "./Calculadora_UOCRA_CCT_76_75.html",
+          engine: "HTML autónomo",
+          scope: "Jornal, quincena, adicionales, costo",
+          validity: "2026",
+          summary: "Liquidador operativo con trabajador, quincena, inasistencias, pluses UOCRA, contribuciones, simulador y comparador.",
+          features: ["Quincena", "Inasistencias", "Costo empleador", "Gráfico", "Admin"]
+        },
+        {
+          title: "Empleados de Comercio",
+          cct: "CCT 130/75",
+          status: "draft",
+          href: "",
+          engine: "Pendiente JSON",
+          scope: "Pendiente",
+          validity: "Pendiente",
+          summary: "Espacio preparado para sumar escalas, acuerdos y reglas de Comercio.",
+          features: ["Multi-CCT", "Escalas JSON", "Reglas configurables"]
+        }
+      ];
+
+      const refs = {
+        cards: document.querySelector("#cards"),
+        empty: document.querySelector("#empty"),
+        search: document.querySelector("#search"),
+        status: document.querySelector("#status"),
+        readyCount: document.querySelector("#ready-count"),
+        totalCount: document.querySelector("#total-count")
+      };
+
+      const normalize = (value) =>
+        String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+      function render() {
+        const term = normalize(refs.search.value);
+        const status = refs.status.value;
+        let visible = 0;
+
+        refs.cards.innerHTML = conventions.map((item) => {
+          const haystack = normalize([item.title, item.cct, item.summary, item.features.join(" ")].join(" "));
+          const matches = (!term || haystack.includes(term)) && (status === "all" || item.status === status);
+          if (matches) visible += 1;
+          const ready = item.status === "ready";
+          return `
+            <article class="cct-card" ${matches ? "" : "hidden"}>
+              <div>
+                <div class="badges">
+                  <span class="badge ${ready ? "ok" : "warn"}">${ready ? "Listo" : "En preparación"}</span>
+                  <span class="badge type">${item.cct}</span>
+                </div>
+                <h3>${item.title}</h3>
+                <p>${item.summary}</p>
+                <ul class="features">${item.features.map((feature) => `<li>${feature}</li>`).join("")}</ul>
+                <div class="meta">
+                  <div><small>Motor</small><strong>${item.engine}</strong></div>
+                  <div><small>Alcance</small><strong>${item.scope}</strong></div>
+                  <div><small>Vigencia</small><strong>${item.validity}</strong></div>
+                </div>
+              </div>
+              <div class="card-actions">
+                ${item.href ? `<a class="button primary" href="${item.href}">Abrir calculadora</a>` : `<button class="button" disabled>Próximamente</button>`}
+                ${item.href ? `<a class="button" href="${item.href}" target="_blank" rel="noopener">Abrir en pestaña</a>` : ""}
+              </div>
+            </article>
+          `;
+        }).join("");
+
+        refs.readyCount.textContent = conventions.filter((item) => item.status === "ready").length;
+        refs.totalCount.textContent = conventions.length;
+        refs.empty.classList.toggle("is-visible", visible === 0);
+      }
+
+      refs.search.addEventListener("input", render);
+      refs.status.addEventListener("change", render);
+      render();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,33 @@
+{
+  "version": "2026.05.06",
+  "records": [
+    {
+      "path": "C:\\Users\\Lenovo Ideapad\\Downloads\\Alimentación, CCT 244_1994. Convenio colectivo. Texto ordenado.pdf",
+      "exists": true,
+      "size_bytes": 848124,
+      "sha256": "06c9addfcdb353ae885c1eae67cb364a6a9c5df4e80c804a2fef75dc1b48b6a4",
+      "pdf_pages": 65
+    },
+    {
+      "path": "C:\\Users\\Lenovo Ideapad\\Downloads\\Alimentación. Obreros y empleados, CCT 244_1994. Incremento salarial no remunerativo a partir de marzo. Nuevas escalas salariales a partir de abril de 2026.pdf",
+      "exists": true,
+      "size_bytes": 128087,
+      "sha256": "c02b8f105df6b92be2820875e0c2a0280914bae756586b5e3b127a4bc76061e1",
+      "pdf_pages": 1
+    },
+    {
+      "path": "C:\\Users\\Lenovo Ideapad\\Downloads\\Alimentación. Obreros y empleados, CCT 244_1994. Tope indemnizatorio desde 1_5_2024, 1_6_2024, 1_7_2024 y 1_8_2024.pdf",
+      "exists": true,
+      "size_bytes": 172825,
+      "sha256": "772fe8871d2b1d3599ab17e8cdf4f29f2a2aaebfd6c8a9cdc73ce9455f175153",
+      "pdf_pages": 2
+    },
+    {
+      "path": "C:\\Users\\Lenovo Ideapad\\Downloads\\Copia de LEY 20744 - LEY DE CONTRATO DE TRABAJO _ Argentina.gob.ar.pdf",
+      "exists": true,
+      "size_bytes": 839845,
+      "sha256": "8da0e4523d4f8cb5dbbcd5ced6ca74a709f380fd21540884e4187708a091aa33",
+      "pdf_pages": 53
+    }
+  ]
+}

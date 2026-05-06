@@ -1,0 +1,131 @@
+{
+  "version": "2026.05.06",
+  "records": [
+    {
+      "codigo_afip": "110000",
+      "descripcion": "Sueldo",
+      "tipo": "remunerativo",
+      "restricciones": ["Concepto fijo AFIP para sueldo basico remunerativo."],
+      "exenciones": []
+    },
+    {
+      "codigo_afip": "120003",
+      "descripcion": "SAC proporcional",
+      "tipo": "remunerativo",
+      "restricciones": ["Aplicar cuando corresponda a aguinaldo proporcional."],
+      "exenciones": []
+    },
+    {
+      "codigo_afip": "130001",
+      "descripcion": "Horas extras al 50",
+      "tipo": "remunerativo",
+      "restricciones": ["No reutilizar para horas al 100."],
+      "exenciones": []
+    },
+    {
+      "codigo_afip": "130002",
+      "descripcion": "Horas extras al 100",
+      "tipo": "remunerativo",
+      "restricciones": ["No reutilizar para horas al 50."],
+      "exenciones": []
+    },
+    {
+      "codigo_afip": "140000",
+      "descripcion": "Zona desfavorable",
+      "tipo": "remunerativo",
+      "restricciones": ["Usar para adicionales por zona con tratamiento remunerativo."],
+      "exenciones": []
+    },
+    {
+      "codigo_afip": "150000",
+      "descripcion": "Adelanto vacacional",
+      "tipo": "remunerativo",
+      "restricciones": ["Concepto especifico para adelanto vacacional."],
+      "exenciones": []
+    },
+    {
+      "codigo_afip": "160001",
+      "descripcion": "Adicional por antiguedad",
+      "tipo": "remunerativo",
+      "restricciones": ["Debe mantenerse con la naturaleza remunerativa del convenio."],
+      "exenciones": []
+    },
+    {
+      "codigo_afip": "170001",
+      "descripcion": "Premio por presentismo",
+      "tipo": "remunerativo",
+      "restricciones": ["Aplicable cuando el adicional sea efectivamente remunerativo."],
+      "exenciones": []
+    },
+    {
+      "codigo_afip": "170002",
+      "descripcion": "Premio o bonificacion por productividad",
+      "tipo": "remunerativo",
+      "restricciones": ["No usar si se quiere tratar el bono como no remunerativo."],
+      "exenciones": []
+    },
+    {
+      "codigo_afip": "510000",
+      "descripcion": "Rango base de asignaciones no remunerativas",
+      "tipo": "no_remunerativo",
+      "restricciones": ["Controlar que el concepto corresponda a asignacion o importe no remunerativo sin aportes previsionales."],
+      "exenciones": ["Puede no integrar SAC segun su naturaleza."]
+    },
+    {
+      "codigo_afip": "520012",
+      "descripcion": "Vacaciones no gozadas",
+      "tipo": "no_remunerativo",
+      "restricciones": ["Aplicar solo cuando se liquiden vacaciones no gozadas."],
+      "exenciones": ["Tratamiento especial al extinguirse el contrato."]
+    },
+    {
+      "codigo_afip": "531000",
+      "descripcion": "Rango libre de incrementos no remunerativos con aporte de obra social",
+      "tipo": "no_remunerativo",
+      "restricciones": ["Usar como rango libre y documentar el tratamiento contributivo del acuerdo."],
+      "exenciones": ["No integra base remunerativa general por defecto."]
+    },
+    {
+      "codigo_afip": "541000",
+      "descripcion": "Rango libre de incrementos no remunerativos con aportes adicionales",
+      "tipo": "no_remunerativo",
+      "restricciones": ["Documentar expresamente los subsistemas alcanzados."],
+      "exenciones": ["No integra SAC salvo texto expreso."]
+    },
+    {
+      "codigo_afip": "551000",
+      "descripcion": "Rango libre de importes no remunerativos especiales",
+      "tipo": "no_remunerativo",
+      "restricciones": ["Reservado para no remunerativos fuera de los conceptos fijos."],
+      "exenciones": ["Depende del acuerdo o norma que origine el concepto."]
+    },
+    {
+      "codigo_afip": "810000",
+      "descripcion": "Aporte jubilacion SIPA",
+      "tipo": "descuento",
+      "restricciones": ["Debe impactar serie 995."],
+      "exenciones": []
+    },
+    {
+      "codigo_afip": "810001",
+      "descripcion": "Aporte Ley 19032 / PAMI",
+      "tipo": "descuento",
+      "restricciones": ["Debe impactar serie 995."],
+      "exenciones": []
+    },
+    {
+      "codigo_afip": "810002",
+      "descripcion": "Aporte obra social",
+      "tipo": "descuento",
+      "restricciones": ["Debe impactar serie 995."],
+      "exenciones": []
+    },
+    {
+      "codigo_afip": "810004",
+      "descripcion": "Cuota sindical",
+      "tipo": "descuento",
+      "restricciones": ["Debe impactar serie 995 si se retiene al trabajador."],
+      "exenciones": []
+    }
+  ]
+}
