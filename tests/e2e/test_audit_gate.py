@@ -20,6 +20,37 @@ def create_driver():
     )
 
 
+def first_visible(driver, selector):
+    elements = driver.find_elements(By.CSS_SELECTOR, selector)
+    for element in elements:
+        if element.is_displayed() and element.is_enabled():
+            return element
+    raise AssertionError(f"No se encontró elemento visible para selector: {selector}")
+
+
+def set_input_value(driver, element, value):
+    driver.execute_script(
+        """
+        const input = arguments[0];
+        const value = arguments[1];
+        input.scrollIntoView({ block: 'center', inline: 'nearest' });
+        input.focus();
+        input.value = value;
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        """,
+        element,
+        str(value),
+    )
+
+
+def click_visible(driver, selector):
+    element = first_visible(driver, selector)
+    driver.execute_script("arguments[0].scrollIntoView({ block: 'center' });", element)
+    element.click()
+    return element
+
+
 def test_audit_gate_blocks_result_button():
     driver = create_driver()
     wait = WebDriverWait(driver, 25)
@@ -27,31 +58,15 @@ def test_audit_gate_blocks_result_button():
     try:
         driver.get(BASE_URL)
 
-        wait.until(
-            EC.presence_of_element_located((By.TAG_NAME, "body"))
-        )
+        wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
 
-        days_input = wait.until(
-            EC.presence_of_element_located(
-                (
-                    By.CSS_SELECTOR,
-                    "input[name='workedDays'], input[name='daysWorked'], #worked-days, #days-worked"
-                )
-            )
+        days_input = first_visible(
+            driver,
+            "input[name='workedDays'], input[name='daysWorked'], #worked-days, #days-worked"
         )
+        set_input_value(driver, days_input, "28")
 
-        days_input.clear()
-        days_input.send_keys("28")
-
-        calculate_button = wait.until(
-            EC.element_to_be_clickable(
-                (
-                    By.CSS_SELECTOR,
-                    "button[type='submit'], #calculate-button, [data-action='calculate']"
-                )
-            )
-        )
-        calculate_button.click()
+        click_visible(driver, "button[type='submit'], #calculate-button, [data-action='calculate']")
 
         wait.until(
             EC.presence_of_element_located(
