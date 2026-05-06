@@ -99,53 +99,29 @@ function saveDraft(payload) {
   }
 }
 
-async function ensurePdfJs() {
-  if (window.pdfjsLib) return window.pdfjsLib;
+async function analyzePdfWithBackend(file) {
+  const formData = new FormData();
+  formData.append("file", file);
 
-  const pdfModuleUrl = new URL("../node_modules/pdfjs-dist/build/pdf.mjs", import.meta.url).href;
-  const workerUrl = new URL("../node_modules/pdfjs-dist/build/pdf.worker.mjs", import.meta.url).href;
-  const module = await import(pdfModuleUrl);
-  module.GlobalWorkerOptions.workerSrc = workerUrl;
-  window.pdfjsLib = module;
-  return module;
-}
-
-async function extractPdfText(file, onProgress) {
-  const pdfjsLib = await ensurePdfJs();
-  const buffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-  const pages = [];
-  let totalItems = 0;
-
-  for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
-    onProgress?.(`Analizando PDF… página ${pageNumber} de ${pdf.numPages}`);
-    const page = await pdf.getPage(pageNumber);
-    const content = await page.getTextContent();
-    totalItems += content.items.length;
-    pages.push(content.items.map((item) => item.str || "").join(" "));
-  }
-
-  const text = pages.join("\n\n").trim();
-  if (!text || totalItems === 0 || text.length < 80) {
-    throw new Error("El PDF se pudo abrir, pero no contiene suficiente texto seleccionable. Probablemente es escaneado/imagen. Para esta versión necesitás un PDF con texto seleccionable o agregar OCR.");
-  }
-  return text;
-}
-
-async function analyzeWithGemini(fileName, text) {
-  const response = await fetch("/extract-cct", {
+  const response = await fetch("/extract-cct-pdf", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ file_name: fileName, text })
+    body: formData
   });
 
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(detail || `HTTP ${response.status}`);
+  const rawText = await response.text();
+  let payload = null;
+  try {
+    payload = rawText ? JSON.parse(rawText) : null;
+  } catch (_error) {
+    payload = null;
   }
 
-  const payload = await response.json();
-  return payload.result || payload;
+  if (!response.ok) {
+    const detail = payload?.detail || rawText || `HTTP ${response.status}`;
+    throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+  }
+
+  return payload?.result || payload;
 }
 
 function injectStyles() {
@@ -264,22 +240,11 @@ async function handlePdf(file, refs) {
   refs.create.disabled = true;
   refs.preview.innerHTML = "";
   setFlowStep(refs.shell, 1);
-  setStatus(refs.status, "Analizando PDF… extrayendo texto");
+  setStatus(refs.status, "Analizando PDF… enviando archivo al backend");
   refs.output.textContent = "Analizando PDF…";
 
   try {
-    const text = await extractPdfText(file, (message) => setStatus(refs.status, message));
-    setStatus(refs.status, `Analizando PDF… texto extraído (${text.length.toLocaleString("es-AR")} caracteres). Consultando IA`);
-
-    let payload;
-    try {
-      payload = await analyzeWithGemini(file.name, text);
-    } catch (error) {
-      console.warn("Gemini no pudo analizar el CCT; usando fallback local", error);
-      payload = buildCctJson(text, file.name);
-      payload.alertas = [...(payload.alertas || []), "Gemini no respondió; se generó borrador local"];
-    }
-
+    const payload = await analyzePdfWithBackend(file);
     saveDraft(payload);
     lastExtractedJson = payload;
     refs.output.textContent = JSON.stringify(payload, null, 2);
