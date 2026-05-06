@@ -93,6 +93,26 @@ function rankDocumentChunks(question) {
     }));
 }
 
+function isDocumentQuestion(question) {
+  const normalized = normalizeText(question);
+  return [
+    "cct",
+    "convenio",
+    "lct",
+    "ley",
+    "categoria",
+    "categorias",
+    "antiguedad",
+    "jornada",
+    "registro",
+    "registros",
+    "contrato",
+    "relacion laboral",
+    "oficial",
+    "operario"
+  ].some((term) => normalized.includes(term));
+}
+
 function buildLocalSummary(context) {
   const audit = context.auditoria || context.audit;
   if (!audit) return "Todavía no hay auditoría preventiva calculada.";
@@ -123,17 +143,35 @@ function buildPayload(question, context) {
   };
 }
 
+function sourceLine(items) {
+  const uniqueSources = [...new Set(items.map((item) => `${item.fuente} · fragmento ${item.fragmento}`))];
+  return uniqueSources.length ? `\n\nFuentes internas: ${uniqueSources.join("; ")}.` : "";
+}
+
+function sentenceFromChunk(item) {
+  return String(item.texto || "")
+    .split(/(?<=[.!?])\s+/)
+    .map((sentence) => sentence.trim())
+    .filter(Boolean)
+    .slice(0, 3)
+    .join(" ");
+}
+
 function buildDocumentOnlyAnswer(question) {
   const matches = rankDocumentChunks(question);
   if (!matches.length) {
-    return "No encontré un fragmento específico en la base interna para esa pregunta. La base interna cargada incluye CCT 244/94 Alimentación y LCT 20.744 en forma resumida; probá con términos como categorías, antigüedad, registros, relación laboral o jornada.";
+    return "No encontré una regla específica en la base interna para esa pregunta. Tengo cargado CCT 244/94 Alimentación y LCT 20.744 en versión resumida; probá con términos como categorías, antigüedad, registros, relación laboral, jornada, operario u oficial.";
   }
 
-  return [
-    "Gemini no está configurado todavía. Respuesta basada en la base documental interna:",
-    "",
-    ...matches.slice(0, 3).map((item) => `• ${item.fuente} · fragmento ${item.fragmento}: ${item.texto}`)
-  ].join("\n");
+  const normalized = normalizeText(question);
+  const intro = normalized.includes("categoria") || normalized.includes("categorias")
+    ? "Según la base interna del CCT 244/94, las categorías se organizan por tipo de personal y por tarea efectiva."
+    : normalized.includes("antiguedad")
+      ? "Según la base interna, la antigüedad debe analizarse con el CCT aplicable y con las reglas generales de tiempo de servicio de la LCT."
+      : "Según la base documental interna, esto es lo más relevante:";
+
+  const bullets = matches.slice(0, 4).map((item) => `• ${sentenceFromChunk(item)}`);
+  return `${intro}\n\n${bullets.join("\n")}${sourceLine(matches.slice(0, 4))}`;
 }
 
 function injectStyles() {
@@ -185,8 +223,11 @@ async function askGemini(question) {
     if (!health.ai_enabled) {
       const hasAudit = Boolean(context.liquidacion || context.auditoria);
       const localParts = [];
-      if (hasAudit) localParts.push(`Resumen determinístico disponible:\n${buildLocalSummary(context)}`);
+      if (hasAudit && !isDocumentQuestion(question)) {
+        localParts.push(`Resumen preventivo:\n${buildLocalSummary(context)}`);
+      }
       localParts.push(buildDocumentOnlyAnswer(question));
+      localParts.push("\nGemini no está configurado; esta respuesta usa búsqueda local sobre la base interna.");
       return localParts.join("\n\n");
     }
     const response = await client.audit(buildPayload(question, context));
