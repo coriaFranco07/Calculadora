@@ -432,6 +432,42 @@ def extract_scale_categories(markdown: str, tables: list[dict[str, Any]]) -> lis
         header = [normalize_text(cell) for cell in table.get("header", [])]
         if not header:
             continue
+
+        # Escalas simples de casas particulares:
+        # Modalidad | Valor por hora
+        # Con retiro | $3.547,45
+        # Sin retiro | $3.805,10
+        if any("modalidad" in cell for cell in header) and any(
+            "valor" in cell or "hora" in cell for cell in header
+        ):
+            for row in table.get("rows", []):
+                if len(row) < 2:
+                    continue
+
+                modalidad = compact_text(row[0], 80)
+                monto = to_number(row[1])
+
+                if not modalidad or monto is None:
+                    continue
+
+                categories.append(
+                    {
+                        "id": slugify(f"tareas_generales_{modalidad}"),
+                        "nombre": "Tareas Generales",
+                        "tipo": "jornalizado",
+                        "descripcion": modalidad,
+                        "basico_mensual": None,
+                        "sueldo_mensual": None,
+                        "valor": monto,
+                        "valor_hora": monto,
+                        "tipo_valor": "hora",
+                        "grupo": modalidad,
+                        "fuente_textual": compact_text(" | ".join(row), 180),
+                    }
+                )
+
+            continue
+
         if not any("categoria" in cell or "cargo" in cell or "puesto" in cell or "descripcion" in cell for cell in header):
             continue
         for row in table.get("rows", []):
