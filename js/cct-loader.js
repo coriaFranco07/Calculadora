@@ -1,3 +1,5 @@
+import { buildCalculatorFromFormX } from "./formx-adapter.js";
+
 const CCT_STORAGE_KEY = "cct_calculator_draft_v2";
 let lastExtractedJson = null;
 
@@ -140,7 +142,7 @@ function injectStyles() {
     .cct-loader-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(360px, 1.1fr); gap: 18px; padding: 22px; }
     .cct-loader-card { border: 1px solid rgba(27,35,33,.08); border-radius: 24px; background: rgba(255,255,255,.80); padding: 18px; }
     .cct-loader-card h3 { margin: 0 0 10px; color: #1b2321; }
-    .cct-dropzone { position: relative; display: grid; place-items: center; min-height: 235px; border: 2px dashed rgba(31,106,82,.25); border-radius: 22px; background: rgba(31,106,82,.055); text-align: center; padding: 24px; cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+    .cct-dropzone { position: relative; display: grid; place-items: center; min-height: 180px; border: 2px dashed rgba(31,106,82,.25); border-radius: 22px; background: rgba(31,106,82,.055); text-align: center; padding: 24px; cursor: pointer; transition: border-color .15s ease, background .15s ease; }
     .cct-dropzone:hover { border-color: rgba(208,98,36,.38); background: rgba(208,98,36,.055); }
     .cct-dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
     .cct-dropzone strong { display: block; font-size: 1.15rem; color: #1b2321; margin-bottom: 6px; }
@@ -152,6 +154,9 @@ function injectStyles() {
     .cct-loader-button.secondary { background: rgba(31,106,82,.10); color: #1f6a52; }
     .cct-loader-button[disabled] { opacity: .48; cursor: not-allowed; filter: grayscale(.2); }
     .cct-loader-output { white-space: pre-wrap; overflow: auto; max-height: 500px; padding: 14px; border-radius: 16px; background: #1b2321; color: #f7efe2; font-size: .86rem; line-height: 1.45; }
+    .cct-formx-box { margin-top: 14px; display: grid; gap: 10px; }
+    .cct-formx-box textarea { width: 100%; min-height: 180px; resize: vertical; border-radius: 18px; border: 1px solid rgba(31,106,82,.18); background: rgba(255,255,255,.82); color: #1b2321; padding: 13px; font: 500 .88rem/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; box-sizing: border-box; }
+    .cct-formx-help { margin: 0; color: #53615d; font-size: .92rem; line-height: 1.45; }
     .generated-calculator { margin-top: 16px; padding: 16px; border-radius: 20px; background: rgba(31,106,82,.08); border: 1px solid rgba(31,106,82,.16); }
     .generated-calculator h4 { margin: 0 0 8px; color: #1f6a52; }
     .generated-calculator ul { margin: 8px 0 0; padding-left: 20px; }
@@ -193,26 +198,35 @@ function createShell() {
   shell.innerHTML = `
     <div class="cct-loader-hero">
       <small>Constructor IA de calculadoras</small>
-      <h2>Subí un CCT en PDF y creá la calculadora</h2>
-      <p>Flujo: subís el PDF, la IA lo analiza, revisás el JSON generado y presionás “Crear calculadora” para dejar una calculadora preliminar basada en ese convenio.</p>
+      <h2>Creá la calculadora desde PDF o JSON de FormX.ai</h2>
+      <p>Flujo recomendado: subís el CCT en FormX.ai, pegás acá el JSON generado, revisás el resultado y presionás “Crear calculadora”. También podés seguir usando el PDF directo como alternativa.</p>
     </div>
     <div class="cct-flow">
-      <div class="cct-flow-step is-active">1. Subir PDF</div>
-      <div class="cct-flow-step">2. Analizando PDF</div>
+      <div class="cct-flow-step is-active">1. Cargar fuente</div>
+      <div class="cct-flow-step">2. Convertir datos</div>
       <div class="cct-flow-step">3. Crear calculadora</div>
       <div class="cct-flow-step">4. Calculadora creada</div>
     </div>
     <div class="cct-loader-grid">
       <article class="cct-loader-card">
-        <h3>1. Cargar CCT en PDF</h3>
+        <h3>1. Importar JSON de FormX.ai</h3>
+        <p class="cct-formx-help">Pegá el JSON que te devuelve FormX.ai. El sistema lo convierte al formato interno de la calculadora sin gastar tokens de Gemini.</p>
+        <div class="cct-formx-box">
+          <textarea data-formx-json placeholder='Pegá acá el JSON completo de FormX.ai, por ejemplo: { "status": "ok", "documents": [...] }'></textarea>
+          <div class="cct-loader-actions">
+            <button type="button" class="cct-loader-button" data-formx-import>Importar JSON de FormX</button>
+            <button type="button" class="cct-loader-button secondary" data-formx-clear>Limpiar JSON</button>
+          </div>
+        </div>
+        <h3 style="margin-top:18px;">O cargar PDF directo</h3>
         <label class="cct-dropzone">
           <input type="file" accept="application/pdf,.pdf" data-cct-pdf>
           <div>
             <strong>Arrastrá o seleccioná el PDF del CCT</strong>
-            <span>La IA extraerá categorías, jornada, adicionales y reglas liquidables.</span>
+            <span>Alternativa con backend/Gemini. Para PDFs largos conviene FormX.ai.</span>
           </div>
         </label>
-        <div class="cct-status" data-cct-status>Esperando PDF del CCT...</div>
+        <div class="cct-status" data-cct-status>Esperando JSON de FormX.ai o PDF del CCT...</div>
         <div class="cct-loader-actions">
           <button type="button" class="cct-loader-button" data-cct-create disabled>Crear calculadora</button>
           <button type="button" class="cct-loader-button secondary" data-cct-example>Cargar ejemplo sin PDF</button>
@@ -220,8 +234,8 @@ function createShell() {
         <div data-cct-calculator-preview></div>
       </article>
       <article class="cct-loader-card">
-        <h3>2. Resultado del análisis IA</h3>
-        <pre class="cct-loader-output" data-cct-output>Esperando análisis del PDF...</pre>
+        <h3>2. Resultado normalizado</h3>
+        <pre class="cct-loader-output" data-cct-output>Esperando JSON de FormX.ai o análisis del PDF...</pre>
       </article>
     </div>
   `;
@@ -246,7 +260,6 @@ async function handlePdf(file, refs) {
   try {
     const payload = await analyzePdfWithBackend(file);
     saveDraft(payload);
-    lastExtractedJson = payload;
     refs.output.textContent = JSON.stringify(payload, null, 2);
     refs.create.disabled = false;
     setFlowStep(refs.shell, 2);
@@ -259,12 +272,38 @@ async function handlePdf(file, refs) {
   }
 }
 
+function handleFormXImport(refs) {
+  refs.create.disabled = true;
+  refs.preview.innerHTML = "";
+  setFlowStep(refs.shell, 1);
+  setStatus(refs.status, "Convirtiendo JSON de FormX.ai…");
+
+  try {
+    const payload = buildCalculatorFromFormX(refs.formxJson.value);
+    saveDraft(payload);
+    refs.output.textContent = JSON.stringify(payload, null, 2);
+    refs.create.disabled = false;
+    setFlowStep(refs.shell, 2);
+    const categorias = Array.isArray(payload.categorias) ? payload.categorias.length : 0;
+    const adicionales = Array.isArray(payload.adicionales) ? payload.adicionales.length : 0;
+    setStatus(refs.status, `JSON de FormX importado. Detecté ${categorias} categorías y ${adicionales} adicionales/subsidios.`);
+  } catch (error) {
+    setFlowStep(refs.shell, 0);
+    const detail = error?.message || String(error);
+    refs.output.textContent = `No pude importar el JSON de FormX.ai.\n\nDetalle técnico:\n${detail}`;
+    setStatus(refs.status, `No pude importar FormX: ${detail}`, true);
+  }
+}
+
 function initCctLoader() {
   injectStyles();
   const shell = createShell();
   const refs = {
     shell,
     file: shell.querySelector("[data-cct-pdf]"),
+    formxJson: shell.querySelector("[data-formx-json]"),
+    formxImport: shell.querySelector("[data-formx-import]"),
+    formxClear: shell.querySelector("[data-formx-clear]"),
     status: shell.querySelector("[data-cct-status]"),
     output: shell.querySelector("[data-cct-output]"),
     create: shell.querySelector("[data-cct-create]"),
@@ -278,12 +317,25 @@ function initCctLoader() {
     await handlePdf(file, refs);
   });
 
+  refs.formxImport.addEventListener("click", () => handleFormXImport(refs));
+
+  refs.formxClear.addEventListener("click", () => {
+    refs.formxJson.value = "";
+    refs.output.textContent = "Esperando JSON de FormX.ai o análisis del PDF...";
+    refs.preview.innerHTML = "";
+    refs.create.disabled = true;
+    lastExtractedJson = null;
+    setFlowStep(shell, 0);
+    setStatus(refs.status, "Esperando JSON de FormX.ai o PDF del CCT...");
+  });
+
   refs.create.addEventListener("click", () => {
     if (!lastExtractedJson) return;
     setFlowStep(shell, 3);
-    saveDraft({ ...lastExtractedJson, estado: "calculadora_creada" });
-    setStatus(refs.status, "Calculadora creada desde el CCT. Revisá categorías y completá escalas pendientes.");
-    renderGeneratedCalculator(refs.preview, lastExtractedJson);
+    const createdPayload = { ...lastExtractedJson, estado: "calculadora_creada" };
+    saveDraft(createdPayload);
+    setStatus(refs.status, "Calculadora creada desde el CCT. Revisá categorías, escalas y adicionales antes de liquidar.");
+    renderGeneratedCalculator(refs.preview, createdPayload);
   });
 
   refs.example.addEventListener("click", () => {
