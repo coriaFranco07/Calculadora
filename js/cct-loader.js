@@ -11,6 +11,19 @@ function saveDraft(payload) {
   } catch (_e) {}
 }
 
+async function publishCalculator(payload) {
+  const response = await fetch('/create-calculator-page', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ payload })
+  });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(data?.detail || `Error HTTP ${response.status}`);
+  }
+  return data;
+}
+
 function injectStyles() {
   if (document.querySelector('#cct-loader-styles')) return;
   const style = document.createElement('style');
@@ -22,9 +35,10 @@ function injectStyles() {
     .cct-output{background:#1b2321;color:#f5efe2;padding:16px;border-radius:18px;overflow:auto;max-height:500px;white-space:pre-wrap}
     textarea{width:100%;min-height:220px;border-radius:18px;padding:14px;box-sizing:border-box}
     .cct-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    .cct-btn{border:0;border-radius:14px;padding:12px 16px;background:#1f6a52;color:white;font-weight:700;cursor:pointer}
+    .cct-btn{border:0;border-radius:14px;padding:12px 16px;background:#1f6a52;color:white;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block}
     .cct-btn.secondary{background:#ece7df;color:#1b2321}
-    .cct-status{padding:12px 14px;border-radius:14px;background:#eef7f3;color:#1f6a52;font-weight:700}
+    .cct-btn[disabled]{opacity:.5;cursor:not-allowed}
+    .cct-status{padding:12px 14px;border-radius:14px;background:#eef7f3;color:#1f6a52;font-weight:700;margin-top:12px}
     @media(max-width:900px){.cct-grid{grid-template-columns:1fr}}
   `;
   document.head.appendChild(style);
@@ -35,9 +49,10 @@ function createShell() {
   shell.className = 'cct-shell';
   shell.innerHTML = `
     <div>
-      <small>FORMX.AI + CALCULADORA</small>
-      <h2>Creá calculadoras automáticas desde CCT</h2>
-      <p>Pegá el JSON exportado por FormX.ai y generá automáticamente una calculadora salarial dinámica.</p>
+      <a href="/" class="cct-btn secondary">← Volver al panel principal</a>
+      <small style="display:block;margin-top:16px;">FORMX.AI + CALCULADORA</small>
+      <h2>Crear nueva calculadora</h2>
+      <p>Pegá el JSON exportado por FormX.ai. Al apretar “Crear calculadora” se genera un HTML permanente y aparece en la pantalla principal.</p>
     </div>
 
     <div class="cct-grid">
@@ -97,13 +112,22 @@ function init() {
     refs.output.textContent = 'Esperando importación...';
     refs.calculator.innerHTML = '';
     refs.createBtn.disabled = true;
+    currentPayload = null;
     refs.status.textContent = 'Esperando JSON de FormX.ai...';
   });
 
-  refs.createBtn.addEventListener('click', () => {
+  refs.createBtn.addEventListener('click', async () => {
     if (!currentPayload) return;
-    renderCalculator(refs.calculator, currentPayload);
-    refs.status.textContent = 'Calculadora creada correctamente.';
+    refs.createBtn.disabled = true;
+    refs.status.textContent = 'Creando archivo HTML de la calculadora...';
+    try {
+      const result = await publishCalculator(currentPayload);
+      renderCalculator(refs.calculator, { ...currentPayload, slug: result.slug });
+      refs.status.innerHTML = `Calculadora creada correctamente. <a href="${result.url}">Abrir calculadora</a> · <a href="/">Ver panel principal</a>`;
+    } catch (error) {
+      refs.createBtn.disabled = false;
+      refs.status.textContent = error?.message || 'No pude crear la calculadora.';
+    }
   });
 }
 
