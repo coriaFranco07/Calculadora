@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "pdfjs-dist": "4.3.136"
+    "pdfjs-dist": "^4.3.136"
   }
 }

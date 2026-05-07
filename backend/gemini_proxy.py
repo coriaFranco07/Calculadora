@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 import os
+import re
+import unicodedata
 from typing import Any, Mapping
 from urllib import error, parse, request
 
@@ -21,6 +23,15 @@ class GeminiProxyError(RuntimeError):
     pass
 
 
+def normalize_text(value: Any) -> str:
+    return (
+        unicodedata.normalize("NFD", str(value or ""))
+        .encode("ascii", "ignore")
+        .decode("ascii")
+        .lower()
+    )
+
+
 def build_prompt(payload: Mapping[str, Any]) -> str:
     return f"""
 Actua como auditor preventivo senior de payroll argentino, AFIP, Libro de Sueldos Digital y normativa laboral argentina.
@@ -35,42 +46,119 @@ Contexto: {json.dumps(payload.get("contexto_documental", []), ensure_ascii=False
 """.strip()
 
 
+def build_focus_cct_text(text: Any, limit: int = 24000) -> str:
+    raw = str(text or "").strip()
+    if len(raw) <= limit:
+        return raw
+
+    headline = raw[:9000]
+    keywords = (
+        "categoria",
+        "operario",
+        "oficial",
+        "administr",
+        "jornada",
+        "hora",
+        "horas extra",
+        "antiguedad",
+        "presentismo",
+        "zona",
+        "adicional",
+        "no remunerativ",
+        "licencia",
+        "feriado",
+        "viatico",
+        "escala",
+        "sueldo",
+        "salario",
+    )
+
+    selected_lines: list[str] = []
+    seen: set[str] = set()
+    for raw_line in raw.splitlines():
+        line = re.sub(r"\s+", " ", raw_line).strip()
+        if len(line) < 8 or len(line) > 220:
+            continue
+        normalized = normalize_text(line)
+        if not any(keyword in normalized for keyword in keywords):
+            continue
+        if line in seen:
+            continue
+        seen.add(line)
+        selected_lines.append(line)
+        if sum(len(item) for item in selected_lines) >= limit - len(headline) - 120:
+            break
+
+    focused = f"{headline}\n\nLINEAS RELEVANTES:\n" + "\n".join(selected_lines)
+    return focused[:limit]
+
+
 def build_cct_extraction_prompt(payload: Mapping[str, Any]) -> str:
-    cct_text = str(payload.get("text", ""))[:65000]
+    cct_text = build_focus_cct_text(payload.get("text", ""))
     file_name = payload.get("file_name", "CCT.pdf")
     return f"""
-Sos un procesador argentino de CCT para crear calculadoras salariales.
-Devolve SOLO JSON puro, sin markdown, sin ```json, sin comentarios.
-No inventes importes ni porcentajes. Si falta dato, null y pendientes_revision.
-Mantenelo compacto: maximo 12 categorias, 12 adicionales, fuente_textual maximo 120 caracteres.
-
-CONOCIMIENTO BASE OBLIGATORIO:
-- LCT no puede ser empeorada por CCT.
-- Orden calculadora: 101 basico proporcional, 102 antiguedad, 103 presentismo, base compuesta si aplica, adicionales, valor hora, extras, bruto, aportes, neto, no remunerativos, bolsillo.
-- Aportes empleado default: jubilacion 11%, PAMI 3%, obra social 3% salvo CCT, sindicato si CCT lo indica.
-- Horas extra LCT: 50% dias comunes, 100% sabado tarde/domingo/feriado salvo mejora.
-- Si el CCT no define divisor mensual, usar 30 y marcar pendiente.
+Sos un extractor argentino de CCT para crear una calculadora preliminar.
+Devolve SOLO JSON valido, sin markdown, sin comentarios, sin ```json.
+No inventes importes, porcentajes ni vigencias.
+Si falta un dato, usa null y agregalo en pendientes_revision.
+Si hay muchas categorias, devolve como maximo 10 representativas y aclara que hay mas.
+Mantenelo compacto: descripcion maximo 120 caracteres, fuente_textual maximo 80 caracteres.
+No devuelvas matrices, formulas extensas ni tablas completas.
 
 JSON exacto requerido:
 {{
- "version":"YYYY-MM-DD",
- "archivo_fuente":"{file_name}",
- "convenio":{{"nombre":null,"actividad":null,"ambito":null,"cct_numero":null,"vigencia_detectada":null}},
- "parametros":{{"divisor_mensual":30,"horas_mensuales":null,"horas_semanales":null,"base_calculo":"simple|compuesta|integrada|null"}},
- "categorias":[{{"id":"slug","nombre":"","tipo":"jornalizado|mensualizado|administrativo|otro|null","descripcion":"","valor_hora":null,"sueldo_mensual":null,"fuente_textual":""}}],
- "conceptos":[
-  {{"codigo":"101","nombre":"Sueldo Basico Proporcional","tipo":"remunerativo","formula":"escala_categoria*dias/divisor","lsd":"001","ganancias":"gravado","incidencia":{{"jubilacion":true,"obra_social":true,"sindicato":true}}}},
-  {{"codigo":"102","nombre":"Antiguedad","tipo":"remunerativo","formula":null,"lsd":"005","ganancias":"gravado","incidencia":{{"jubilacion":true,"obra_social":true,"sindicato":true}}}}
- ],
- "adicionales":[{{"nombre":"","tipo":"porcentaje|importe|formula|otro","valor":null,"base":null,"condicion":null,"codigo_sugerido":"1xx","lsd":null,"fuente_textual":""}}],
- "reglas_liquidacion":{{"antiguedad":null,"presentismo":null,"zona_desfavorable":null,"horas_extra":null,"licencias":[],"no_remunerativos":[]}},
- "matriz_tecnica":[{{"paso":1,"codigo":"101","concepto":"Sueldo Basico Proporcional","formula":"escala_categoria*dias/divisor","lsd":"001","ganancias":"gravado","incidencia":"SI/SI/SI"}}],
- "pendientes_revision":[],
- "alertas":[],
- "nivel_confianza":0.0
+  "version": "YYYY-MM-DD",
+  "archivo_fuente": "{file_name}",
+  "convenio": {{
+    "nombre": null,
+    "actividad": null,
+    "ambito": null,
+    "cct_numero": null,
+    "vigencia_detectada": null
+  }},
+  "parametros": {{
+    "divisor_mensual": 30,
+    "horas_mensuales": null,
+    "horas_semanales": null,
+    "base_calculo": "simple|compuesta|integrada|null"
+  }},
+  "categorias": [
+    {{
+      "id": "slug",
+      "nombre": "",
+      "tipo": "jornalizado|mensualizado|administrativo|otro|null",
+      "descripcion": "",
+      "valor_hora": null,
+      "sueldo_mensual": null,
+      "fuente_textual": ""
+    }}
+  ],
+  "adicionales": [
+    {{
+      "nombre": "",
+      "tipo": "porcentaje|importe|formula|otro",
+      "valor": null,
+      "base": null,
+      "condicion": null,
+      "codigo_sugerido": null,
+      "lsd": null,
+      "fuente_textual": ""
+    }}
+  ],
+  "reglas_liquidacion": {{
+    "antiguedad": null,
+    "presentismo": null,
+    "zona_desfavorable": null,
+    "horas_extra": null,
+    "licencias": [],
+    "no_remunerativos": []
+  }},
+  "pendientes_revision": [],
+  "alertas": [],
+  "nivel_confianza": 0.0
 }}
 
-TEXTO PDF:
+TEXTO RELEVANTE DEL PDF:
 {cct_text}
 """.strip()
 
@@ -83,7 +171,11 @@ def _call_gemini_once(prompt: str, active_model: str, api_key: str) -> str:
 
     body = {
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.05, "topP": 0.8, "maxOutputTokens": 8192},
+        "generationConfig": {
+            "temperature": 0.05,
+            "topP": 0.8,
+            "maxOutputTokens": 4096,
+        },
     }
 
     data = json.dumps(body).encode("utf-8")
