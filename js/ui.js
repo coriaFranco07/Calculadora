@@ -10,7 +10,7 @@ import {
   ruleSnapshots
 } from "./calculadora.js";
 import { ejecutarAuditoria } from "./auditor.js";
-import { createGeminiClient } from "./gemini-client.js";
+import { createQwenClient } from "./qwen-client.js";
 import { initPayrollChatBox } from "./chat-box.js";
 
 const currencyFormatter = new Intl.NumberFormat("es-AR", {
@@ -31,7 +31,7 @@ const dateFormatter = new Intl.DateTimeFormat("es-AR", {
   day: "2-digit"
 });
 
-const geminiClient = createGeminiClient("");
+const qwenClient = createQwenClient("");
 const STORAGE_KEY = "cct244_wizard_state_v3";
 const WIZARD_STEPS = [
   {
@@ -60,8 +60,8 @@ const WIZARD_STEPS = [
     caption: "Visualiza recibo, neto, bruto, descuentos y bases sin mezclar auditoria ni IA."
   },
   {
-    key: "gemini",
-    title: "Paso 6 de 6 · Revision Gemini",
+    key: "qwen",
+    title: "Paso 6 de 6 · Revision Qwen",
     caption: "Interpretacion opcional del resumen de auditoria ya calculado localmente."
   }
 ];
@@ -1140,7 +1140,7 @@ function renderSkillModal(refs) {
 
   refs.skillSummaryText.innerHTML = `
     <p>${escapeHtml(buildExplanationText(liquidation))}</p>
-    <p>Pipeline aplicado: inputs -> calcularLiquidacion() -> objeto liquidacion -> ejecutarAuditoria() -> render UI -> Gemini opcional.</p>
+    <p>Pipeline aplicado: inputs -> calcularLiquidacion() -> objeto liquidacion -> ejecutarAuditoria() -> render UI -> Qwen opcional.</p>
   `;
 
   refs.skillSummaryMetrics.innerHTML = [
@@ -1313,31 +1313,31 @@ function renderResult(refs, liquidation, audit) {
   switchResultTab(refs, "summary");
 }
 
-async function refreshGeminiHealth(refs) {
+async function refreshQwenHealth(refs) {
   if (!refs.auditAiRun || !refs.auditAiStatus) return;
 
   try {
-    const payload = await geminiClient.health();
+    const payload = await qwenClient.health();
     appState.aiAvailable = Boolean(payload.ai_enabled);
     refs.auditAiRun.disabled = !appState.aiAvailable;
     refs.auditAiStatus.innerHTML = appState.aiAvailable
-      ? `<strong>Gemini disponible.</strong><p>Modelo: ${escapeHtml(payload.model || "sin-modelo")}.</p>`
-      : "<strong>Gemini no configurado.</strong><p>Defini GEMINI_API_KEY en el backend para habilitar revision experta opcional.</p>";
+      ? `<strong>Qwen disponible.</strong><p>Modelo: ${escapeHtml(payload.model || "sin-modelo")}.</p>`
+      : "<strong>Qwen no configurado.</strong><p>Defini QWEN_API_KEY en el backend para habilitar revision experta opcional.</p>";
   } catch (error) {
     appState.aiAvailable = false;
     refs.auditAiRun.disabled = true;
-    refs.auditAiStatus.innerHTML = "<strong>Backend no disponible.</strong><p>Levanta el proxy local para habilitar la capa Gemini opcional.</p>";
+    refs.auditAiStatus.innerHTML = "<strong>Backend no disponible.</strong><p>Levanta el proxy local para habilitar la capa Qwen opcional.</p>";
   }
 }
 
-async function requestGeminiReview(refs) {
+async function requestQwenReview(refs) {
   if (!appState.latestAudit) {
     toast(refs, "Todavia no hay una liquidacion auditada.", "warn", "Auditor IA");
     return;
   }
 
   if (!appState.aiAvailable) {
-    toast(refs, "Gemini no esta disponible en este runtime.", "warn", "Auditor IA");
+    toast(refs, "Qwen no esta disponible en este runtime.", "warn", "Auditor IA");
     return;
   }
 
@@ -1345,11 +1345,11 @@ async function requestGeminiReview(refs) {
   refs.auditAiOutput.textContent = "Generando revision experta...";
 
   try {
-    const payload = await geminiClient.audit(appState.latestAudit.resumenIA);
-    appState.latestAiText = payload.text || "Gemini no devolvio contenido.";
+    const payload = await qwenClient.audit(appState.latestAudit.resumenIA);
+    appState.latestAiText = payload.text || "Qwen no devolvio contenido.";
     refs.auditAiOutput.textContent = appState.latestAiText;
   } catch (error) {
-    refs.auditAiOutput.textContent = `No se pudo consultar Gemini: ${error.message}`;
+    refs.auditAiOutput.textContent = `No se pudo consultar Qwen: ${error.message}`;
   }
 }
 
@@ -1560,7 +1560,7 @@ function bindEvents(refs) {
     }
   });
 
-  refs.auditAiRun?.addEventListener("click", () => requestGeminiReview(refs));
+  refs.auditAiRun?.addEventListener("click", () => requestQwenReview(refs));
   refs.printButton?.addEventListener("click", () => window.print());
   refs.printResultButton?.addEventListener("click", () => window.print());
 }
@@ -1587,7 +1587,7 @@ async function bootstrap() {
   } else {
     resetForm(refs);
   }
-  refreshGeminiHealth(refs);
+  refreshQwenHealth(refs);
   updateWizardProgress(refs, appState.currentStep);
 
   window.__cct244CalculatorContext = {

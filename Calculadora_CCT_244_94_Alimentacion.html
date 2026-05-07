@@ -1094,7 +1094,7 @@
         font-size: 1.15rem;
       }
 
-      .gemini-grid {
+      .qwen-grid {
         display: grid;
         gap: 24px;
         grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
@@ -1701,7 +1701,7 @@
         .workspace,
         .hero,
         .wizard-grid,
-        .gemini-grid {
+        .qwen-grid {
           grid-template-columns: 1fr;
         }
 
@@ -1886,10 +1886,10 @@
               <small>Recibo, bruto, neto, descuentos, bases y salida operativa.</small>
             </div>
           </button>
-          <button type="button" class="wizard-step-button" data-wizard-step="gemini">
+          <button type="button" class="wizard-step-button" data-wizard-step="qwen">
             <strong>6</strong>
             <div>
-              <span>Revision Gemini</span>
+              <span>Revision Qwen</span>
               <small>Interpretacion opcional del resultado de auditoria.</small>
             </div>
           </button>
@@ -2055,7 +2055,7 @@
                   </article>
                   <article>
                     <strong>Principio UX</strong>
-                    <p>El calculo se prepara primero, la auditoria se muestra en una pantalla exclusiva y Gemini queda al final.</p>
+                    <p>El calculo se prepara primero, la auditoria se muestra en una pantalla exclusiva y Qwen queda al final.</p>
                   </article>
                 </div>
               </section>
@@ -2557,26 +2557,26 @@
               </div>
               <div class="wizard-actions-right">
                 <button type="button" class="ghost-button" data-wizard-prev="audit">Volver a auditoria</button>
-                <button type="button" class="primary-button" data-wizard-next="gemini">Ir a revision Gemini</button>
+                <button type="button" class="primary-button" data-wizard-next="qwen">Ir a revision Qwen</button>
               </div>
             </div>
           </section>
         </div>
       </section>
 
-      <section id="section-gemini" class="section-pane">
+      <section id="section-qwen" class="section-pane">
         <div class="step-intro">
           <div>
             <p class="section-label">Paso 6</p>
-            <h2>Revision Gemini opcional</h2>
+            <h2>Revision Qwen opcional</h2>
           </div>
           <p>
-            Gemini recibe solo un resumen de la auditoria. No calcula montos ni reemplaza reglas deterministicas: solo
+            Qwen recibe solo un resumen de la auditoria. No calcula montos ni reemplaza reglas deterministicas: solo
             interpreta, explica, sugiere y ayuda a priorizar riesgo.
           </p>
         </div>
 
-        <div class="gemini-grid">
+        <div class="qwen-grid">
           <section class="panel">
             <div class="panel-heading">
               <div>
@@ -2584,11 +2584,11 @@
                 <h2>Interpretacion sobre auditoria ya cerrada</h2>
               </div>
               <div class="result-actions">
-                <button id="audit-ai-run" type="button" class="ghost-button">Pedir revision Gemini</button>
+                <button id="audit-ai-run" type="button" class="ghost-button">Pedir revision Qwen</button>
               </div>
             </div>
             <div id="audit-ai-status" class="audit-empty">
-              <strong>Gemini no inicializado.</strong>
+              <strong>Qwen no inicializado.</strong>
               <p>La capa IA es opcional y solo agrega revision experta sobre hallazgos ya calculados localmente.</p>
             </div>
             <div id="audit-ai-output" class="audit-ai-output" hidden></div>
@@ -2669,9 +2669,7 @@
         </div>
       </section>
     </div>
-
-        <script type="module" src="./js/ui.js"></script>
+    <script type="module" src="./js/ui.js"></script>
   </body>
-  <script type="module" src="./js/bootstrap-chat.js"></script>
 </html>
 

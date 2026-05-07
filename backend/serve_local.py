@@ -9,7 +9,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote
 
-from backend.gemini_proxy import DEFAULT_MODEL, GeminiProxyError, build_prompt, call_gemini
+from backend.qwen_client import DEFAULT_MODEL, QwenClientError, build_audit_prompt, call_qwen
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -30,8 +30,9 @@ class LocalHandler(SimpleHTTPRequestHandler):
             self._json(
                 {
                     "status": "ok",
-                    "ai_enabled": bool(os.getenv("GEMINI_API_KEY", "").strip()),
+                    "ai_enabled": bool(os.getenv("QWEN_API_KEY", "").strip()),
                     "model": DEFAULT_MODEL,
+                    "qwen_enabled": bool(os.getenv("QWEN_API_KEY", "").strip()),
                 }
             )
             return
@@ -56,14 +57,25 @@ class LocalHandler(SimpleHTTPRequestHandler):
             return
 
         try:
-            prompt = build_prompt(payload)
-            text = call_gemini(prompt, DEFAULT_MODEL)
-        except GeminiProxyError as exc:
+            prompt = build_audit_prompt(payload)
+            result = call_qwen(
+                system_prompt=(
+                    "Sos un auditor preventivo senior de payroll argentino, AFIP y Libro de Sueldos Digital. "
+                    "Responde breve, claro y accionable."
+                ),
+                user_prompt=prompt,
+                model=DEFAULT_MODEL,
+                temperature=0.1,
+                max_tokens=4096,
+                stage="audit",
+            )
+            text = result["text"]
+        except QwenClientError as exc:
             status = HTTPStatus.SERVICE_UNAVAILABLE if "API_KEY" in str(exc) else HTTPStatus.BAD_GATEWAY
             self._json({"detail": str(exc)}, status=status)
             return
 
-        self._json({"mode": "gemini", "model": DEFAULT_MODEL, "text": text})
+        self._json({"mode": "qwen", "model": result["model"], "text": text, "usage": result["usage"], "response_ms": result["response_ms"]})
 
     def _json(self, payload: dict, status: HTTPStatus = HTTPStatus.OK) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")

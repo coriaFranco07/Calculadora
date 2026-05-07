@@ -25,7 +25,13 @@ function formatMoney(value) {
 }
 
 function getCategoriaValue(categoria) {
-  return toNumber(categoria?.basico_mensual ?? categoria?.valor ?? categoria?.unit_price ?? 0);
+  return toNumber(
+    categoria?.basico_mensual
+      ?? categoria?.sueldo_mensual
+      ?? categoria?.valor
+      ?? categoria?.unit_price
+      ?? 0
+  );
 }
 
 function getAntiguedadRule(payload) {

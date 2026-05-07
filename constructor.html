@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Crear Nueva Calculadora</title>
+    <style>
+      :root {
+        --bg: #f6efe5;
+        --ink: #1b2321;
+        --muted: #58645f;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Aptos, Bahnschrift, "Trebuchet MS", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 10% 10%, rgba(195,93,39,.14), transparent 24%),
+          radial-gradient(circle at 88% 16%, rgba(31,106,82,.14), transparent 22%),
+          linear-gradient(180deg, #fbf7ef 0%, var(--bg) 100%);
+      }
+
+      .page-note {
+        width: min(1200px, calc(100% - 32px));
+        margin: 22px auto 0;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-note">
+      <p>Constructor enterprise para CCT + escala salarial. Sube ambos PDFs, ejecuta Mistral OCR + parser inteligente + Qwen y publica la calculadora en el panel principal.</p>
+    </div>
+    <script type="module" src="/js/cct-loader.js"></script>
+  </body>
+</html>
