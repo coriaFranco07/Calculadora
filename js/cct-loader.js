@@ -253,8 +253,11 @@ function summarizeDiagnostics(diagnostics = {}) {
   const model = diagnostics.modelo_usado || diagnostics.model || "fallback local";
   const chunks = diagnostics.chunks_enviados ?? diagnostics.chunks ?? "-";
   const fallback = diagnostics.fallback_activo || diagnostics.fallback_used ? "fallback activo" : "sin fallback";
+  const ocr = diagnostics.ocr_activo || diagnostics.ocr_active ? "OCR activo" : "OCR no activo";
+  const tables = diagnostics.tablas_detectadas ?? diagnostics.tables_detected ?? 0;
+  const money = diagnostics.montos_detectados ?? 0;
   const errors = Array.isArray(diagnostics.errores) ? diagnostics.errores.length : 0;
-  return `Modelo: ${model}. Chunks: ${chunks}. ${fallback}.${errors ? ` Errores: ${errors}.` : ""}`;
+  return `Modelo: ${model}. Chunks: ${chunks}. ${fallback}. ${ocr}. Tablas: ${tables}. Montos: ${money}.${errors ? ` Errores: ${errors}.` : ""}`;
 }
 
 function summarizeReview(payload = {}) {

@@ -18,7 +18,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from backend.calculator_builder import build_document_payload, build_full_calculator_payload, ensure_final_schema
-from backend.gemini_proxy import DEFAULT_MODEL, FALLBACK_MODELS, GeminiClientError, call_gemini, gemini_enabled
+from backend.gemini_proxy import DEFAULT_MODEL, GeminiClientError, call_gemini, gemini_enabled, gemini_status
 from backend.pdf_extractor import extract_text_from_pdf_bytes as extract_pdf_document
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -39,12 +39,13 @@ def load_env_file(path: Path) -> None:
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, value = line.split("=", 1)
-        key = key.strip()
+        key = key.strip().lstrip("\ufeff")
         value = value.strip().strip('"').strip("'")
         if key and key not in os.environ:
             os.environ[key] = value
 
 
+load_env_file(ROOT_DIR / ".env")
 load_env_file(ENV_FILE)
 
 
@@ -672,6 +673,11 @@ def run_ocr_pipeline(document_bytes: bytes, *, file_name: str, document_kind: st
             "page_count": extraction.page_count,
             "text_length": extraction.text_length,
             "chunks": len(extraction.chunks),
+            "ocr_active": bool(extraction.metrics.get("ocr_active")),
+            "tables_detected": extraction.metrics.get("tables_detected", 0),
+            "tablas_detectadas": extraction.metrics.get("tablas_detectadas", 0),
+            "montos_detectados": extraction.metrics.get("montos_detectados", 0),
+            "extractors_used": extraction.metrics.get("extractors_used", []),
             "alerts": extraction.alerts,
         },
     }
@@ -1216,13 +1222,17 @@ def delete_generated_calculator(slug: str) -> list[str]:
 
 @app.get("/health")
 def health() -> dict[str, Any]:
+    status = gemini_status()
     return {
         "status": "ok",
-        "ai_enabled": gemini_enabled(),
-        "model": os.getenv("GEMINI_DEFAULT_MODEL", DEFAULT_MODEL),
-        "fallback_models": FALLBACK_MODELS,
+        "ai_enabled": status["ai_enabled"],
+        "model": status["model"],
+        "fallback_models": status["fallback_models"],
         "env_file_loaded": ENV_FILE.exists(),
-        "gemini_enabled": gemini_enabled(),
+        "root_env_file_loaded": (ROOT_DIR / ".env").exists(),
+        "gemini_enabled": status["gemini_enabled"],
+        "api_key_source": status["api_key_source"],
+        "api_base": status["api_base"],
     }
 
 
@@ -1241,7 +1251,7 @@ def audit(payload: AuditRequest) -> dict[str, Any]:
                 "Responde breve, claro y accionable."
             ),
             user_prompt=prompt,
-            model=os.getenv("GEMINI_DEFAULT_MODEL", DEFAULT_MODEL),
+            model=os.getenv("GEMINI_MODEL") or os.getenv("GEMINI_DEFAULT_MODEL", DEFAULT_MODEL),
             temperature=0.1,
             max_output_tokens=4096,
             stage="audit",
@@ -1333,10 +1343,19 @@ async def extract_full_calculator(
         "diagnostics": {
             "modelo_cct": (cct_response.get("diagnostics") or {}).get("modelo_usado"),
             "modelo_escala": (scale_response.get("diagnostics") or {}).get("modelo_usado"),
+            "modelo_usado": ((scale_response.get("diagnostics") or {}).get("modelo_usado") or (cct_response.get("diagnostics") or {}).get("modelo_usado")),
             "fallback_cct": (cct_response.get("diagnostics") or {}).get("fallback_activo"),
             "fallback_escala": (scale_response.get("diagnostics") or {}).get("fallback_activo"),
+            "fallback_activo": bool((cct_response.get("diagnostics") or {}).get("fallback_activo") or (scale_response.get("diagnostics") or {}).get("fallback_activo")),
             "chunks_cct": ((cct_response.get("pdf") or {}).get("chunks")),
             "chunks_escala": ((scale_response.get("pdf") or {}).get("chunks")),
+            "chunks_enviados": ((cct_response.get("diagnostics") or {}).get("chunks_enviados") or 0) + ((scale_response.get("diagnostics") or {}).get("chunks_enviados") or 0),
+            "ocr_activo": bool(((cct_response.get("pdf") or {}).get("ocr_active")) or ((scale_response.get("pdf") or {}).get("ocr_active"))),
+            "tablas_detectadas": ((cct_response.get("pdf") or {}).get("tablas_detectadas") or 0) + ((scale_response.get("pdf") or {}).get("tablas_detectadas") or 0),
+            "montos_detectados": ((cct_response.get("pdf") or {}).get("montos_detectados") or 0) + ((scale_response.get("pdf") or {}).get("montos_detectados") or 0),
+            "categorias_validas": (enriched.get("metricas") or {}).get("categorias_validas"),
+            "escalas_validas": (enriched.get("metricas") or {}).get("escalas_validas"),
+            "tiempo_respuesta_gemini": ((cct_response.get("diagnostics") or {}).get("tiempo_respuesta_gemini") or 0) + ((scale_response.get("diagnostics") or {}).get("tiempo_respuesta_gemini") or 0),
             "alertas": enriched.get("alertas") or [],
             "pendientes_revision": enriched.get("pendientes_revision") or [],
         },

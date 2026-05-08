@@ -10,12 +10,39 @@ import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Callable
 
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL = os.getenv("GEMINI_DEFAULT_MODEL", "gemini-2.5-flash")
+
+def _load_env_file(path: Path) -> None:
+    if not path.exists():
+        return
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip().lstrip("\ufeff")
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+def load_gemini_env() -> None:
+    """Load project env files before checking Gemini settings."""
+
+    backend_dir = Path(__file__).resolve().parent
+    root_dir = backend_dir.parent
+    _load_env_file(root_dir / ".env")
+    _load_env_file(backend_dir / ".env")
+
+
+load_gemini_env()
+
+DEFAULT_MODEL = os.getenv("GEMINI_MODEL") or os.getenv("GEMINI_DEFAULT_MODEL", "gemini-2.5-flash")
 FALLBACK_MODELS = [
     "gemini-2.5-pro",
     "gemini-2.0-flash",
@@ -45,10 +72,12 @@ class GeminiResponse:
 
 
 def gemini_enabled() -> bool:
+    load_gemini_env()
     return bool(os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"))
 
 
 def _api_key() -> str:
+    load_gemini_env()
     key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
     if not key:
         raise GeminiClientError("Falta configurar GEMINI_API_KEY o GOOGLE_API_KEY.")
@@ -56,12 +85,30 @@ def _api_key() -> str:
 
 
 def _model_order(preferred: str | None = None) -> list[str]:
-    ordered = [preferred or DEFAULT_MODEL, *FALLBACK_MODELS]
+    configured_default = os.getenv("GEMINI_MODEL") or os.getenv("GEMINI_DEFAULT_MODEL") or DEFAULT_MODEL
+    ordered = [preferred or configured_default, *FALLBACK_MODELS]
     result: list[str] = []
     for model in ordered:
         if model and model not in result:
             result.append(model)
     return result
+
+
+def gemini_status() -> dict[str, Any]:
+    load_gemini_env()
+    has_gemini = bool(os.getenv("GEMINI_API_KEY"))
+    has_google = bool(os.getenv("GOOGLE_API_KEY"))
+    enabled = has_gemini or has_google
+    print("GEMINI ENABLED:", enabled)
+    logger.info("GEMINI ENABLED: %s", enabled)
+    return {
+        "ai_enabled": enabled,
+        "gemini_enabled": enabled,
+        "api_key_source": "GEMINI_API_KEY" if has_gemini else "GOOGLE_API_KEY" if has_google else None,
+        "model": os.getenv("GEMINI_MODEL") or os.getenv("GEMINI_DEFAULT_MODEL") or DEFAULT_MODEL,
+        "fallback_models": FALLBACK_MODELS,
+        "api_base": os.getenv("GEMINI_API_BASE", GEMINI_API_BASE),
+    }
 
 
 def _extract_text(payload: dict[str, Any]) -> str:

@@ -145,8 +145,32 @@ def guess_category_type(label: str) -> str:
 
 
 def is_probable_category_label(label: str) -> bool:
+    raw = compact_text(label, 240)
     normalized = normalize_text(label)
-    if len(normalized) < 4:
+    if len(normalized) < 4 or len(raw) > 90:
+        return False
+    if len(normalized.split()) > 9:
+        return False
+    if re.search(r"https?://|www\.|@|\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b", normalized):
+        return False
+    if re.search(r"\b(?:bol\.?\s*oficial|boletin oficial|expediente|resolucion|decreto|ley\s+\d|articulo|clausula|anexo|pagina|page)\b", normalized):
+        return False
+    if normalized in {
+        "categoria",
+        "categorias",
+        "categorias profesionales",
+        "categoria profesional",
+        "descripcion",
+        "puesto",
+        "cargo",
+        "basico",
+        "basicos",
+        "sueldo basico",
+        "remuneracion",
+        "remuneraciones",
+    }:
+        return False
+    if re.fullmatch(r"[\d\s.,$/%-]+", normalized):
         return False
 
     excluded_terms = (
@@ -169,12 +193,24 @@ def is_probable_category_label(label: str) -> bool:
         "subtotal",
         "sac",
         "zona",
+        "vigencia",
+        "desde",
+        "hasta",
+        "homolog",
+        "partes",
+        "convenio",
+        "colectivo",
+        "trabajo",
+        "firmantes",
+        "ministerio",
+        "secretaria",
+        "art.",
+        "art ",
     )
     if any(term in normalized for term in excluded_terms):
         return False
 
     hints = (
-        "categoria",
         "operario",
         "oficial",
         "medio oficial",
@@ -187,8 +223,32 @@ def is_probable_category_label(label: str) -> bool:
         "cajero",
         "maestranza",
         "cadete",
+        "vendedor",
+        "supervisor",
+        "tecnico",
+        "técnico",
+        "peon",
+        "peón",
+        "ayudante",
+        "aprendiz",
     )
     return any(hint in normalized for hint in hints)
+
+
+def is_valid_salary_amount(value: Any) -> bool:
+    amount = to_number(value)
+    return amount is not None and amount > 0
+
+
+def is_valid_scale_row_name(name: str) -> bool:
+    if not is_probable_category_label(name):
+        return False
+    normalized = normalize_text(name)
+    if ":" in name and re.search(r"\d", name):
+        return False
+    if any(term in normalized for term in ("escala salarial", "rama", "periodo", "mes", "año", "ano")):
+        return False
+    return True
 
 
 def pick_match(text: str, pattern: str, group: int = 1) -> str | None:
@@ -432,6 +492,7 @@ def extract_scale_categories(markdown: str, tables: list[dict[str, Any]]) -> lis
         header = [normalize_text(cell) for cell in table.get("header", [])]
         if not header:
             continue
+        raw_header = [compact_text(cell, 80) for cell in table.get("header", [])]
 
         # Escalas simples de casas particulares:
         # Modalidad | Valor por hora
@@ -447,7 +508,7 @@ def extract_scale_categories(markdown: str, tables: list[dict[str, Any]]) -> lis
                 modalidad = compact_text(row[0], 80)
                 monto = to_number(row[1])
 
-                if not modalidad or monto is None:
+                if not modalidad or not is_valid_salary_amount(monto):
                     continue
 
                 categories.append(
@@ -470,26 +531,51 @@ def extract_scale_categories(markdown: str, tables: list[dict[str, Any]]) -> lis
 
         if not any("categoria" in cell or "cargo" in cell or "puesto" in cell or "descripcion" in cell for cell in header):
             continue
+
+        name_col = next(
+            (
+                index
+                for index, cell in enumerate(header)
+                if "categoria" in cell or "cargo" in cell or "puesto" in cell or "descripcion" in cell
+            ),
+            0,
+        )
         for row in table.get("rows", []):
             if not row:
                 continue
-            name = compact_text(row[0], 140)
-            if not is_probable_category_label(name):
+            if len(row) <= name_col:
                 continue
-            numeric_cells = [to_number(cell) for cell in row[1:] if to_number(cell) is not None]
-            basico = numeric_cells[-1] if numeric_cells else None
+            name = compact_text(row[name_col], 90)
+            if not is_valid_scale_row_name(name):
+                continue
+            numeric_cells: list[tuple[int, int | float]] = []
+            for index, cell in enumerate(row):
+                if index == name_col:
+                    continue
+                text_cell = str(cell or "")
+                if re.search(r"\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b", text_cell):
+                    continue
+                number = to_number(text_cell)
+                if is_valid_salary_amount(number):
+                    numeric_cells.append((index, number))
+            if not numeric_cells:
+                continue
+            amount_col, basico = numeric_cells[-1]
+            amount_header = normalize_text(raw_header[amount_col] if amount_col < len(raw_header) else "")
+            is_hourly = "hora" in amount_header or "jornal" in amount_header
             categories.append(
                 {
                     "id": slugify(name),
                     "nombre": name,
                     "tipo": guess_category_type(name),
                     "descripcion": name,
-                    "basico_mensual": basico,
-                    "sueldo_mensual": basico,
+                    "basico_mensual": None if is_hourly else basico,
+                    "sueldo_mensual": None if is_hourly else basico,
                     "valor": basico,
-                    "valor_hora": None,
-                    "tipo_valor": "mensual",
+                    "valor_hora": basico if is_hourly else None,
+                    "tipo_valor": "hora" if is_hourly else "mensual",
                     "grupo": None,
+                    "vigencia_desde": raw_header[amount_col] if amount_col < len(raw_header) else None,
                     "fuente_textual": compact_text(" | ".join(row), 180),
                 }
             )
@@ -503,10 +589,10 @@ def extract_scale_categories(markdown: str, tables: list[dict[str, Any]]) -> lis
             continue
         amount_match = re.search(r"(\d{1,3}(?:\.\d{3})*(?:,\d{2})?)\s*$", line)
         amount = to_number(amount_match.group(1)) if amount_match else None
-        if amount is None:
+        if not is_valid_salary_amount(amount):
             continue
         name = compact_text(line[: amount_match.start()], 140)
-        if not is_probable_category_label(name):
+        if not is_valid_scale_row_name(name):
             continue
         categories.append(
             {
@@ -535,7 +621,7 @@ def extract_cct_categories(markdown: str, tables: list[dict[str, Any]]) -> list[
             for row in table.get("rows", []):
                 if not row:
                     continue
-                name = compact_text(row[0], 140)
+                name = compact_text(row[0], 90)
                 if not is_probable_category_label(name):
                     continue
                 categories.append(
@@ -557,27 +643,6 @@ def extract_cct_categories(markdown: str, tables: list[dict[str, Any]]) -> list[
     if categories:
         return dedupe_records(categories, ("id", "nombre"))
 
-    for raw_line in markdown.splitlines():
-        line = compact_text(raw_line, 220)
-        if not is_probable_category_label(line):
-            continue
-        categories.append(
-            {
-                "id": slugify(line),
-                "nombre": line,
-                "tipo": guess_category_type(line),
-                "descripcion": line,
-                "basico_mensual": None,
-                "sueldo_mensual": None,
-                "valor": None,
-                "valor_hora": None,
-                "tipo_valor": "mensual",
-                "grupo": None,
-                "fuente_textual": line,
-            }
-        )
-        if len(categories) >= 24:
-            break
     return dedupe_records(categories, ("id", "nombre"))
 
 

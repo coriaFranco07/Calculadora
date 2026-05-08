@@ -9,7 +9,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote
 
-from backend.gemini_proxy import DEFAULT_MODEL, FALLBACK_MODELS, GeminiClientError, call_gemini, gemini_enabled
+from backend.gemini_proxy import DEFAULT_MODEL, GeminiClientError, call_gemini, gemini_status
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
@@ -36,13 +36,15 @@ class LocalHandler(SimpleHTTPRequestHandler):
 
     def do_GET(self) -> None:
         if self.path == "/health":
+            status = gemini_status()
             self._json(
                 {
                     "status": "ok",
-                    "ai_enabled": gemini_enabled(),
-                    "model": DEFAULT_MODEL,
-                    "fallback_models": FALLBACK_MODELS,
-                    "gemini_enabled": gemini_enabled(),
+                    "ai_enabled": status["ai_enabled"],
+                    "model": status["model"],
+                    "fallback_models": status["fallback_models"],
+                    "gemini_enabled": status["gemini_enabled"],
+                    "api_key_source": status["api_key_source"],
                 }
             )
             return

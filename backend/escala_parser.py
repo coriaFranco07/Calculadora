@@ -6,7 +6,7 @@ import re
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
-from backend.cct_parser import parse_document
+from backend.cct_parser import compact_text, normalize_text, parse_document
 
 
 def _parse_money(value: Any) -> float | None:
@@ -24,6 +24,27 @@ def _parse_money(value: Any) -> float | None:
         return None
 
 
+def _valid_money(value: Any) -> bool:
+    money = _parse_money(value)
+    return money is not None and money > 0
+
+
+def _valid_scale_name(name: str) -> bool:
+    label = compact_text(name, 120)
+    normalized = normalize_text(label)
+    if len(label) < 4 or len(label) > 90 or len(normalized.split()) > 9:
+        return False
+    if normalized in {"categoria", "categorias", "basico", "basicos", "remuneracion", "remuneraciones"}:
+        return False
+    if re.search(r"https?://|www\.|@|\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b", normalized):
+        return False
+    if re.search(r"\b(?:bol\.?\s*oficial|boletin oficial|articulo|clausula|expediente|resolucion|decreto|ley|anexo|vigencia|desde|hasta|ministerio|homolog)\b", normalized):
+        return False
+    if re.fullmatch(r"[\d\s.,$/%-]+", normalized):
+        return False
+    return True
+
+
 def build_local_escala_payload(ocr_payload: dict[str, Any], file_name: str) -> dict[str, Any]:
     return parse_document(ocr_payload, kind="scale", file_name=file_name, provider="PDF local + Parser")
 
@@ -38,13 +59,20 @@ def normalize_salary_scales(payload: dict[str, Any], *, file_name: str = "") -> 
         if not isinstance(category, dict):
             continue
         name = str(category.get("nombre") or category.get("categoria") or "").strip()
-        if not name:
+        if not _valid_scale_name(name):
             continue
 
-        basico = _parse_money(category.get("basico"))
+        basico = _parse_money(
+            category.get("basico")
+            or category.get("basico_mensual")
+            or category.get("sueldo_mensual")
+            or category.get("valor")
+        )
         valor_hora = _parse_money(category.get("valor_hora"))
+        if not _valid_money(basico) and not _valid_money(valor_hora):
+            continue
         jornada = str(category.get("jornada") or category.get("modalidad") or "").strip()
-        vigencia_desde = str(category.get("vigencia_desde") or payload.get("vigencia_desde") or "").strip()
+        vigencia_desde = str(category.get("vigencia_desde") or payload.get("vigencia_desde") or payload.get("vigencia") or "").strip()
         vigencia_hasta = str(category.get("vigencia_hasta") or payload.get("vigencia_hasta") or "").strip()
         tipo = str(category.get("tipo") or ("hora" if valor_hora and not basico else "mensual")).strip()
         fuente = str(category.get("fuente_textual") or category.get("fuente") or file_name).strip()
@@ -69,7 +97,11 @@ def normalize_salary_scales(payload: dict[str, Any], *, file_name: str = "") -> 
         if not isinstance(scale, dict):
             continue
         name = str(scale.get("categoria") or scale.get("nombre") or "").strip()
-        if not name:
+        if not _valid_scale_name(name):
+            continue
+        basico = _parse_money(scale.get("basico"))
+        valor_hora = _parse_money(scale.get("valor_hora"))
+        if not _valid_money(basico) and not _valid_money(valor_hora):
             continue
         key = (
             name.lower(),
@@ -83,8 +115,8 @@ def normalize_salary_scales(payload: dict[str, Any], *, file_name: str = "") -> 
         scales.append(
             {
                 "categoria": name,
-                "basico": _parse_money(scale.get("basico")),
-                "valor_hora": _parse_money(scale.get("valor_hora")),
+                "basico": basico,
+                "valor_hora": valor_hora,
                 "vigencia_desde": scale.get("vigencia_desde") or None,
                 "vigencia_hasta": scale.get("vigencia_hasta") or None,
                 "jornada": scale.get("jornada") or None,
