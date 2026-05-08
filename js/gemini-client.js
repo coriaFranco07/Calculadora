@@ -1,4 +1,4 @@
-export function createQwenClient(baseUrl = "") {
+export function createGeminiClient(baseUrl = "") {
   async function health() {
     const response = await fetch(`${baseUrl}/health`, { cache: "no-store" });
     if (!response.ok) {

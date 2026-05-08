@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import html
-import io
 import json
 import logging
 import os
@@ -17,17 +16,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
-from pypdf import PdfReader
 
-from backend.cct_parser import (
-    compact_text as parser_compact_text,
-    merge_calculator_payload,
-    merge_document_payloads,
-    parse_document,
-)
-from backend.mistral_ocr import MistralOCRError, extract_pdf_bytes as extract_pdf_with_mistral
-from backend.qwen_client import DEFAULT_MODEL, QwenClientError, build_audit_prompt, call_qwen
-from backend.qwen_structurer import QwenStructurerError, build_calculator_json
+from backend.calculator_builder import build_document_payload, build_full_calculator_payload, ensure_final_schema
+from backend.gemini_proxy import DEFAULT_MODEL, FALLBACK_MODELS, GeminiClientError, call_gemini, gemini_enabled
+from backend.pdf_extractor import extract_text_from_pdf_bytes as extract_pdf_document
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 BACKEND_DIR = Path(__file__).resolve().parent
@@ -166,8 +158,11 @@ def normalize_calculator_payload(payload: Any, file_name: str) -> dict[str, Any]
             "convenio": {"nombre": "CCT cargado"},
             "parametros": {"divisor_mensual": 30, "horas_mensuales": None, "horas_semanales": None, "base_calculo": "simple"},
             "categorias": [],
+            "escalas_salariales": [],
             "adicionales": [],
+            "conceptos": [],
             "reglas_liquidacion": {},
+            "matriz_tecnica": [],
             "pendientes_revision": ["La IA no devolvio un objeto JSON util."],
             "alertas": [],
             "nivel_confianza": 0,
@@ -179,8 +174,11 @@ def normalize_calculator_payload(payload: Any, file_name: str) -> dict[str, Any]
     payload.setdefault("convenio", {})
     payload.setdefault("parametros", {})
     payload.setdefault("categorias", [])
+    payload.setdefault("escalas_salariales", [])
     payload.setdefault("adicionales", [])
+    payload.setdefault("conceptos", [])
     payload.setdefault("reglas_liquidacion", {})
+    payload.setdefault("matriz_tecnica", [])
     payload.setdefault("pendientes_revision", [])
     payload.setdefault("alertas", [])
     payload.setdefault("nivel_confianza", 0)
@@ -191,10 +189,16 @@ def normalize_calculator_payload(payload: Any, file_name: str) -> dict[str, Any]
         payload["parametros"] = {}
     if not isinstance(payload["categorias"], list):
         payload["categorias"] = []
+    if not isinstance(payload["escalas_salariales"], list):
+        payload["escalas_salariales"] = []
     if not isinstance(payload["adicionales"], list):
         payload["adicionales"] = []
+    if not isinstance(payload["conceptos"], list):
+        payload["conceptos"] = []
     if not isinstance(payload["reglas_liquidacion"], dict):
         payload["reglas_liquidacion"] = {}
+    if not isinstance(payload["matriz_tecnica"], list):
+        payload["matriz_tecnica"] = []
     if not isinstance(payload["pendientes_revision"], list):
         payload["pendientes_revision"] = [str(payload["pendientes_revision"])]
     if not isinstance(payload["alertas"], list):
@@ -612,108 +616,64 @@ def enrich_calculator_payload(payload: dict[str, Any]) -> dict[str, Any]:
     return payload
 
 
-def extract_text_from_pdf_bytes(content: bytes) -> str:
-    reader = PdfReader(io.BytesIO(content))
-    pages: list[str] = []
-    for page in reader.pages:
-        pages.append(page.extract_text() or "")
-    text = "\n\n".join(pages).strip()
-    if len(text) < 80:
-        raise HTTPException(
-            status_code=422,
-            detail="El PDF se pudo abrir, pero no contiene suficiente texto seleccionable. Probablemente es escaneado o imagen y requiere OCR.",
-        )
-    return text
+def build_audit_prompt(data: dict[str, Any]) -> str:
+    return f"""
+Revisá preventivamente esta liquidación laboral argentina.
+Devolvé observaciones accionables, riesgos AFIP/LSD, inconsistencias y próximos pasos.
+Si falta información, indicá qué dato pedir. No inventes normativa.
+
+Datos:
+{json.dumps(data, ensure_ascii=False, indent=2)}
+""".strip()
+
+
+def extract_text_from_pdf_bytes(content: bytes, file_name: str = "documento.pdf") -> str:
+    return extract_pdf_document(content, file_name=file_name).text
+
+
+def finalize_calculator_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    return ensure_final_schema(enrich_calculator_payload(payload))
 
 
 def extract_cct_from_text(file_name: str, text: str) -> dict[str, Any]:
-    ocr_payload = {
-        "provider": "plain-text",
-        "model": "text-input",
-        "file_name": file_name,
-        "markdown": text,
-        "text": text,
-        "tables": [],
-        "pages": [{"page_number": 1, "markdown": text, "text": text, "tables": []}],
-        "fallback_local": False,
-    }
-    parser_payload = parse_document(ocr_payload, kind="cct", file_name=file_name, provider="Texto plano")
-
-    ai_payload: dict[str, Any] | None = None
-    try:
-        ai_payload = build_calculator_json(
-            text,
-            document_kind="cct",
-            file_name=file_name,
-            tables=[],
-            parser_payload=parser_payload,
-            model=os.getenv("QWEN_MODEL", DEFAULT_MODEL),
-        )
-    except QwenStructurerError as exc:
-        parser_payload["alertas"] = dedupe_strings(
-            [
-                *(parser_payload.get("alertas") or []),
-                f"Qwen no pudo estructurar completamente el texto: {parser_compact_text(exc, 180)}",
-            ]
-        )
-        parser_payload["pendientes_revision"] = dedupe_strings(
-            [
-                *(parser_payload.get("pendientes_revision") or []),
-                "Revisar manualmente el JSON porque se devolvio la version del parser deterministico sin complemento Qwen.",
-            ]
-        )
-
-    merged = merge_document_payloads(ai_payload, parser_payload, kind="cct", file_name=file_name)
+    merged = build_document_payload(
+        extraction=None,
+        text=text,
+        kind="cct",
+        file_name=file_name,
+        provider="Texto plano + Gemini",
+    )
     return {
-        "mode": "qwen-cct",
-        "model": os.getenv("QWEN_MODEL", DEFAULT_MODEL),
+        "mode": "gemini-cct",
+        "model": (merged.get("diagnostico_ia") or {}).get("modelo_usado") or DEFAULT_MODEL,
         "text_length": len(text),
-        "result": enrich_calculator_payload(merged),
+        "result": finalize_calculator_payload(merged),
+        "diagnostics": merged.get("diagnostico_ia") or {},
     }
 
 
 def run_ocr_pipeline(document_bytes: bytes, *, file_name: str, document_kind: str) -> dict[str, Any]:
-    ocr_payload = extract_pdf_with_mistral(document_bytes, file_name=file_name)
-    parser_payload = parse_document(ocr_payload, kind=document_kind, file_name=file_name, provider="Mistral OCR")
-
-    if ocr_payload.get("fallback_local"):
-        parser_payload["alertas"] = dedupe_strings(
-            [
-                *(parser_payload.get("alertas") or []),
-                f"Se uso fallback local de PDF porque Mistral OCR no estuvo disponible: {parser_compact_text(ocr_payload.get('fallback_reason'), 180)}",
-            ]
-        )
-
-    ai_payload: dict[str, Any] | None = None
-    try:
-        ai_payload = build_calculator_json(
-            ocr_payload.get("markdown") or "",
-            document_kind=document_kind,
-            file_name=file_name,
-            tables=ocr_payload.get("tables") or [],
-            parser_payload=parser_payload,
-            model=os.getenv("QWEN_MODEL", DEFAULT_MODEL),
-        )
-    except QwenStructurerError as exc:
-        parser_payload["alertas"] = dedupe_strings(
-            [
-                *(parser_payload.get("alertas") or []),
-                f"Qwen no pudo estructurar completamente el OCR: {parser_compact_text(exc, 180)}",
-            ]
-        )
-        parser_payload["pendientes_revision"] = dedupe_strings(
-            [
-                *(parser_payload.get("pendientes_revision") or []),
-                "Revisar manualmente el JSON porque se devolvio la version del parser deterministico sin complemento Qwen.",
-            ]
-        )
-
-    merged = merge_document_payloads(ai_payload, parser_payload, kind=document_kind, file_name=file_name)
+    extraction = extract_pdf_document(document_bytes, file_name=file_name)
+    merged = build_document_payload(
+        extraction=extraction,
+        text=extraction.text,
+        kind=document_kind,
+        file_name=file_name,
+        provider="PDF local + Gemini",
+    )
     return {
         "ok": True,
         "kind": document_kind,
-        "source": "mistral-ocr",
+        "source": "gemini-codex",
         "result": merged,
+        "diagnostics": merged.get("diagnostico_ia") or {},
+        "pdf": {
+            "file_name": file_name,
+            "page_count": extraction.page_count,
+            "text_length": extraction.text_length,
+            "chunks": len(extraction.chunks),
+            "alerts": extraction.alerts,
+        },
     }
 
 
@@ -773,7 +733,7 @@ def builtin_calculators() -> list[dict[str, Any]]:
             "creado_en": None,
             "estado": "Lista",
             "tipo": "Base",
-            "resumen": "Motor principal con wizard, auditoria preventiva AFIP y capa Qwen opcional.",
+            "resumen": "Motor principal con wizard, auditoria preventiva AFIP y capa Gemini opcional.",
             "deletable": False,
         }
     ]
@@ -805,7 +765,7 @@ def load_calculators() -> list[dict[str, Any]]:
                     "creado_en": payload.get("creado_en"),
                     "estado": "Generada",
                     "tipo": "IA + OCR",
-                    "resumen": "Calculadora publicada desde Mistral OCR, parser inteligente y Qwen.",
+                    "resumen": "Calculadora publicada desde Gemini, parser inteligente y Codex.",
                     "deletable": True,
                 }
             )
@@ -1258,11 +1218,11 @@ def delete_generated_calculator(slug: str) -> list[str]:
 def health() -> dict[str, Any]:
     return {
         "status": "ok",
-        "ai_enabled": bool(os.getenv("QWEN_API_KEY", "").strip()),
-        "model": os.getenv("QWEN_MODEL", DEFAULT_MODEL),
+        "ai_enabled": gemini_enabled(),
+        "model": os.getenv("GEMINI_DEFAULT_MODEL", DEFAULT_MODEL),
+        "fallback_models": FALLBACK_MODELS,
         "env_file_loaded": ENV_FILE.exists(),
-        "mistral_enabled": bool(os.getenv("MISTRAL_API_KEY", "").strip()),
-        "qwen_enabled": bool(os.getenv("QWEN_API_KEY", "").strip()),
+        "gemini_enabled": gemini_enabled(),
     }
 
 
@@ -1275,27 +1235,30 @@ def dashboard() -> HTMLResponse:
 def audit(payload: AuditRequest) -> dict[str, Any]:
     prompt = build_audit_prompt(payload.model_dump())
     try:
-        result = call_qwen(
+        result = call_gemini(
             system_prompt=(
                 "Sos un auditor preventivo senior de payroll argentino, AFIP y Libro de Sueldos Digital. "
                 "Responde breve, claro y accionable."
             ),
             user_prompt=prompt,
-            model=os.getenv("QWEN_MODEL", DEFAULT_MODEL),
+            model=os.getenv("GEMINI_DEFAULT_MODEL", DEFAULT_MODEL),
             temperature=0.1,
-            max_tokens=4096,
+            max_output_tokens=4096,
             stage="audit",
+            response_mime_type="text/plain",
         )
-        text = result["text"]
-    except QwenClientError as exc:
+        text = result.text
+    except GeminiClientError as exc:
         status_code = 503 if "API_KEY" in str(exc) else 502
         raise HTTPException(status_code=status_code, detail=str(exc)) from exc
     return {
-        "mode": "qwen",
-        "model": result["model"],
+        "mode": "gemini",
+        "model": result.model,
         "text": text,
-        "usage": result["usage"],
-        "response_ms": result["response_ms"],
+        "usage": result.usage,
+        "response_ms": result.response_ms,
+        "fallback_used": result.fallback_used,
+        "attempts": result.attempts,
     }
 
 
@@ -1306,11 +1269,22 @@ def extract_cct(payload: CctExtractionRequest) -> dict[str, Any]:
 
 @app.post("/extract-cct-pdf")
 async def extract_cct_pdf(file: UploadFile = File(...)) -> dict[str, Any]:
-    if not file.filename.lower().endswith(".pdf"):
+    if not (file.filename or "").lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Solo se aceptan archivos PDF.")
     content = await file.read()
-    text = extract_text_from_pdf_bytes(content)
-    return extract_cct_from_text(file.filename, text)
+    if not content:
+        raise HTTPException(status_code=400, detail="No se recibio contenido para el CCT.")
+    return run_ocr_pipeline(content, file_name=file.filename or "cct.pdf", document_kind="cct")
+
+
+@app.post("/extract-escala-pdf")
+async def extract_escala_pdf(file: UploadFile = File(...)) -> dict[str, Any]:
+    if not (file.filename or "").lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Solo se aceptan archivos PDF.")
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="No se recibio contenido para la escala salarial.")
+    return run_ocr_pipeline(content, file_name=file.filename or "escala.pdf", document_kind="scale")
 
 
 @app.post("/upload-cct")
@@ -1318,11 +1292,7 @@ async def upload_cct(file: UploadFile = File(...)) -> dict[str, Any]:
     content = await file.read()
     if not content:
         raise HTTPException(status_code=400, detail="No se recibio contenido para el CCT.")
-    try:
-        return run_ocr_pipeline(content, file_name=file.filename or "cct.pdf", document_kind="cct")
-    except MistralOCRError as exc:
-        LOGGER.warning("Fallo OCR Mistral CCT para %s: %s", file.filename, exc)
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return run_ocr_pipeline(content, file_name=file.filename or "cct.pdf", document_kind="cct")
 
 
 @app.post("/upload-scale")
@@ -1330,17 +1300,53 @@ async def upload_scale(file: UploadFile = File(...)) -> dict[str, Any]:
     content = await file.read()
     if not content:
         raise HTTPException(status_code=400, detail="No se recibio contenido para la escala salarial.")
-    try:
-        return run_ocr_pipeline(content, file_name=file.filename or "escala.pdf", document_kind="scale")
-    except MistralOCRError as exc:
-        LOGGER.warning("Fallo OCR Mistral escala para %s: %s", file.filename, exc)
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    return run_ocr_pipeline(content, file_name=file.filename or "escala.pdf", document_kind="scale")
+
+
+@app.post("/extract-full-calculator")
+async def extract_full_calculator(
+    cct_file: UploadFile = File(...),
+    escala_file: UploadFile = File(...),
+) -> dict[str, Any]:
+    if not (cct_file.filename or "").lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="El CCT debe ser un PDF.")
+    if not (escala_file.filename or "").lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="La escala salarial debe ser un PDF.")
+
+    cct_content = await cct_file.read()
+    escala_content = await escala_file.read()
+    if not cct_content or not escala_content:
+        raise HTTPException(status_code=400, detail="Se deben recibir ambos PDFs.")
+
+    cct_response = run_ocr_pipeline(cct_content, file_name=cct_file.filename or "cct.pdf", document_kind="cct")
+    scale_response = run_ocr_pipeline(escala_content, file_name=escala_file.filename or "escala.pdf", document_kind="scale")
+    payload = build_full_calculator_payload(cct_response["result"], scale_response["result"])
+    enriched = finalize_calculator_payload(payload)
+    return {
+        "ok": True,
+        "source": "gemini-codex",
+        "result": enriched,
+        "documents": {
+            "cct": cct_response,
+            "escala": scale_response,
+        },
+        "diagnostics": {
+            "modelo_cct": (cct_response.get("diagnostics") or {}).get("modelo_usado"),
+            "modelo_escala": (scale_response.get("diagnostics") or {}).get("modelo_usado"),
+            "fallback_cct": (cct_response.get("diagnostics") or {}).get("fallback_activo"),
+            "fallback_escala": (scale_response.get("diagnostics") or {}).get("fallback_activo"),
+            "chunks_cct": ((cct_response.get("pdf") or {}).get("chunks")),
+            "chunks_escala": ((scale_response.get("pdf") or {}).get("chunks")),
+            "alertas": enriched.get("alertas") or [],
+            "pendientes_revision": enriched.get("pendientes_revision") or [],
+        },
+    }
 
 
 @app.post("/merge-calculator-payload")
 def merge_calculator(request: MergeCalculatorRequest) -> dict[str, Any]:
-    payload = merge_calculator_payload(request.cct_json, request.escala_json)
-    enriched = enrich_calculator_payload(payload)
+    payload = build_full_calculator_payload(request.cct_json, request.escala_json)
+    enriched = finalize_calculator_payload(payload)
     return {
         "ok": True,
         "result": enriched,

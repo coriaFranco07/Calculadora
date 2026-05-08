@@ -1,4 +1,4 @@
-import { createQwenClient } from "./qwen-client.js";
+import { createGeminiClient } from "./gemini-client.js";
 
 const CHAT_STATE = {
   open: false,
@@ -51,7 +51,7 @@ function getContext() {
 
 function getAuditSummary(context) {
   const audit = context.auditoria || context.audit || null;
-  return audit?.resumenIA || audit?.qwenPayload || audit?.aiPayload || null;
+  return audit?.resumenIA || audit?.geminiPayload || audit?.aiPayload || null;
 }
 
 async function loadInternalDocuments() {
@@ -174,11 +174,11 @@ function buildDocumentOnlyAnswer(question) {
   return `${intro}\n\n${bullets.join("\n")}${sourceLine(matches.slice(0, 4))}`;
 }
 
-function friendlyQwenFallback(question) {
+function friendlyGeminiFallback(question) {
   return [
     buildDocumentOnlyAnswer(question),
     "",
-    "La capa Qwen esta configurada, pero en este momento no pudo responder por cuota, disponibilidad o saturacion del servicio. La respuesta anterior usa el motor local y la base interna para no dejarte sin asistencia."
+    "La capa Gemini esta configurada, pero en este momento no pudo responder por cuota, disponibilidad o saturacion del servicio. La respuesta anterior usa el motor local y la base interna para no dejarte sin asistencia."
   ].join("\n");
 }
 
@@ -288,10 +288,10 @@ function addMessage(role, text, refs) {
   renderMessages(refs.messages);
 }
 
-async function askQwen(question) {
+async function askGemini(question) {
   await loadInternalDocuments();
   const context = getContext();
-  const client = createQwenClient("");
+  const client = createGeminiClient("");
   try {
     const health = await client.health();
     if (!health.ai_enabled) {
@@ -301,14 +301,14 @@ async function askQwen(question) {
         localParts.push(`Resumen preventivo:\n${buildLocalSummary(context)}`);
       }
       localParts.push(buildDocumentOnlyAnswer(question));
-      localParts.push("\nQwen no esta configurado; esta respuesta usa busqueda local sobre la base interna.");
+      localParts.push("\nGemini no esta configurado; esta respuesta usa busqueda local sobre la base interna.");
       return localParts.join("\n\n");
     }
     const response = await client.audit(buildPayload(question, context));
-    return response.text || friendlyQwenFallback(question);
+    return response.text || friendlyGeminiFallback(question);
   } catch (error) {
-    console.warn("Qwen no pudo responder; usando fallback local", error);
-    return friendlyQwenFallback(question);
+    console.warn("Gemini no pudo responder; usando fallback local", error);
+    return friendlyGeminiFallback(question);
   }
 }
 
@@ -396,7 +396,7 @@ export function initPayrollChatBox() {
     addMessage("assistant", "Analizando contexto preventivo y base documental…", refs);
 
     const loadingIndex = CHAT_STATE.messages.length - 1;
-    const answer = await askQwen(question);
+    const answer = await askGemini(question);
     CHAT_STATE.messages[loadingIndex] = { role: "assistant", text: answer };
     renderMessages(refs.messages);
 

@@ -10,7 +10,7 @@ import {
   ruleSnapshots
 } from "./calculadora.js";
 import { ejecutarAuditoria } from "./auditor.js";
-import { createQwenClient } from "./qwen-client.js";
+import { createGeminiClient } from "./gemini-client.js";
 import { initPayrollChatBox } from "./chat-box.js";
 
 const currencyFormatter = new Intl.NumberFormat("es-AR", {
@@ -31,7 +31,12 @@ const dateFormatter = new Intl.DateTimeFormat("es-AR", {
   day: "2-digit"
 });
 
-const qwenClient = createQwenClient("");
+const monthFormatter = new Intl.DateTimeFormat("es-AR", {
+  month: "short",
+  year: "numeric"
+});
+
+const geminiClient = createGeminiClient("");
 const STORAGE_KEY = "cct244_wizard_state_v3";
 const WIZARD_STEPS = [
   {
@@ -60,9 +65,42 @@ const WIZARD_STEPS = [
     caption: "Visualiza recibo, neto, bruto, descuentos y bases sin mezclar auditoria ni IA."
   },
   {
-    key: "qwen",
-    title: "Paso 6 de 6 · Revision Qwen",
+    key: "gemini",
+    title: "Paso 6 de 6 · Revision Gemini",
     caption: "Interpretacion opcional del resumen de auditoria ya calculado localmente."
+  }
+];
+
+const EMPLOYER_REFERENCE_RATES = [
+  {
+    label: "SIPA empleador",
+    base: "social",
+    rate: 0.1077,
+    note: "Base seguridad social"
+  },
+  {
+    label: "PAMI empleador",
+    base: "social",
+    rate: 0.0158,
+    note: "Base seguridad social"
+  },
+  {
+    label: "Asignaciones familiares",
+    base: "social",
+    rate: 0.047,
+    note: "Base seguridad social"
+  },
+  {
+    label: "Fondo nacional de empleo",
+    base: "social",
+    rate: 0.0095,
+    note: "Base seguridad social"
+  },
+  {
+    label: "Obra social empleador",
+    base: "health",
+    rate: 0.06,
+    note: "Base obra social"
   }
 ];
 
@@ -255,6 +293,19 @@ function createRefs() {
     auditAiRun: document.querySelector("#audit-ai-run"),
     auditAiStatus: document.querySelector("#audit-ai-status"),
     auditAiOutput: document.querySelector("#audit-ai-output"),
+    simContextCaption: document.querySelector("#sim-context-caption"),
+    simMonthsInput: document.querySelector("#sim-months"),
+    simRemPercentInput: document.querySelector("#sim-rem-percent"),
+    simNrPercentInput: document.querySelector("#sim-nr-percent"),
+    runSimButton: document.querySelector("#run-sim-button"),
+    simResult: document.querySelector("#sim-result"),
+    compareContextCaption: document.querySelector("#compare-context-caption"),
+    compareCategoryLeft: document.querySelector("#compare-category-left"),
+    compareCategoryRight: document.querySelector("#compare-category-right"),
+    runCompareButton: document.querySelector("#run-compare-button"),
+    compareResult: document.querySelector("#compare-result"),
+    distributionView: document.querySelector("#distribution-view"),
+    employerCostView: document.querySelector("#employer-cost-view"),
     skillStatusBadge: document.querySelector("#skill-status-badge"),
     skillStatusCaption: document.querySelector("#skill-status-caption"),
     skillSummaryText: document.querySelector("#skill-summary-text"),
@@ -278,8 +329,13 @@ function stepIndex(stepKey) {
   return Math.max(0, WIZARD_STEPS.findIndex((step) => step.key === stepKey));
 }
 
+function normalizeStepKey(stepKey) {
+  return WIZARD_STEPS.some((step) => step.key === stepKey) ? stepKey : "general";
+}
+
 function updateWizardProgress(refs, stepKey) {
-  const currentStep = WIZARD_STEPS[stepIndex(stepKey)] || WIZARD_STEPS[0];
+  const safeStepKey = normalizeStepKey(stepKey);
+  const currentStep = WIZARD_STEPS[stepIndex(safeStepKey)] || WIZARD_STEPS[0];
   const progress = ((stepIndex(currentStep.key) + 1) / WIZARD_STEPS.length) * 100;
 
   if (refs.progressTitle) refs.progressTitle.textContent = currentStep.title;
@@ -294,11 +350,12 @@ function updateWizardProgress(refs, stepKey) {
 }
 
 function switchWizardStep(refs, stepKey, { shouldScroll = true } = {}) {
-  appState.currentStep = stepKey;
+  const safeStepKey = normalizeStepKey(stepKey);
+  appState.currentStep = safeStepKey;
   refs.sectionPanes.forEach((pane) => {
-    pane.classList.toggle("is-active", pane.id === `section-${stepKey}`);
+    pane.classList.toggle("is-active", pane.id === `section-${safeStepKey}`);
   });
-  updateWizardProgress(refs, stepKey);
+  updateWizardProgress(refs, safeStepKey);
   persistWizardState(refs);
   if (shouldScroll && typeof window !== "undefined") {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -496,6 +553,7 @@ function renderCategoryOptions(refs) {
   if (!scale) {
     if (refs.activeScaleCaptionHero) refs.activeScaleCaptionHero.textContent = "No hay escala activa para la fecha indicada.";
     if (refs.activeScaleCaptionStep) refs.activeScaleCaptionStep.textContent = "No hay escala activa para la fecha indicada.";
+    renderToolboxContext(refs);
     return;
   }
 
@@ -521,6 +579,7 @@ function renderCategoryOptions(refs) {
   });
 
   updateContextKpis(refs);
+  renderToolboxContext(refs);
 }
 
 function renderAgreementControls(refs) {
@@ -862,6 +921,437 @@ function renderSourcesPanel(refs, liquidation) {
   });
 }
 
+function buildEmptyStateMarkup(title, body) {
+  return `
+    <article class="audit-empty">
+      <strong>${escapeHtml(title)}</strong>
+      <p>${escapeHtml(body)}</p>
+    </article>
+  `;
+}
+
+function buildCategorySelectOptions(select, scale) {
+  if (!select) return;
+  select.innerHTML = "";
+
+  const grouped = scale.categories.reduce((accumulator, category) => {
+    if (!accumulator[category.sector]) accumulator[category.sector] = [];
+    accumulator[category.sector].push(category);
+    return accumulator;
+  }, {});
+
+  Object.entries(grouped).forEach(([sector, categories]) => {
+    const optgroup = document.createElement("optgroup");
+    optgroup.label = sector;
+    categories.forEach((category) => {
+      const option = document.createElement("option");
+      option.value = category.id;
+      option.textContent = `${category.label} · ${category.payBasis === "hourly" ? "valor hora" : "mensual"}`;
+      optgroup.append(option);
+    });
+    select.append(optgroup);
+  });
+}
+
+function getCurrentScenarioLiquidation(refs) {
+  return calculateLiquidation(collectInput(refs));
+}
+
+function addMonthsToDate(dateString, offset) {
+  if (!dateString) return null;
+  const [year, month] = String(dateString).split("-").map(Number);
+  if (!year || !month) return null;
+  return new Date(year, month - 1 + offset, 1);
+}
+
+function formatMonthProjection(dateString, offset) {
+  const date = addMonthsToDate(dateString, offset);
+  return date ? monthFormatter.format(date) : `Mes ${offset}`;
+}
+
+function renderToolboxContext(refs) {
+  const scale = resolveScale(refs.dateInput?.value);
+  const activeDate = refs.dateInput?.value;
+  const currentCategory = scale?.categories.find((item) => item.id === refs.categorySelect?.value) || scale?.categories[0];
+
+  if (refs.simContextCaption) {
+    refs.simContextCaption.textContent = scale && currentCategory
+      ? `Base actual: ${currentCategory.label} · ${scale.label} · ${formatDate(activeDate)}.`
+      : "Completa fecha y categoria para habilitar la simulacion.";
+  }
+
+  if (refs.compareContextCaption) {
+    refs.compareContextCaption.textContent = scale
+      ? `Compara categorias sobre la misma fecha, jornada y novedades cargadas en el flujo principal.`
+      : "No hay escala activa para la fecha indicada.";
+  }
+
+  if (!refs.compareCategoryLeft || !refs.compareCategoryRight) return;
+
+  if (!scale) {
+    refs.compareCategoryLeft.innerHTML = '<option value="">Sin escala activa</option>';
+    refs.compareCategoryRight.innerHTML = '<option value="">Sin escala activa</option>';
+    return;
+  }
+
+  const previousLeft = refs.compareCategoryLeft.value;
+  const previousRight = refs.compareCategoryRight.value;
+  buildCategorySelectOptions(refs.compareCategoryLeft, scale);
+  buildCategorySelectOptions(refs.compareCategoryRight, scale);
+
+  const availableIds = scale.categories.map((category) => category.id);
+  const preferredLeft = availableIds.includes(previousLeft)
+    ? previousLeft
+    : availableIds.includes(refs.categorySelect?.value)
+      ? refs.categorySelect.value
+      : availableIds[0];
+  const preferredRight = availableIds.includes(previousRight)
+    ? previousRight
+    : availableIds.find((categoryId) => categoryId !== preferredLeft) || preferredLeft;
+
+  refs.compareCategoryLeft.value = preferredLeft;
+  refs.compareCategoryRight.value = preferredRight;
+}
+
+function renderSimulator(refs, liquidation = null) {
+  if (!refs.simResult) return;
+
+  let scenario = liquidation;
+  try {
+    scenario ||= getCurrentScenarioLiquidation(refs);
+  } catch (error) {
+    refs.simResult.innerHTML = buildEmptyStateMarkup(
+      "Simulacion no disponible",
+      error.message || "Completa los datos principales para proyectar meses futuros."
+    );
+    return;
+  }
+
+  const months = Math.min(24, Math.max(1, Math.round(numberOrZero(refs.simMonthsInput?.value) || 6)));
+  const remRate = numberOrZero(refs.simRemPercentInput?.value) / 100;
+  const nrRate = numberOrZero(refs.simNrPercentInput?.value) / 100;
+  const currentRem = scenario.totales?.remunerativo || 0;
+  const currentNr = scenario.totales?.noRemunerativo || 0;
+  const currentPocket = scenario.totales?.bolsillo || 0;
+  const discountRate = currentRem > 0 ? (scenario.totales?.descuentos || 0) / currentRem : 0;
+
+  const rows = Array.from({ length: months }, (_item, index) => {
+    const monthOffset = index + 1;
+    const projectedRem = roundMoney(currentRem * Math.pow(1 + remRate, monthOffset));
+    const projectedNr = roundMoney(currentNr * Math.pow(1 + nrRate, monthOffset));
+    const projectedDeductions = roundMoney(projectedRem * discountRate);
+    const projectedPocket = roundMoney(projectedRem - projectedDeductions + projectedNr);
+    const variation = currentPocket > 0 ? (projectedPocket - currentPocket) / currentPocket : 0;
+
+    return `
+      <tr>
+        <td>${escapeHtml(formatMonthProjection(refs.dateInput?.value, monthOffset))}</td>
+        <td>${escapeHtml(formatCurrency(projectedRem))}</td>
+        <td>${escapeHtml(formatCurrency(projectedNr))}</td>
+        <td>${escapeHtml(formatCurrency(projectedDeductions))}</td>
+        <td>${escapeHtml(formatCurrency(projectedPocket))}</td>
+        <td>${escapeHtml(formatPercent(variation))}</td>
+      </tr>
+    `;
+  }).join("");
+
+  refs.simResult.innerHTML = `
+    <div class="cost-note">
+      Proyeccion estimativa sobre la liquidacion actual. Aplica ${escapeHtml(formatPercent(remRate))} mensual sobre remunerativos y ${escapeHtml(formatPercent(nrRate))} sobre no remunerativos, manteniendo la misma estructura de descuentos.
+    </div>
+    <table class="scale-table">
+      <thead>
+        <tr>
+          <th>Mes</th>
+          <th>Remunerativo</th>
+          <th>No remunerativo</th>
+          <th>Descuentos</th>
+          <th>Bolsillo estimado</th>
+          <th>Var. bolsillo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Base actual</strong></td>
+          <td>${escapeHtml(formatCurrency(currentRem))}</td>
+          <td>${escapeHtml(formatCurrency(currentNr))}</td>
+          <td>${escapeHtml(formatCurrency(scenario.totales?.descuentos || 0))}</td>
+          <td>${escapeHtml(formatCurrency(currentPocket))}</td>
+          <td>${escapeHtml(formatPercent(0))}</td>
+        </tr>
+        ${rows}
+      </tbody>
+    </table>
+  `;
+}
+
+function renderComparator(refs, liquidation = null) {
+  if (!refs.compareResult) return;
+
+  const leftCategoryId = refs.compareCategoryLeft?.value;
+  const rightCategoryId = refs.compareCategoryRight?.value;
+  if (!leftCategoryId || !rightCategoryId) {
+    refs.compareResult.innerHTML = buildEmptyStateMarkup(
+      "Comparador no disponible",
+      "Selecciona una escala activa para comparar categorias."
+    );
+    return;
+  }
+
+  let baseInput;
+  try {
+    baseInput = collectInput(refs);
+  } catch (error) {
+    refs.compareResult.innerHTML = buildEmptyStateMarkup(
+      "Comparador no disponible",
+      error.message || "Completa los datos principales para comparar escenarios."
+    );
+    return;
+  }
+
+  try {
+    const leftLiquidation =
+      liquidation && liquidation.metadata?.category?.id === leftCategoryId
+        ? liquidation
+        : calculateLiquidation({ ...baseInput, categoryId: leftCategoryId });
+    const rightLiquidation = calculateLiquidation({ ...baseInput, categoryId: rightCategoryId });
+
+    const compareRows = [
+      {
+        label: "Valor convenio",
+        left: leftLiquidation.metadata?.category?.amount || 0,
+        right: rightLiquidation.metadata?.category?.amount || 0
+      },
+      {
+        label: "Equivalente mensual",
+        left: leftLiquidation.bases?.equivalenteMensual || 0,
+        right: rightLiquidation.bases?.equivalenteMensual || 0
+      },
+      {
+        label: "Valor hora",
+        left: leftLiquidation.bases?.valorHora || 0,
+        right: rightLiquidation.bases?.valorHora || 0
+      },
+      {
+        label: "Bruto remunerativo",
+        left: leftLiquidation.totales?.remunerativo || 0,
+        right: rightLiquidation.totales?.remunerativo || 0
+      },
+      {
+        label: "Descuentos",
+        left: leftLiquidation.totales?.descuentos || 0,
+        right: rightLiquidation.totales?.descuentos || 0
+      },
+      {
+        label: "No remunerativo",
+        left: leftLiquidation.totales?.noRemunerativo || 0,
+        right: rightLiquidation.totales?.noRemunerativo || 0
+      },
+      {
+        label: "Total en bolsillo",
+        left: leftLiquidation.totales?.bolsillo || 0,
+        right: rightLiquidation.totales?.bolsillo || 0
+      }
+    ];
+
+    refs.compareResult.innerHTML = `
+      <div class="cost-note">
+        La comparacion reutiliza la misma fecha, tipo de liquidacion, jornada, antiguedad y novedades. Solo cambia la categoria.
+      </div>
+      <table class="scale-table">
+        <thead>
+          <tr>
+            <th>Variable</th>
+            <th>${escapeHtml(leftLiquidation.metadata?.category?.label || "Categoria A")}</th>
+            <th>${escapeHtml(rightLiquidation.metadata?.category?.label || "Categoria B")}</th>
+            <th>Diferencia</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${compareRows
+            .map((row) => {
+              const delta = roundMoney(row.right - row.left);
+              return `
+                <tr>
+                  <td>${escapeHtml(row.label)}</td>
+                  <td>${escapeHtml(formatCurrency(row.left))}</td>
+                  <td>${escapeHtml(formatCurrency(row.right))}</td>
+                  <td>${escapeHtml(formatCurrency(delta))}</td>
+                </tr>
+              `;
+            })
+            .join("")}
+        </tbody>
+      </table>
+    `;
+  } catch (error) {
+    refs.compareResult.innerHTML = buildEmptyStateMarkup(
+      "Comparador no disponible",
+      error.message || "No se pudieron resolver los escenarios comparados."
+    );
+  }
+}
+
+function renderDistribution(refs, liquidation) {
+  if (!refs.distributionView) return;
+
+  if (!liquidation) {
+    refs.distributionView.innerHTML = buildEmptyStateMarkup(
+      "Distribucion pendiente",
+      "Calcula una liquidacion para ver como se reparte el salario entre conceptos."
+    );
+    return;
+  }
+
+  const view = buildViewModel(liquidation);
+  const values = view.values;
+  const rows = [
+    {
+      label: "Basico convenio",
+      amount: view.type === "vacaciones" ? values.grossRemunerative : values.basicProportional,
+      color: "#0f766e"
+    },
+    { label: "Antiguedad", amount: values.seniority, color: "#2563eb" },
+    { label: "Presentismo", amount: values.presentismo, color: "#8b5cf6" },
+    { label: "Zona desfavorable", amount: values.zone, color: "#f59e0b" },
+    { label: "Horas extra 50%", amount: values.overtime50, color: "#ef4444" },
+    { label: "Horas extra 100%", amount: values.overtime100, color: "#dc2626" },
+    { label: "SAC proporcional", amount: values.sacProportional, color: "#14b8a6" },
+    { label: "Vacaciones no gozadas", amount: values.unusedVacation, color: "#0891b2" },
+    { label: "SAC s/vacaciones", amount: values.sacOnUnusedVacation, color: "#6366f1" },
+    { label: "No remunerativos", amount: values.nonRemunerativeTotal, color: "#ec4899" }
+  ].filter((row) => roundMoney(row.amount) > 0);
+
+  const totalPositive = rows.reduce((accumulator, row) => accumulator + row.amount, 0);
+  if (!totalPositive) {
+    refs.distributionView.innerHTML = buildEmptyStateMarkup(
+      "Distribucion vacia",
+      "No hay conceptos positivos para representar en el periodo seleccionado."
+    );
+    return;
+  }
+
+  refs.distributionView.innerHTML = `
+    <div class="distribution-topline">
+      <article>
+        <small>Bruto remunerativo</small>
+        <strong>${escapeHtml(formatCurrency(liquidation.totales?.remunerativo || 0))}</strong>
+      </article>
+      <article>
+        <small>No remunerativo</small>
+        <strong>${escapeHtml(formatCurrency(liquidation.totales?.noRemunerativo || 0))}</strong>
+      </article>
+      <article>
+        <small>Descuentos</small>
+        <strong>${escapeHtml(formatCurrency(liquidation.totales?.descuentos || 0))}</strong>
+      </article>
+      <article>
+        <small>Total bolsillo</small>
+        <strong>${escapeHtml(formatCurrency(liquidation.totales?.bolsillo || 0))}</strong>
+      </article>
+    </div>
+    <div class="distribution-stack">
+      ${rows
+        .map((row) => {
+          const share = row.amount / totalPositive;
+          return `
+            <div class="distribution-row">
+              <div>
+                <strong>${escapeHtml(row.label)}</strong>
+                <small>${escapeHtml(formatPercent(share))} del total positivo</small>
+              </div>
+              <span>${escapeHtml(formatCurrency(row.amount))}</span>
+            </div>
+            <div class="distribution-track">
+              <span class="distribution-fill" style="width:${Math.max(share * 100, 4)}%; background:${row.color};"></span>
+            </div>
+          `;
+        })
+        .join("")}
+    </div>
+    <p class="distribution-footnote">
+      La distribucion muestra los conceptos positivos del periodo. Los descuentos se resumen arriba para no distorsionar la composicion del salario generado.
+    </p>
+  `;
+}
+
+function renderEmployerCost(refs, liquidation) {
+  if (!refs.employerCostView) return;
+
+  if (!liquidation) {
+    refs.employerCostView.innerHTML = buildEmptyStateMarkup(
+      "Costo empleador pendiente",
+      "Calcula una liquidacion para estimar el costo total del periodo."
+    );
+    return;
+  }
+
+  const socialBase = liquidation.bases?.seguridadSocial || 0;
+  const healthBase = liquidation.bases?.obraSocialSindicato || 0;
+  const contributionRows = EMPLOYER_REFERENCE_RATES.map((item) => {
+    const baseAmount = item.base === "health" ? healthBase : socialBase;
+    return {
+      ...item,
+      baseAmount,
+      amount: roundMoney(baseAmount * item.rate)
+    };
+  }).filter((row) => roundMoney(row.amount) > 0);
+
+  const totalContributions = contributionRows.reduce((accumulator, row) => accumulator + row.amount, 0);
+  const directPayroll = roundMoney((liquidation.totales?.remunerativo || 0) + (liquidation.totales?.noRemunerativo || 0));
+  const totalEmployerCost = roundMoney(directPayroll + totalContributions);
+
+  refs.employerCostView.innerHTML = `
+    <div class="distribution-topline">
+      <article>
+        <small>Costo salarial directo</small>
+        <strong>${escapeHtml(formatCurrency(directPayroll))}</strong>
+      </article>
+      <article>
+        <small>Contribuciones estimadas</small>
+        <strong>${escapeHtml(formatCurrency(totalContributions))}</strong>
+      </article>
+      <article>
+        <small>Costo total referencial</small>
+        <strong>${escapeHtml(formatCurrency(totalEmployerCost))}</strong>
+      </article>
+    </div>
+    <table class="scale-table">
+      <thead>
+        <tr>
+          <th>Concepto</th>
+          <th>Base</th>
+          <th>Alicuota</th>
+          <th>Importe estimado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Costo salarial directo</td>
+          <td>${escapeHtml(formatCurrency(directPayroll))}</td>
+          <td>No aplica</td>
+          <td>${escapeHtml(formatCurrency(directPayroll))}</td>
+        </tr>
+        ${contributionRows
+          .map(
+            (row) => `
+              <tr>
+                <td>${escapeHtml(row.label)}</td>
+                <td>${escapeHtml(formatCurrency(row.baseAmount))}</td>
+                <td>${escapeHtml(formatPercent(row.rate))}</td>
+                <td>${escapeHtml(formatCurrency(row.amount))}</td>
+              </tr>
+            `
+          )
+          .join("")}
+      </tbody>
+    </table>
+    <p class="cost-note">
+      Estimacion referencial armada sobre las bases ya calculadas por la liquidacion. No incluye ART, seguros, alicuotas diferenciales, costos sindicales patronales ni otras cargas indirectas.
+    </p>
+  `;
+}
+
 function renderMatrixPanel(refs, liquidation, audit) {
   if (refs.confidenceScore) {
     refs.confidenceScore.textContent = `${audit?.score ?? 100}/100`;
@@ -1140,7 +1630,7 @@ function renderSkillModal(refs) {
 
   refs.skillSummaryText.innerHTML = `
     <p>${escapeHtml(buildExplanationText(liquidation))}</p>
-    <p>Pipeline aplicado: inputs -> calcularLiquidacion() -> objeto liquidacion -> ejecutarAuditoria() -> render UI -> Qwen opcional.</p>
+    <p>Pipeline aplicado: inputs -> calcularLiquidacion() -> objeto liquidacion -> ejecutarAuditoria() -> render UI -> Gemini opcional.</p>
   `;
 
   refs.skillSummaryMetrics.innerHTML = [
@@ -1239,6 +1729,11 @@ function renderResult(refs, liquidation, audit) {
     renderSourcesPanel(refs, null);
     renderAuditIdle(refs);
     renderMatrixPanel(refs, null, null);
+    renderToolboxContext(refs);
+    renderSimulator(refs, null);
+    renderComparator(refs, null);
+    renderDistribution(refs, null);
+    renderEmployerCost(refs, null);
     return;
   }
 
@@ -1306,38 +1801,43 @@ function renderResult(refs, liquidation, audit) {
   refs.explanationText.innerHTML = `<p>${escapeHtml(buildExplanationText(liquidation))}</p>`;
   renderSteps(refs.stepByStep, view.steps);
   renderSteps(refs.debugSteps, buildDebugSteps(liquidation, audit));
+  renderToolboxContext(refs);
+  renderSimulator(refs, liquidation);
+  renderComparator(refs, liquidation);
   renderReceipt(refs, liquidation);
   renderSourcesPanel(refs, liquidation);
+  renderDistribution(refs, liquidation);
+  renderEmployerCost(refs, liquidation);
   renderMatrixPanel(refs, liquidation, audit);
   renderAudit(refs, audit, liquidation, appState.catalogs || buildEmptyCatalogs());
   switchResultTab(refs, "summary");
 }
 
-async function refreshQwenHealth(refs) {
+async function refreshGeminiHealth(refs) {
   if (!refs.auditAiRun || !refs.auditAiStatus) return;
 
   try {
-    const payload = await qwenClient.health();
+    const payload = await geminiClient.health();
     appState.aiAvailable = Boolean(payload.ai_enabled);
     refs.auditAiRun.disabled = !appState.aiAvailable;
     refs.auditAiStatus.innerHTML = appState.aiAvailable
-      ? `<strong>Qwen disponible.</strong><p>Modelo: ${escapeHtml(payload.model || "sin-modelo")}.</p>`
-      : "<strong>Qwen no configurado.</strong><p>Defini QWEN_API_KEY en el backend para habilitar revision experta opcional.</p>";
+      ? `<strong>Gemini disponible.</strong><p>Modelo: ${escapeHtml(payload.model || "sin-modelo")}.</p>`
+      : "<strong>Gemini no configurado.</strong><p>Defini GEMINI_API_KEY en el backend para habilitar revision experta opcional.</p>";
   } catch (error) {
     appState.aiAvailable = false;
     refs.auditAiRun.disabled = true;
-    refs.auditAiStatus.innerHTML = "<strong>Backend no disponible.</strong><p>Levanta el proxy local para habilitar la capa Qwen opcional.</p>";
+    refs.auditAiStatus.innerHTML = "<strong>Backend no disponible.</strong><p>Levanta el proxy local para habilitar la capa Gemini opcional.</p>";
   }
 }
 
-async function requestQwenReview(refs) {
+async function requestGeminiReview(refs) {
   if (!appState.latestAudit) {
     toast(refs, "Todavia no hay una liquidacion auditada.", "warn", "Auditor IA");
     return;
   }
 
   if (!appState.aiAvailable) {
-    toast(refs, "Qwen no esta disponible en este runtime.", "warn", "Auditor IA");
+    toast(refs, "Gemini no esta disponible en este runtime.", "warn", "Auditor IA");
     return;
   }
 
@@ -1345,11 +1845,11 @@ async function requestQwenReview(refs) {
   refs.auditAiOutput.textContent = "Generando revision experta...";
 
   try {
-    const payload = await qwenClient.audit(appState.latestAudit.resumenIA);
-    appState.latestAiText = payload.text || "Qwen no devolvio contenido.";
+    const payload = await geminiClient.audit(appState.latestAudit.resumenIA);
+    appState.latestAiText = payload.text || "Gemini no devolvio contenido.";
     refs.auditAiOutput.textContent = appState.latestAiText;
   } catch (error) {
-    refs.auditAiOutput.textContent = `No se pudo consultar Qwen: ${error.message}`;
+    refs.auditAiOutput.textContent = `No se pudo consultar Gemini: ${error.message}`;
   }
 }
 
@@ -1458,6 +1958,9 @@ function resetForm(refs) {
   refs.form.elements.previewAudit.checked = true;
   refs.form.elements.persistWizardState.checked = true;
   refs.form.elements.debugMode.checked = false;
+  if (refs.simMonthsInput) refs.simMonthsInput.value = 6;
+  if (refs.simRemPercentInput) refs.simRemPercentInput.value = 2;
+  if (refs.simNrPercentInput) refs.simNrPercentInput.value = 1;
   [1, 2, 3].forEach((index) => {
     refs.form.elements[`revistaSegment${index}Code`].value = "";
     refs.form.elements[`revistaSegment${index}From`].value = "";
@@ -1469,6 +1972,7 @@ function resetForm(refs) {
   renderAgreementDeck(refs, refs.dateInput.value);
   updateConditionalFields(refs);
   updateContextKpis(refs);
+  renderToolboxContext(refs);
   appState.currentStep = "general";
   switchWizardStep(refs, "general", { shouldScroll: false });
   run(refs, { silent: true });
@@ -1491,6 +1995,7 @@ function bindEvents(refs) {
 
   refs.typeInput.addEventListener("change", () => {
     updateConditionalFields(refs);
+    renderToolboxContext(refs);
     if (shouldAutoPreview(refs)) {
       run(refs, { silent: true });
     } else {
@@ -1501,6 +2006,7 @@ function bindEvents(refs) {
 
   refs.form.addEventListener("input", (event) => {
     updateContextKpis(refs);
+    renderToolboxContext(refs);
     if (event.target.name && event.target.name.startsWith("agreement-")) {
       if (shouldAutoPreview(refs)) {
         run(refs, { silent: true });
@@ -1542,6 +2048,14 @@ function bindEvents(refs) {
     button.addEventListener("click", () => switchResultTab(refs, button.dataset.resultTab));
   });
 
+  refs.runSimButton?.addEventListener("click", () => renderSimulator(refs));
+  refs.runCompareButton?.addEventListener("click", () => renderComparator(refs));
+  refs.compareCategoryLeft?.addEventListener("change", () => renderComparator(refs));
+  refs.compareCategoryRight?.addEventListener("change", () => renderComparator(refs));
+  [refs.simMonthsInput, refs.simRemPercentInput, refs.simNrPercentInput]
+    .filter(Boolean)
+    .forEach((field) => field.addEventListener("input", () => renderSimulator(refs)));
+
   refs.resetButton.addEventListener("click", () => {
     resetForm(refs);
     toast(refs, "Se volvio al caso base y se recalculo la liquidacion inicial.", "ok", "Nueva simulacion");
@@ -1560,7 +2074,7 @@ function bindEvents(refs) {
     }
   });
 
-  refs.auditAiRun?.addEventListener("click", () => requestQwenReview(refs));
+  refs.auditAiRun?.addEventListener("click", () => requestGeminiReview(refs));
   refs.printButton?.addEventListener("click", () => window.print());
   refs.printResultButton?.addEventListener("click", () => window.print());
 }
@@ -1587,7 +2101,7 @@ async function bootstrap() {
   } else {
     resetForm(refs);
   }
-  refreshQwenHealth(refs);
+  refreshGeminiHealth(refs);
   updateWizardProgress(refs, appState.currentStep);
 
   window.__cct244CalculatorContext = {

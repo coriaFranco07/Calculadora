@@ -1,11 +1,12 @@
 import { renderCalculator } from "./calculator-renderer.js";
 
-const STORAGE_KEY = "mistral_qwen_calculator_builder_v5";
+const STORAGE_KEY = "gemini_codex_calculator_builder_v1";
 
 const defaultState = () => ({
-  cct: { normalized: null, fileName: "" },
-  scale: { normalized: null, fileName: "" },
+  cct: { normalized: null, fileName: "", diagnostics: null },
+  scale: { normalized: null, fileName: "", diagnostics: null },
   merged: null,
+  diagnostics: null,
   published: null,
 });
 
@@ -37,6 +38,18 @@ async function postFile(url, file) {
   const form = new FormData();
   form.append("file", file, file.name);
   const response = await fetch(url, { method: "POST", body: form });
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(data?.detail || `Error HTTP ${response.status}`);
+  }
+  return data;
+}
+
+async function postFullFiles(cctFile, escalaFile) {
+  const form = new FormData();
+  form.append("cct_file", cctFile, cctFile.name);
+  form.append("escala_file", escalaFile, escalaFile.name);
+  const response = await fetch("/extract-full-calculator", { method: "POST", body: form });
   const data = await response.json().catch(() => null);
   if (!response.ok) {
     throw new Error(data?.detail || `Error HTTP ${response.status}`);
@@ -95,6 +108,7 @@ function injectStyles() {
     .builder-field input[type="file"]{width:100%;border-radius:16px;border:1px solid rgba(27,35,33,.12);padding:14px;background:#fff;color:#1b2321;font:inherit}
     .builder-status{padding:12px 14px;border-radius:16px;background:#eef7f3;color:#1f6a52;font-weight:800}
     .builder-status.error{background:#fff0f0;color:#8b2e2e}
+    .builder-status small{display:block;margin-top:6px;color:inherit;opacity:.78;font-weight:700}
     .builder-output{margin:0;padding:16px;border-radius:18px;background:#182120;color:#f6f0e6;min-height:220px;max-height:420px;overflow:auto;white-space:pre-wrap}
     .builder-merge{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:18px}
     .builder-summary{display:grid;gap:12px}
@@ -116,11 +130,11 @@ function createShell() {
   shell.innerHTML = `
     <section class="builder-hero">
       <div>
-        <p class="builder-kicker">Mistral OCR + Qwen + Parser</p>
+        <p class="builder-kicker">Gemini + Codex + Parser local</p>
         <h1>Crear calculadoras desde CCT y escalas en PDF</h1>
         <p>
-          Carga el convenio y la escala. El backend ejecuta Mistral OCR, parser inteligente
-          propio y Qwen para estructurar el JSON final antes de publicar la calculadora.
+          Carga el convenio y la escala. El backend extrae texto, lo compacta por chunks,
+          analiza con Gemini y usa Codex/parser local para estructurar el JSON final.
         </p>
         <div class="builder-actions">
           <a class="builder-link" href="/">Volver al panel principal</a>
@@ -131,7 +145,7 @@ function createShell() {
       <div class="builder-side">
         <div class="builder-stat">
           <small>Pipeline</small>
-          <strong>Mistral → Parser → Qwen</strong>
+          <strong>PDF → Gemini → Codex</strong>
         </div>
         <div class="builder-stat">
           <small>Salida</small>
@@ -235,6 +249,20 @@ function updateStep(ref, message) {
   if (ref) ref.textContent = message;
 }
 
+function summarizeDiagnostics(diagnostics = {}) {
+  const model = diagnostics.modelo_usado || diagnostics.model || "fallback local";
+  const chunks = diagnostics.chunks_enviados ?? diagnostics.chunks ?? "-";
+  const fallback = diagnostics.fallback_activo || diagnostics.fallback_used ? "fallback activo" : "sin fallback";
+  const errors = Array.isArray(diagnostics.errores) ? diagnostics.errores.length : 0;
+  return `Modelo: ${model}. Chunks: ${chunks}. ${fallback}.${errors ? ` Errores: ${errors}.` : ""}`;
+}
+
+function summarizeReview(payload = {}) {
+  const alerts = Array.isArray(payload.alertas) ? payload.alertas.length : 0;
+  const pending = Array.isArray(payload.pendientes_revision) ? payload.pendientes_revision.length : 0;
+  return `Alertas: ${alerts}. Pendientes de revisión: ${pending}.`;
+}
+
 function updateButtons(refs) {
   const mergeReady = Boolean(state.cct.normalized && state.scale.normalized);
   const createReady = Boolean(state.merged);
@@ -252,9 +280,13 @@ function renderNormalized(kind, refs) {
   const count = Array.isArray(block.normalized?.categorias) ? block.normalized.categorias.length : 0;
 
   if (block.normalized) {
-    const provider = block.normalized?.origen?.fallback_local ? "Fallback local" : "Mistral + Qwen";
-    setStatus(refs.statuses[kind], `${kind === "cct" ? "CCT" : "Escala"} procesado. Categorias detectadas: ${count}. Fuente: ${provider}.`);
-    updateStep(refs.steps[kind], "OCR completo");
+    const diagnostics = block.diagnostics || block.normalized?.diagnostico_ia || {};
+    const scales = Array.isArray(block.normalized?.escalas_salariales) ? block.normalized.escalas_salariales.length : 0;
+    setStatus(
+      refs.statuses[kind],
+      `${kind === "cct" ? "CCT" : "Escala"} procesado con Gemini + Codex. Categorias: ${count}. Escalas: ${scales}. ${summarizeDiagnostics(diagnostics)} ${summarizeReview(block.normalized)}`
+    );
+    updateStep(refs.steps[kind], "Gemini completo");
   } else {
     setStatus(refs.statuses[kind], kind === "cct" ? "Esperando CCT..." : "Esperando escala...");
     updateStep(refs.steps[kind], kind === "cct" ? "Esperando PDF" : "Esperando PDF");
@@ -281,8 +313,10 @@ function renderMerged(refs) {
   refs.mergeConvenio.textContent = payload?.convenio?.nombre || "Convenio fusionado";
   refs.mergeCategorias.textContent = String(payload?.categorias?.length || 0);
   refs.mergeAdicionales.textContent = String(payload?.adicionales?.length || 0);
-  refs.mergeNote.textContent = payload?.pendientes_revision?.[0] || "Payload final listo. Revisa vigencia, categorías y adicionales antes de publicar.";
-  setStatus(refs.statuses.merge, "Payload final listo para publicar.");
+  const firstPending = payload?.pendientes_revision?.[0];
+  refs.mergeNote.textContent = firstPending || "Payload final listo. Revisa vigencia, categorias y adicionales antes de publicar.";
+  const diagnostics = state.diagnostics || payload?.diagnostico_ia || {};
+  setStatus(refs.statuses.merge, `Payload final listo para publicar. ${summarizeDiagnostics(diagnostics)} ${summarizeReview(payload)}`);
   updateStep(refs.steps.merge, "Fusion completa");
 
   refs.preview.innerHTML = "";
@@ -307,8 +341,9 @@ function renderAll(refs) {
 }
 
 function clearKind(kind, refs) {
-  state[kind] = { normalized: null, fileName: "" };
+  state[kind] = { normalized: null, fileName: "", diagnostics: null };
   state.merged = null;
+  state.diagnostics = null;
   state.published = null;
   refs.files[kind].value = "";
   saveState();
@@ -323,15 +358,17 @@ async function processKind(kind, refs) {
     return;
   }
 
-  setStatus(refs.statuses[kind], `Procesando ${label} con Mistral OCR...`);
+  setStatus(refs.statuses[kind], `Procesando ${label} con Gemini + Codex. Extrayendo texto, limpiando y enviando chunks...`);
 
   try {
-    const response = await postFile(kind === "cct" ? "/upload-cct" : "/upload-scale", file);
+    const response = await postFile(kind === "cct" ? "/extract-cct-pdf" : "/extract-escala-pdf", file);
     state[kind] = {
       normalized: response.result,
       fileName: file.name,
+      diagnostics: response.diagnostics || response.result?.diagnostico_ia || null,
     };
     state.merged = null;
+    state.diagnostics = null;
     state.published = null;
     saveState();
     renderAll(refs);
@@ -342,13 +379,32 @@ async function processKind(kind, refs) {
 
 async function mergeSources(refs) {
   if (!state.cct.normalized || !state.scale.normalized) return;
-  setStatus(refs.statuses.merge, "Fusionando CCT y escala...");
+  setStatus(refs.statuses.merge, "Fusionando CCT y escala con Gemini + Codex...");
   try {
-    const response = await postJson("/merge-calculator-payload", {
-      cct_json: state.cct.normalized,
-      escala_json: state.scale.normalized,
-    });
+    const cctFile = refs.files.cct.files?.[0];
+    const escalaFile = refs.files.scale.files?.[0];
+    const response = cctFile && escalaFile
+      ? await postFullFiles(cctFile, escalaFile)
+      : await postJson("/merge-calculator-payload", {
+          cct_json: state.cct.normalized,
+          escala_json: state.scale.normalized,
+        });
+    if (response.documents?.cct?.result) {
+      state.cct = {
+        normalized: response.documents.cct.result,
+        fileName: cctFile?.name || state.cct.fileName,
+        diagnostics: response.documents.cct.diagnostics || null,
+      };
+    }
+    if (response.documents?.escala?.result) {
+      state.scale = {
+        normalized: response.documents.escala.result,
+        fileName: escalaFile?.name || state.scale.fileName,
+        diagnostics: response.documents.escala.diagnostics || null,
+      };
+    }
     state.merged = response.result;
+    state.diagnostics = response.diagnostics || null;
     state.published = null;
     saveState();
     renderAll(refs);

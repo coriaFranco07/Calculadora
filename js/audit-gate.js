@@ -1,4 +1,4 @@
-const PROTECTED_STEPS = new Set(["result", "qwen"]);
+const PROTECTED_STEPS = new Set(["result", "gemini"]);
 const PROTECTED_SELECTORS = [
   "#print-button",
   "#print-result-button",
@@ -10,9 +10,9 @@ const PROTECTED_SELECTORS = [
 ];
 const CONTINUE_TO_RESULT_SELECTORS = [
   "[data-wizard-step='result']",
-  "[data-wizard-step='qwen']",
+  "[data-wizard-step='gemini']",
   "[data-wizard-next='result']",
-  "[data-wizard-next='qwen']",
+  "[data-wizard-next='gemini']",
   "#section-audit [data-wizard-next]",
   "#section-audit .wizard-next",
   "#section-audit .next-button",
@@ -146,7 +146,7 @@ function isProtectedActionTarget(target) {
 }
 
 function getProtectedStepButtons() {
-  return Array.from(document.querySelectorAll("[data-wizard-step='result'], [data-wizard-step='qwen'], [data-wizard-next='result'], [data-wizard-next='qwen']"));
+  return Array.from(document.querySelectorAll("[data-wizard-step='result'], [data-wizard-step='gemini'], [data-wizard-next='result'], [data-wizard-next='gemini']"));
 }
 
 function getContinueToResultButtons() {
@@ -167,8 +167,8 @@ function getContinueToResultButtons() {
       text.includes("continuar a resultado") ||
       text.includes("ver resultado") ||
       text.includes("resultado") ||
-      text.includes("revision qwen") ||
-      text.includes("revisión qwen")
+      text.includes("revision gemini") ||
+      text.includes("revisión gemini")
     );
   });
 }

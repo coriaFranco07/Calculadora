@@ -6,28 +6,1137 @@
 <title>e-Sueldos · Liquidador Casas Particulares Ley 26.844</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{--azul:#1565C0;--azul-dk:#0D47A1;--azul-xdk:#0A3272;--azul-lt:#E3F2FD;--azul-mid:#42A5F5;--ok:#2E7D32;--ok-bg:#E8F5E9;--warn:#E65100;--warn-bg:#FFF3E0;--err:#B71C1C;--err-bg:#FFEBEE;--info:#0277BD;--info-bg:#E1F5FE;--bg:#F0F4F8;--surface:#FFFFFF;--border:#DDE3EA;--text:#1A2332;--text-2:#4A5568;--text-3:#8896A7;--radius:10px;--shadow:0 1px 3px rgba(0,0,0,.07),0 4px 12px rgba(0,0,0,.05);--shadow-md:0 4px 20px rgba(0,0,0,.13);--font:"Plus Jakarta Sans",sans-serif;--mono:"JetBrains Mono",monospace;--max-w:860px}
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}.hdr{background:var(--azul);height:60px;display:flex;align-items:center;padding:0 28px;gap:20px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2)}.hdr-logo{display:flex;align-items:center;text-decoration:none;color:#fff;font-weight:800;font-size:20px}.hdr-divider{width:1px;height:28px;background:rgba(255,255,255,.25);margin:0 4px}.hdr-title{color:#fff;font-size:14px;font-weight:700;opacity:.9;white-space:nowrap}.hdr-badge{margin-left:6px;background:rgba(255,255,255,.18);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap}.hdr-spacer{flex:1}.hdr-actions{display:flex;align-items:center;gap:6px}.hbtn{height:34px;border-radius:7px;background:rgba(255,255,255,.12);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;padding:0 14px;display:flex;align-items:center;gap:6px;font-family:var(--font);transition:.15s;white-space:nowrap}.hbtn:hover{background:rgba(255,255,255,.22)}.page{max-width:var(--max-w);margin:0 auto;padding:28px 16px 48px}.pg-head{margin-bottom:22px}.pg-title{font-size:22px;font-weight:800;color:var(--text);letter-spacing:-.4px;display:flex;align-items:center;gap:10px}.pg-sub{font-size:13px;color:var(--text-3);margin-top:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}.pg-sub .dot{width:4px;height:4px;border-radius:50%;background:var(--text-3)}.main-nav{display:flex;gap:4px;margin-bottom:20px;background:var(--surface);padding:5px;border-radius:var(--radius);width:fit-content;border:1px solid var(--border);box-shadow:var(--shadow);flex-wrap:wrap}.mn-tab{padding:7px 20px;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;color:var(--text-3);transition:.15s;font-family:var(--font);border:none;background:transparent}.mn-tab.active{background:var(--azul);color:#fff}.mn-tab:hover:not(.active){background:var(--bg);color:var(--text)}.main-section{display:none}.main-section.active{display:block}.stepper{display:flex;align-items:center;background:var(--surface);border-radius:var(--radius);padding:14px 20px;box-shadow:var(--shadow);margin-bottom:20px;border:1px solid var(--border);overflow-x:auto;gap:0}.step{display:flex;align-items:center;gap:8px}.step-line{flex:1;height:2px;background:var(--border);min-width:12px;transition:.3s}.step-line.done{background:var(--azul-mid)}.step-num{width:30px;height:30px;border-radius:50%;background:var(--bg);color:var(--text-3);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:2px solid var(--border);transition:.3s}.step.active .step-num{background:var(--azul);color:#fff;border-color:var(--azul);box-shadow:0 0 0 3px rgba(21,101,192,.18)}.step.done .step-num{background:var(--azul-dk);color:#fff;border-color:var(--azul-dk)}.step-lbl{font-size:11px;font-weight:600;color:var(--text-3);white-space:nowrap}.step.active .step-lbl{color:var(--azul);font-weight:700}.step.done .step-lbl{color:var(--azul-dk)}.card{background:var(--surface);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);margin-bottom:16px;border:1px solid var(--border)}.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:1.5px solid var(--border);gap:12px}.card-title{font-size:15px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:9px}.c-ic{width:28px;height:28px;border-radius:7px;background:var(--azul-lt);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}.fg{display:grid;gap:14px;grid-template-columns:1fr 1fr;margin-bottom:4px}.fg.g1{grid-template-columns:1fr}.fg.g3{grid-template-columns:1fr 1fr 1fr}.field{display:flex;flex-direction:column;gap:5px}.field label{font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.5px}.field input,.field select{border:1.5px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--font);color:var(--text);background:var(--surface);transition:.2s;width:100%}.field input:focus,.field select:focus{outline:none;border-color:var(--azul);box-shadow:0 0 0 3px rgba(21,101,192,.1)}.hint{font-size:11px;color:var(--text-3)}.hint.ok{color:var(--ok);font-weight:600}.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}.b-blue{background:var(--azul-lt);color:var(--azul)}.b-green{background:var(--ok-bg);color:var(--ok)}.b-amber{background:var(--warn-bg);color:var(--warn)}.tw{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);gap:16px}.tw:last-child{border-bottom:none}.ti-lbl{font-size:13px;font-weight:600;color:var(--text)}.ti-sub{font-size:11px;color:var(--text-3);margin-top:2px}.tgl{position:relative;width:40px;height:22px;flex-shrink:0}.tgl input{opacity:0;width:0;height:0}.tsl{position:absolute;cursor:pointer;inset:0;background:#CBD5E0;border-radius:22px;transition:.25s}.tsl:before{content:"";position:absolute;width:16px;height:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.2)}input:checked+.tsl{background:var(--azul)}input:checked+.tsl:before{transform:translateX(18px)}.callout{display:flex;gap:10px;padding:11px 15px;border-radius:8px;font-size:12px;margin-bottom:14px;line-height:1.6}.callout.info{background:var(--info-bg);border-left:3px solid var(--info);color:var(--info)}.callout.warn{background:var(--warn-bg);border-left:3px solid var(--warn);color:var(--warn)}.callout.ok{background:var(--ok-bg);border-left:3px solid var(--ok);color:var(--ok)}.ci{font-size:15px;flex-shrink:0;margin-top:1px}.prev-box{background:var(--azul-lt);border:1.5px solid var(--azul-mid);border-radius:8px;padding:12px 16px;margin-top:10px;display:none}.prev-box.show{display:block}.prev-box strong{display:block;font-size:10px;font-weight:700;color:var(--azul);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}.prev-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}.pi{display:flex;justify-content:space-between;font-size:12px;padding:2px 0}.pk{color:var(--text-2)}.pv{font-family:var(--mono);font-weight:700;color:var(--azul)}.btn{padding:9px 20px;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;font-family:var(--font);transition:.15s;white-space:nowrap}.btn-primary{background:var(--azul);color:#fff}.btn-primary:hover{background:var(--azul-dk)}.btn-secondary{background:var(--surface);color:var(--text);border:1.5px solid var(--border)}.btn-secondary:hover{border-color:var(--azul);color:var(--azul)}.btn-success{background:var(--ok);color:#fff}.btn-success:hover{background:#1B5E20}.btn-ghost{background:transparent;border:none;color:var(--text-2);padding:7px 12px;border-radius:7px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer}.btn-ghost:hover{background:var(--bg)}.btn-sm{padding:6px 14px;font-size:12px}.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}.paso{display:none}.paso.active{display:block}.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}.sc{background:var(--surface);border-radius:var(--radius);padding:15px 16px;box-shadow:var(--shadow);border:1px solid var(--border)}.sc .sl{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}.sc .sv{font-size:18px;font-weight:800;font-family:var(--mono);letter-spacing:-.4px}.sc .ss{font-size:11px;color:var(--text-3);margin-top:3px}.res-tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}.rt{padding:7px 16px;border:1.5px solid var(--border);background:var(--surface);border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;color:var(--text-2);transition:.15s;font-family:var(--font)}.rt.active{background:var(--azul);color:#fff;border-color:var(--azul)}.rt:hover:not(.active){border-color:var(--azul);color:var(--azul)}.rec-wrap{font-size:13px}.rec-hdr-box{background:linear-gradient(135deg,var(--azul-xdk),var(--azul));color:#fff;padding:18px 22px;border-radius:var(--radius);margin-bottom:16px}.rec-emp{font-size:18px;font-weight:800;letter-spacing:-.3px}.rec-meta{font-size:12px;opacity:.8;margin-top:5px;display:flex;flex-wrap:wrap;gap:14px}.rec-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px}.rec-block h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding-bottom:8px;border-bottom:1.5px solid var(--border);margin-bottom:8px;color:var(--text-3)}.rec-block h4.gh{color:var(--ok);border-color:#A5D6A7}.rec-block h4.rh{color:var(--err);border-color:#FFCDD2}.rec-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid #F5F7FA}.rc{color:var(--text-2);flex:1;padding-right:8px;line-height:1.4}.rm{font-family:var(--mono);font-size:13px;font-weight:700;min-width:110px;text-align:right}.rm.pos{color:var(--ok)}.rm.neg{color:var(--err)}.rec-sub{display:flex;justify-content:space-between;background:var(--azul-lt);padding:8px 12px;border-radius:7px;margin-top:8px;font-weight:700;font-size:13px;color:var(--azul)}.tot-card{background:linear-gradient(135deg,var(--azul-dk),var(--azul-xdk));border-radius:var(--radius);padding:18px 22px;color:#fff}.tot-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px}.tot-row.main{font-size:20px;font-weight:800;border-top:1.5px solid rgba(255,255,255,.25);margin-top:10px;padding-top:12px;letter-spacing:-.3px}.tv{font-family:var(--mono)}.dt{width:100%;border-collapse:collapse;font-size:13px}.dt th{background:var(--bg);color:var(--text-2);padding:8px 11px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;border-bottom:1.5px solid var(--border)}.dt td{padding:8px 11px;border-bottom:1px solid var(--border);vertical-align:middle}.dt tr:hover td{background:#FAFBFC}.dt .num{text-align:right;font-family:var(--mono);font-weight:600}.dt .tr-tot td{font-weight:700;background:var(--azul-lt);color:var(--azul)}.escala-box{overflow-x:auto;border:1px solid var(--border);border-radius:8px}.cs{background:var(--bg);border-radius:8px;padding:10px 14px;margin-bottom:8px;border-left:3px solid var(--azul)}.cs .ct{font-weight:700;font-size:13px;color:var(--azul)}.cs .cf{font-size:12px;color:var(--text-2);margin:3px 0;font-style:italic}.cs .cr{font-size:14px;font-weight:800;color:var(--ok);text-align:right;margin-top:4px;font-family:var(--mono)}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}.footer{text-align:center;font-size:11px;color:var(--text-3);padding:20px 16px;border-top:1px solid var(--border);margin-top:8px}.tc{position:fixed;top:72px;right:18px;z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none}.toast{background:var(--surface);border-radius:10px;padding:11px 15px;box-shadow:var(--shadow-md);display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;min-width:260px;pointer-events:all;border:1px solid var(--border);border-left:4px solid var(--ok);animation:tIn .25s ease}.toast.warn{border-left-color:var(--warn)}.toast.info{border-left-color:var(--info)}@keyframes tIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}@media print{.hdr .hdr-actions,.nav-row,.main-nav,.stepper,.res-tabs,.toast{display:none!important}.page{padding:0}.card{box-shadow:none}}@media(max-width:700px){.stat-grid{grid-template-columns:1fr 1fr!important}.fg,.fg.g3{grid-template-columns:1fr!important}.rec-cols,.two-col{grid-template-columns:1fr!important}.hdr{padding:0 12px}.hdr-title{font-size:12px}.hdr-badge{display:none}}
+:root{--azul:#00796B;--azul-dk:#005B4C;--azul-xdk:#00392F;--azul-lt:#E0F2F1;--azul-mid:#26A69A;--ok:#388E3C;--ok-bg:#E8F5E9;--warn:#F4511E;--warn-bg:#FFEDE6;--err:#D32F2F;--err-bg:#FFEBEE;--info:#0288D1;--info-bg:#E1F5FE;--bg:#F9FAFC;--surface:#FFFFFF;--border:#E3E8EF;--text:#23313F;--text-2:#5F6B7C;--text-3:#8896A7;--radius:12px;--shadow:0 2px 5px rgba(0,0,0,.05),0 4px 15px rgba(0,0,0,.06);--shadow-md:0 6px 20px rgba(0,0,0,.1);--font:"Plus Jakarta Sans",sans-serif;--mono:"JetBrains Mono",monospace;--max-w:960px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+.hdr{background:linear-gradient(135deg,var(--azul-xdk),var(--azul));height:60px;display:flex;align-items:center;padding:0 28px;gap:20px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.hdr-logo{display:flex;align-items:center;text-decoration:none;color:#fff;font-weight:800;font-size:20px}
+.hdr-divider{width:1px;height:28px;background:rgba(255,255,255,.25);margin:0 4px}
+.hdr-title{color:#fff;font-size:14px;font-weight:700;opacity:.9;white-space:nowrap}
+.hdr-badge{margin-left:6px;background:rgba(255,255,255,.18);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.hdr-spacer{flex:1}
+.hdr-actions{display:flex;align-items:center;gap:6px}
+.hbtn{height:34px;border-radius:7px;background:rgba(255,255,255,.12);border:none;color:#fff;font-size:13px;font-weight:600;cursor:pointer;padding:0 14px;display:flex;align-items:center;gap:6px;font-family:var(--font);transition:.15s;white-space:nowrap}
+.hbtn:hover{background:rgba(255,255,255,.22)}
+.page{max-width:var(--max-w);margin:0 auto;padding:28px 16px 48px}
+.pg-head{margin-bottom:22px}
+.pg-title{font-size:22px;font-weight:800;color:var(--text);letter-spacing:-.4px;display:flex;align-items:center;gap:10px}
+.pg-sub{font-size:13px;color:var(--text-3);margin-top:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pg-sub .dot{width:4px;height:4px;border-radius:50%;background:var(--text-3)}
+.main-nav{display:flex;gap:4px;margin-bottom:20px;background:var(--surface);padding:5px;border-radius:var(--radius);width:fit-content;border:1px solid var(--border);box-shadow:var(--shadow);flex-wrap:wrap}
+.mn-tab{padding:7px 20px;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;color:var(--text-3);transition:.15s;font-family:var(--font);border:none;background:transparent}
+.mn-tab.active{background:var(--azul);color:#fff}
+.mn-tab:hover:not(.active){background:var(--bg);color:var(--text)}
+.main-section{display:none}
+.main-section.active{display:block}
+.stepper{display:flex;align-items:center;background:var(--surface);border-radius:var(--radius);padding:14px 20px;box-shadow:var(--shadow);margin-bottom:20px;border:1px solid var(--border);overflow-x:auto;gap:0}
+.step{display:flex;align-items:center;gap:8px}
+.step-line{flex:1;height:2px;background:var(--border);min-width:12px;transition:.3s}
+.step-line.done{background:var(--azul-mid)}
+.step-num{width:30px;height:30px;border-radius:50%;background:var(--bg);color:var(--text-3);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:2px solid var(--border);transition:.3s}
+.step.active .step-num{background:var(--azul);color:#fff;border-color:var(--azul);box-shadow:0 0 0 3px rgba(21,101,192,.18)}
+.step.done .step-num{background:var(--azul-dk);color:#fff;border-color:var(--azul-dk)}
+.step-lbl{font-size:11px;font-weight:600;color:var(--text-3);white-space:nowrap}
+.step.active .step-lbl{color:var(--azul);font-weight:700}
+.step.done .step-lbl{color:var(--azul-dk)}
+.card{background:var(--surface);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);margin-bottom:16px;border:1px solid var(--border)}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:1.5px solid var(--border);gap:12px}
+.card-title{font-size:15px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:9px}
+.c-ic{width:28px;height:28px;border-radius:7px;background:var(--azul-lt);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.fg{display:grid;gap:14px;grid-template-columns:1fr 1fr;margin-bottom:4px}
+.fg.g1{grid-template-columns:1fr}
+.fg.g3{grid-template-columns:1fr 1fr 1fr}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.5px}
+.field input,.field select{border:1.5px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;font-family:var(--font);color:var(--text);background:var(--surface);transition:.2s;width:100%}
+.field input:focus,.field select:focus{outline:none;border-color:var(--azul);box-shadow:0 0 0 3px rgba(21,101,192,.1)}
+.hint{font-size:11px;color:var(--text-3)}
+.hint.ok{color:var(--ok);font-weight:600}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.b-blue{background:var(--azul-lt);color:var(--azul)}
+.b-green{background:var(--ok-bg);color:var(--ok)}
+.b-amber{background:var(--warn-bg);color:var(--warn)}
+.tw{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);gap:16px}
+.tw:last-child{border-bottom:none}
+.ti-lbl{font-size:13px;font-weight:600;color:var(--text)}
+.ti-sub{font-size:11px;color:var(--text-3);margin-top:2px}
+.tgl{position:relative;width:40px;height:22px;flex-shrink:0}
+.tgl input{opacity:0;width:0;height:0}
+.tsl{position:absolute;cursor:pointer;inset:0;background:#CBD5E0;border-radius:22px;transition:.25s}
+.tsl:before{content:"";position:absolute;width:16px;height:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+input:checked+.tsl{background:var(--azul)}
+input:checked+.tsl:before{transform:translateX(18px)}
+.callout{display:flex;gap:10px;padding:11px 15px;border-radius:8px;font-size:12px;margin-bottom:14px;line-height:1.6}
+.callout.info{background:var(--info-bg);border-left:3px solid var(--info);color:var(--info)}
+.callout.warn{background:var(--warn-bg);border-left:3px solid var(--warn);color:var(--warn)}
+.callout.ok{background:var(--ok-bg);border-left:3px solid var(--ok);color:var(--ok)}
+.ci{font-size:15px;flex-shrink:0;margin-top:1px}
+.prev-box{background:var(--azul-lt);border:1.5px solid var(--azul-mid);border-radius:8px;padding:12px 16px;margin-top:10px;display:none}
+.prev-box.show{display:block}
+.prev-box strong{display:block;font-size:10px;font-weight:700;color:var(--azul);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.prev-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.pi{display:flex;justify-content:space-between;font-size:12px;padding:2px 0}
+.pk{color:var(--text-2)}
+.pv{font-family:var(--mono);font-weight:700;color:var(--azul)}
+.btn{padding:9px 20px;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;font-family:var(--font);transition:.15s;white-space:nowrap}
+.btn-primary{background:var(--azul);color:#fff}
+.btn-primary:hover{background:var(--azul-dk)}
+.btn-secondary{background:var(--surface);color:var(--text);border:1.5px solid var(--border)}
+.btn-secondary:hover{border-color:var(--azul);color:var(--azul)}
+.btn-success{background:var(--ok);color:#fff}
+.btn-success:hover{background:#1B5E20}
+.btn-ghost{background:transparent;border:none;color:var(--text-2);padding:7px 12px;border-radius:7px;font-family:var(--font);font-size:13px;font-weight:700;cursor:pointer}
+.btn-ghost:hover{background:var(--bg)}
+.btn-sm{padding:6px 14px;font-size:12px}
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:12px;flex-wrap:wrap}
+.paso{display:none}
+.paso.active{display:block}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.sc{background:var(--surface);border-radius:var(--radius);padding:15px 16px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.sc .sl{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.sc .sv{font-size:18px;font-weight:800;font-family:var(--mono);letter-spacing:-.4px}
+.sc .ss{font-size:11px;color:var(--text-3);margin-top:3px}
+.res-tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
+.rt{padding:7px 16px;border:1.5px solid var(--border);background:var(--surface);border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;color:var(--text-2);transition:.15s;font-family:var(--font)}
+.rt.active{background:var(--azul);color:#fff;border-color:var(--azul)}
+.rt:hover:not(.active){border-color:var(--azul);color:var(--azul)}
+.rec-wrap{font-size:13px}
+.rec-hdr-box{background:linear-gradient(135deg,var(--azul-xdk),var(--azul));color:#fff;padding:18px 22px;border-radius:var(--radius);margin-bottom:16px}
+.rec-emp{font-size:18px;font-weight:800;letter-spacing:-.3px}
+.rec-meta{font-size:12px;opacity:.8;margin-top:5px;display:flex;flex-wrap:wrap;gap:14px}
+.rec-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px}
+.rec-block h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;padding-bottom:8px;border-bottom:1.5px solid var(--border);margin-bottom:8px;color:var(--text-3)}
+.rec-block h4.gh{color:var(--ok);border-color:#A5D6A7}
+.rec-block h4.rh{color:var(--err);border-color:#FFCDD2}
+.rec-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid #F5F7FA}
+.rc{color:var(--text-2);flex:1;padding-right:8px;line-height:1.4}
+.rm{font-family:var(--mono);font-size:13px;font-weight:700;min-width:110px;text-align:right}
+.rm.pos{color:var(--ok)}
+.rm.neg{color:var(--err)}
+.rec-sub{display:flex;justify-content:space-between;background:var(--azul-lt);padding:8px 12px;border-radius:7px;margin-top:8px;font-weight:700;font-size:13px;color:var(--azul)}
+.rec-contrib{background:#FFF8E1;border:1.5px solid #FFB300;border-radius:8px;padding:12px 16px;margin-top:14px}
+.rec-contrib h4{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#E65100;margin-bottom:8px}
+.c2{display:grid;grid-template-columns:1fr 1fr;gap:2px 16px}
+.cr2{display:flex;justify-content:space-between;padding:3px 0;font-size:12px;border-bottom:1px solid rgba(0,0,0,.04)}
+.cr2 .ck{color:var(--text-2)}
+.cr2 .cv{font-family:var(--mono);font-weight:700}
+.c-sub{display:flex;justify-content:space-between;background:rgba(244,81,30,.1);padding:8px 12px;border-radius:6px;margin-top:8px;font-weight:700;font-size:13px;color:var(--warn)}
+.tot-card{background:linear-gradient(135deg,var(--azul-dk),var(--azul-xdk));border-radius:var(--radius);padding:18px 22px;color:#fff}
+.tot-row{display:flex;justify-content:space-between;padding:5px 0;font-size:13px}
+.tot-row.main{font-size:20px;font-weight:800;border-top:1.5px solid rgba(255,255,255,.25);margin-top:10px;padding-top:12px;letter-spacing:-.3px}
+.tv{font-family:var(--mono)}
+.dt{width:100%;border-collapse:collapse;font-size:13px}
+.dt th{background:var(--bg);color:var(--text-2);padding:8px 11px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;border-bottom:1.5px solid var(--border)}
+.dt td{padding:8px 11px;border-bottom:1px solid var(--border);vertical-align:middle}
+.dt tr:hover td{background:#FAFBFC}
+.dt .num{text-align:right;font-family:var(--mono);font-weight:600}
+.dt .tr-tot td{font-weight:700;background:var(--azul-lt);color:var(--azul)}
+.escala-box{overflow-x:auto;border:1px solid var(--border);border-radius:8px}
+.cs{background:var(--bg);border-radius:8px;padding:10px 14px;margin-bottom:8px;border-left:3px solid var(--azul)}
+.cs .ct{font-weight:700;font-size:13px;color:var(--azul)}
+.cs .cf{font-size:12px;color:var(--text-2);margin:3px 0;font-style:italic}
+.cs .cr{font-size:14px;font-weight:800;color:var(--ok);text-align:right;margin-top:4px;font-family:var(--mono)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.sim-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.sim-chip{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:var(--azul-lt);color:var(--azul);font-size:11px;font-weight:700}
+.distribution-view,.cost-view{display:grid;gap:18px}
+.distribution-topline{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.distribution-topline article{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.distribution-topline small{display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text-3);margin-bottom:6px}
+.distribution-topline strong{font-size:15px;font-weight:800;font-family:var(--mono);letter-spacing:-.3px}
+.distribution-stack{display:grid;gap:12px}
+.distribution-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.distribution-row strong{display:block;font-size:13px}
+.distribution-row small{display:block;font-size:11px;color:var(--text-3);margin-top:3px}
+.distribution-row span{font-family:var(--mono);font-size:13px;font-weight:700;text-align:right}
+.distribution-track{width:100%;height:10px;border-radius:999px;overflow:hidden;background:rgba(35,49,63,.08)}
+.distribution-fill{display:block;height:100%;border-radius:inherit}
+.distribution-footnote,.cost-note{margin:0;font-size:12px;line-height:1.6;color:var(--text-2)}
+.footer{text-align:center;font-size:11px;color:var(--text-3);padding:20px 16px;border-top:1px solid var(--border);margin-top:8px}
+.tc{position:fixed;top:72px;right:18px;z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:var(--surface);border-radius:10px;padding:11px 15px;box-shadow:var(--shadow-md);display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;min-width:260px;pointer-events:all;border:1px solid var(--border);border-left:4px solid var(--ok);animation:tIn .25s ease}
+.toast.warn{border-left-color:var(--warn)}
+.toast.info{border-left-color:var(--info)}
+.has-help{position:relative}
+.field label.has-help,.ti-lbl.has-help{display:inline-flex;align-items:center;gap:6px;width:fit-content}
+.card-title.has-help{gap:9px}
+.help-trigger{appearance:none;border:1px solid rgba(2,136,209,.16);background:rgba(2,136,209,.08);color:var(--info);width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font:800 11px/1 var(--font);padding:0;cursor:pointer;flex-shrink:0;transition:transform .16s ease,background .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease}
+.help-trigger span{transform:translateY(-.3px)}
+.help-trigger:hover,.help-trigger:focus-visible,.help-trigger.is-active{background:var(--azul-lt);border-color:rgba(0,121,107,.22);color:var(--azul);box-shadow:0 6px 18px rgba(2,136,209,.16);transform:translateY(-1px)}
+.help-trigger:focus-visible{outline:none}
+.help-popover{position:fixed;left:0;top:0;z-index:1200;max-width:min(280px,calc(100vw - 24px));padding:12px 14px;border-radius:12px;border:1px solid rgba(35,49,63,.08);background:rgba(255,255,255,.98);box-shadow:0 18px 30px rgba(35,49,63,.18);backdrop-filter:blur(10px);pointer-events:none;opacity:0;transform:translateY(6px) scale(.98);transition:opacity .18s ease,transform .18s ease}
+.help-popover[data-open="true"]{opacity:1;transform:translateY(0) scale(1)}
+.help-popover-title{display:block;font-size:10px;font-weight:800;color:var(--azul);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.help-popover-body{display:block;font-size:12px;line-height:1.55;color:var(--text-2);text-transform:none;letter-spacing:0;font-weight:500}
+@keyframes tIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+@media print{.hdr .hdr-actions,.nav-row,.main-nav,.stepper,.res-tabs,.toast,.help-trigger,.help-popover{display:none!important}.page{padding:0}.card{box-shadow:none}}
+@media(max-width:700px){.stat-grid{grid-template-columns:1fr 1fr!important}.fg,.fg.g3,.tool-grid,.distribution-topline{grid-template-columns:1fr!important}.rec-cols,.two-col,.c2{grid-template-columns:1fr!important}.hdr{padding:0 12px}.hdr-title{font-size:12px}.hdr-badge{display:none}.nav-row{gap:10px;flex-wrap:wrap}.help-popover{max-width:min(320px,calc(100vw - 24px))}}
 </style>
 </head>
 <body>
 <div class="tc" id="tc"></div>
-<header class="hdr"><a class="hdr-logo" href="/">e-Sueldos</a><div class="hdr-divider"></div><span class="hdr-title">Liquidador Casas Particulares</span><span class="hdr-badge">Ley 26.844 · Mayo 2026</span><div class="hdr-spacer"></div><div class="hdr-actions"><button class="hbtn" onclick="window.print()">🖨 Imprimir</button></div></header>
+<header class="hdr">
+  <a class="hdr-logo" href="../index.html">e-Sueldos</a>
+  <div class="hdr-divider"></div>
+  <span class="hdr-title">Liquidador Casas Particulares</span>
+  <span class="hdr-badge">Ley 26.844 · Mayo 2026</span>
+  <div class="hdr-spacer"></div>
+  <div class="hdr-actions">
+    <button class="hbtn" onclick="window.print()">🖨 Imprimir</button>
+  </div>
+</header>
+
 <div class="page">
-<div class="pg-head"><div class="pg-title">🏠 Liquidador de sueldos — Personal de Casas Particulares</div><div class="pg-sub"><span>Ley 26.844</span><span class="dot"></span><span>Escala mayo 2026</span><span class="dot"></span><span>Tareas generales · Con y sin retiro</span></div></div>
-<div class="main-nav"><button class="mn-tab active" onclick="swMain('calc',this)">🧮 Calculadora</button><button class="mn-tab" onclick="swMain('guia',this)">📋 Guía del régimen</button><button class="mn-tab" onclick="swMain('comp',this)">📊 Comparador</button></div>
-<div id="sec-calc" class="main-section active"><div class="stepper" id="stepper"></div>
-<div class="paso active" id="paso1"><div class="card"><div class="card-hdr"><div class="card-title"><div class="c-ic">👤</div>Datos del trabajador</div><span class="badge b-blue">Paso 1 de 5</span></div><div class="fg"><div class="field"><label>Nombre y apellido</label><input type="text" id="p1n" placeholder="Apellido, Nombre"></div><div class="field"><label>CUIL</label><input type="text" id="p1c" placeholder="20-12345678-0"></div></div><div class="fg"><div class="field"><label>Fecha de ingreso</label><input type="date" id="p1i" onchange="calcAntig()"><span class="hint" id="ha"></span></div><div class="field"><label>Modalidad</label><select id="p1cat" onchange="prevCat()"><option value="con">Tareas Generales — Con retiro</option><option value="sin">Tareas Generales — Sin retiro</option></select></div></div><div class="prev-box show" id="cprev"></div></div><div class="nav-row"><div></div><button class="btn btn-primary" onclick="ip(2)">Continuar →</button></div></div>
-<div class="paso" id="paso2"><div class="card"><div class="card-hdr"><div class="card-title"><div class="c-ic">📅</div>Período y horas</div><span class="badge b-blue">Paso 2 de 5</span></div><div class="callout info"><span class="ci">ℹ️</span><span>Esta calculadora usa los valores mínimos por hora de mayo 2026: con retiro $3.547,45 y sin retiro $3.805,10.</span></div><div class="fg"><div class="field"><label>Mes a liquidar</label><select id="p2m"><option value="may26" selected>Mayo 2026</option><option value="jun26">Junio 2026 (proyección +1,5%)</option><option value="jul26">Julio 2026 (proyección +1,4%)</option></select></div><div class="field"><label>Horas trabajadas</label><input type="number" id="p2h" value="80" min="0" step="0.5" oninput="updHoras()"><span class="hint ok" id="hvh"></span></div></div><div class="fg"><div class="field"><label>Horas extra 50%</label><input type="number" id="p2h50" value="0" min="0" step="0.5"></div><div class="field"><label>Horas extra 100%</label><input type="number" id="p2h100" value="0" min="0" step="0.5"></div></div></div><div class="nav-row"><button class="btn btn-ghost" onclick="ip(1)">← Anterior</button><button class="btn btn-primary" onclick="ip(3)">Continuar →</button></div></div>
-<div class="paso" id="paso3"><div class="card"><div class="card-hdr"><div class="card-title"><div class="c-ic">➕</div>Adicionales</div><span class="badge b-blue">Paso 3 de 5</span></div><div class="tw"><div><div class="ti-lbl">Antigüedad</div><div class="ti-sub">1% anual sobre base calculada.</div></div><label class="tgl"><input type="checkbox" id="p3an" checked><span class="tsl"></span></label></div><div class="fg" style="margin-top:14px"><div class="field"><label>Años de antigüedad manual</label><input type="number" id="p3am" value="0" min="0" step="1"></div><div class="field"><label>Adicional manual ($)</label><input type="number" id="p3man" value="0" min="0" step="0.01"></div></div><div class="callout warn"><span class="ci">⚠️</span><span>Los PDFs cargados son resúmenes. Validá contra la escala oficial completa antes de liquidar en producción.</span></div></div><div class="nav-row"><button class="btn btn-ghost" onclick="ip(2)">← Anterior</button><button class="btn btn-primary" onclick="ip(4)">Continuar →</button></div></div>
-<div class="paso" id="paso4"><div class="card"><div class="card-hdr"><div class="card-title"><div class="c-ic">💸</div>Descuentos</div><span class="badge b-blue">Paso 4 de 5</span></div><div class="fg"><div class="field"><label>Descuentos manuales ($)</label><input type="number" id="p4desc" value="0" min="0" step="0.01"></div><div class="field"><label>Aportes / contribuciones</label><select id="p4ap"><option value="0">No calcular aportes</option><option value="1">Solo informativo / ARCA</option></select></div></div></div><div class="nav-row"><button class="btn btn-ghost" onclick="ip(3)">← Anterior</button><button class="btn btn-success" onclick="calcular()">✓ Calcular liquidación</button></div></div>
-<div class="paso" id="paso5"><div id="statWrap"></div><div class="res-tabs"><button class="rt active" onclick="swRes('recibo',this)">📄 Recibo</button><button class="rt" onclick="swRes('calc',this)">🧮 Cómo se calculó</button><button class="rt" onclick="swRes('conf',this)">🔍 Confianza</button></div><div id="res-recibo" class="card"></div><div id="res-calc" class="card" style="display:none"></div><div id="res-conf" class="card" style="display:none"></div><div class="nav-row"><button class="btn btn-ghost" onclick="ip(4)">← Modificar</button><div style="display:flex;gap:8px"><button class="btn btn-secondary" onclick="window.print()">🖨 Imprimir</button><button class="btn btn-primary" onclick="ip(1);toast('Nueva liquidación lista','info')">＋ Nueva liquidación</button></div></div></div>
+  <div class="pg-head">
+    <div class="pg-title">🏠 Liquidador de sueldos — Personal de Casas Particulares</div>
+    <div class="pg-sub">
+      <span>Ley 26.844</span>
+      <span class="dot"></span>
+      <span>Escala mayo 2026</span>
+      <span class="dot"></span>
+      <span>Tareas generales · Con y sin retiro</span>
+    </div>
+  </div>
+
+  <div class="main-nav">
+    <button class="mn-tab active" onclick="swMain('calc',this)">🧮 Calculadora</button>
+    <button class="mn-tab" onclick="swMain('guia',this)">📋 Guía del régimen</button>
+    <button class="mn-tab" onclick="swMain('sim',this)">🔮 Simulador</button>
+    <button class="mn-tab" onclick="swMain('comp',this)">📊 Comparador</button>
+  </div>
+
+  <div id="sec-calc" class="main-section active">
+    <div class="stepper" id="stepper"></div>
+
+    <div class="paso active" id="paso1">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title" data-help-label="Datos del trabajador" data-help="En este paso cargás la información básica para personalizar la liquidación y calcular la antigüedad aproximada.">
+            <div class="c-ic" aria-hidden="true">👤</div>
+            <span>Datos del trabajador</span>
+          </div>
+          <span class="badge b-blue">Paso 1 de 5</span>
+        </div>
+
+        <div class="fg">
+          <div class="field">
+            <label data-help="Ingresá el nombre de la persona para que aparezca en el recibo orientativo.">Nombre y apellido</label>
+            <input type="text" id="p1n" placeholder="Apellido, Nombre">
+          </div>
+          <div class="field">
+            <label data-help="Podés cargar el CUIL si querés completar mejor el recibo orientativo.">CUIL</label>
+            <input type="text" id="p1c" placeholder="20-12345678-0">
+          </div>
+        </div>
+
+        <div class="fg">
+          <div class="field">
+            <label data-help="La fecha de ingreso sirve para estimar la antigüedad trabajada hasta hoy.">Fecha de ingreso</label>
+            <input type="date" id="p1i" onchange="calcAntig()">
+            <span class="hint" id="ha"></span>
+          </div>
+          <div class="field">
+            <label data-help="Elegí si el trabajo es con retiro o sin retiro. Esa modalidad cambia el valor base por hora.">Modalidad</label>
+            <select id="p1cat" onchange="prevCat()">
+              <option value="con">Tareas Generales — Con retiro</option>
+              <option value="sin">Tareas Generales — Sin retiro</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="prev-box show" id="cprev"></div>
+      </div>
+
+      <div class="nav-row">
+        <div></div>
+        <button class="btn btn-primary" onclick="ip(2)">Continuar →</button>
+      </div>
+    </div>
+
+    <div class="paso" id="paso2">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title" data-help-label="Período y horas" data-help="En este paso definís el mes a calcular y la cantidad de horas normales y extras que se toman para el sueldo estimado.">
+            <div class="c-ic" aria-hidden="true">📅</div>
+            <span>Período y horas</span>
+          </div>
+          <span class="badge b-blue">Paso 2 de 5</span>
+        </div>
+
+        <div class="callout info">
+          <span class="ci">ℹ️</span>
+          <span>Esta calculadora usa los valores mínimos por hora de mayo 2026: con retiro $3.547,45 y sin retiro $3.805,10.</span>
+        </div>
+
+        <div class="fg">
+          <div class="field">
+            <label data-help="Seleccioná el mes sobre el cual querés calcular el sueldo.">Mes a liquidar</label>
+            <select id="p2m" onchange="prevCat();updHoras()">
+              <option value="may26" selected>Mayo 2026</option>
+              <option value="jun26">Junio 2026 (proyección +1,5%)</option>
+              <option value="jul26">Julio 2026 (proyección +1,4% acumulado)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label data-help="Ingresá la cantidad de horas normales trabajadas en el mes para calcular la base del sueldo.">Horas trabajadas</label>
+            <input type="number" id="p2h" value="80" min="0" step="0.5" oninput="updHoras()">
+            <span class="hint ok" id="hvh"></span>
+          </div>
+        </div>
+
+        <div class="fg">
+          <div class="field">
+            <label data-help="Son horas extra que se pagan con un recargo del 50% sobre el valor hora normal.">Horas extra 50%</label>
+            <input type="number" id="p2h50" value="0" min="0" step="0.5">
+          </div>
+          <div class="field">
+            <label data-help="Corresponde a horas trabajadas en feriados o días especiales que se pagan al doble.">Horas extra 100%</label>
+            <input type="number" id="p2h100" value="0" min="0" step="0.5">
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="ip(1)">← Anterior</button>
+        <button class="btn btn-primary" onclick="ip(3)">Continuar →</button>
+      </div>
+    </div>
+
+    <div class="paso" id="paso3">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title" data-help-label="Adicionales" data-help="Acá podés sumar conceptos extra al cálculo, como antigüedad o adicionales manuales.">
+            <div class="c-ic" aria-hidden="true">➕</div>
+            <span>Adicionales</span>
+          </div>
+          <span class="badge b-blue">Paso 3 de 5</span>
+        </div>
+
+        <div class="tw">
+          <div>
+            <div class="ti-lbl" data-help-label="Antigüedad" data-help="Activá esta opción si querés que la calculadora sume el adicional por antigüedad sobre la base calculada.">Antigüedad</div>
+            <div class="ti-sub">1% anual sobre base calculada.</div>
+          </div>
+          <label class="tgl">
+            <input type="checkbox" id="p3an" checked>
+            <span class="tsl"></span>
+          </label>
+        </div>
+
+        <div class="fg" style="margin-top:14px">
+          <div class="field">
+            <label data-help="Podés ingresar manualmente los años trabajados para calcular el adicional por antigüedad.">Años de antigüedad manual</label>
+            <input type="number" id="p3am" value="0" min="0" step="1">
+          </div>
+          <div class="field">
+            <label data-help="Usá este campo si querés sumar un monto extra fijo, además de la antigüedad.">Adicional manual ($)</label>
+            <input type="number" id="p3man" value="0" min="0" step="0.01">
+          </div>
+        </div>
+
+        <div class="callout warn">
+          <span class="ci">⚠️</span>
+          <span>Las proyecciones de junio y julio son estimativas. Validá siempre contra la escala oficial vigente antes de liquidar en producción.</span>
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="ip(2)">← Anterior</button>
+        <button class="btn btn-primary" onclick="ip(4)">Continuar →</button>
+      </div>
+    </div>
+
+    <div class="paso" id="paso4">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title" data-help-label="Descuentos" data-help="En este paso podés restar importes manuales y decidir si querés mostrar aportes o contribuciones informativas.">
+            <div class="c-ic" aria-hidden="true">💸</div>
+            <span>Descuentos</span>
+          </div>
+          <span class="badge b-blue">Paso 4 de 5</span>
+        </div>
+
+        <div class="fg">
+          <div class="field">
+            <label data-help="Ingresá descuentos que quieras restar del sueldo bruto para obtener un neto estimado.">Descuentos manuales ($)</label>
+            <input type="number" id="p4desc" value="0" min="0" step="0.01">
+          </div>
+          <div class="field">
+            <label data-help="Podés dejarlo sin calcular o mostrarlo solo como referencia informativa para ARCA.">Aportes / contribuciones</label>
+            <select id="p4ap">
+              <option value="0">No calcular aportes</option>
+              <option value="1">Solo informativo / ARCA</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="ip(3)">← Anterior</button>
+        <button class="btn btn-success" onclick="calcular()">✓ Calcular liquidación</button>
+      </div>
+    </div>
+
+    <div class="paso" id="paso5">
+      <div id="statWrap"></div>
+      <div class="res-tabs">
+        <button class="rt active" onclick="swRes('recibo',this)">📄 Recibo</button>
+        <button class="rt" onclick="swRes('dist',this)">📊 Distribución</button>
+        <button class="rt" onclick="swRes('calc',this)">🧮 Cómo se calculó</button>
+        <button class="rt" onclick="swRes('costo',this)">🏠 Costo empleador</button>
+        <button class="rt" onclick="swRes('conf',this)">🔍 Confianza</button>
+      </div>
+      <div id="res-recibo" class="card"></div>
+      <div id="res-dist" class="card" style="display:none"></div>
+      <div id="res-calc" class="card" style="display:none"></div>
+      <div id="res-costo" class="card" style="display:none"></div>
+      <div id="res-conf" class="card" style="display:none"></div>
+
+      <div class="nav-row">
+        <button class="btn btn-ghost" onclick="ip(4)">← Modificar</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-secondary" onclick="window.print()">🖨 Imprimir</button>
+          <button class="btn btn-primary" onclick="ip(1);toast('Nueva liquidación lista','info')">＋ Nueva liquidación</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sec-guia" class="main-section">
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">
+          <div class="c-ic" aria-hidden="true">📊</div>
+          <span>Escala salarial — Mayo 2026</span>
+        </div>
+        <span class="badge b-green">Vigente</span>
+      </div>
+
+      <div class="escala-box">
+        <table class="dt">
+          <thead>
+            <tr>
+              <th>Modalidad</th>
+              <th class="num">Valor hora</th>
+              <th>Base</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Tareas Generales — Con retiro</td>
+              <td class="num">$3.547,45</td>
+              <td>Resumen escala mayo 2026</td>
+            </tr>
+            <tr>
+              <td>Tareas Generales — Sin retiro</td>
+              <td class="num">$3.805,10</td>
+              <td>Resumen escala mayo 2026</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">
+            <div class="c-ic" aria-hidden="true">⚖️</div>
+            <span>Régimen</span>
+          </div>
+        </div>
+        <p class="hint">Ley 26.844. Regula el trabajo en casas particulares en Argentina. Modalidades: con retiro para un empleador, con retiro para varios empleadores y sin retiro.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">
+            <div class="c-ic" aria-hidden="true">✅</div>
+            <span>Derechos detectados</span>
+          </div>
+        </div>
+        <p class="hint">Vacaciones pagas, licencia por maternidad, SAC, jornada máxima, salario mínimo, indemnización por despido, preaviso, ART y seguridad social.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">
+          <div class="c-ic" aria-hidden="true">🏥</div>
+          <span>Aportes, contribuciones y ART — referencia ARCA</span>
+        </div>
+        <span class="badge b-amber">Informativo</span>
+      </div>
+      <p class="hint" style="margin-bottom:12px">Valores oficiales publicados por ARCA para trabajador activo mayor de 18 años, vigentes para abril 2026 con vencimiento en mayo 2026. La calculadora los usa solo como referencia cuando activás la opción informativa.</p>
+      <div class="escala-box">
+        <table class="dt">
+          <thead>
+            <tr>
+              <th>Horas semanales</th>
+              <th class="num">Aporte OSS</th>
+              <th class="num">Contribución SIPA</th>
+              <th class="num">ART</th>
+              <th class="num">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Menos de 12</td>
+              <td class="num">$1.784,27</td>
+              <td class="num">$624,67</td>
+              <td class="num">$6.597,84</td>
+              <td class="num">$9.006,78</td>
+            </tr>
+            <tr>
+              <td>Desde 12 a menos de 16</td>
+              <td class="num">$3.306,32</td>
+              <td class="num">$1.249,06</td>
+              <td class="num">$9.522,51</td>
+              <td class="num">$14.077,89</td>
+            </tr>
+            <tr>
+              <td>16 o más</td>
+              <td class="num">$21.990,11</td>
+              <td class="num">$1.821,88</td>
+              <td class="num">$13.759,06</td>
+              <td class="num">$37.571,05</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="sec-sim" class="main-section">
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title" data-help-label="Simulador" data-help="Proyecta escenarios futuros usando la modalidad, el mes y las horas ya cargadas en la calculadora principal.">
+          <div class="c-ic" aria-hidden="true">🔮</div>
+          <span>Simulación de escenarios futuros</span>
+        </div>
+      </div>
+      <div class="callout info">
+        <span class="ci">ℹ️</span>
+        <span>La simulación reutiliza tus datos actuales y proyecta subas mensuales sobre el valor hora y, si querés, sobre el adicional manual. Los descuentos manuales se mantienen fijos.</span>
+      </div>
+      <div class="fg g3">
+        <div class="field">
+          <label data-help="Elegí cuántos meses querés proyectar a partir del escenario actual.">Meses a proyectar</label>
+          <input type="number" id="simMes" value="6" min="1" max="24" step="1">
+        </div>
+        <div class="field">
+          <label data-help="Aplica un aumento mensual estimado sobre el valor hora vigente.">% aumento mensual valor hora</label>
+          <input type="number" id="simRate" value="2" min="-50" max="200" step="0.1">
+        </div>
+        <div class="field">
+          <label data-help="Si cargaste un adicional manual, podés proyectarlo aparte con este porcentaje.">% aumento mensual adicional manual</label>
+          <input type="number" id="simManualRate" value="0" min="-50" max="200" step="0.1">
+        </div>
+      </div>
+      <div class="nav-row" style="margin-top:14px">
+        <div class="hint">Toma modalidad, mes, horas, extras, antigüedad, descuentos y opción ARCA desde el wizard.</div>
+        <button class="btn btn-primary" onclick="simular()">Simular</button>
+      </div>
+      <div id="simRes" style="margin-top:16px"></div>
+    </div>
+  </div>
+
+  <div id="sec-comp" class="main-section">
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">
+          <div class="c-ic" aria-hidden="true">📊</div>
+          <span>Comparador de escenarios</span>
+        </div>
+      </div>
+      <div class="callout info">
+        <span class="ci">ℹ️</span>
+        <span>Compará dos combinaciones de modalidad y mes usando las mismas horas, extras, antigüedad y descuentos que cargaste en la calculadora principal.</span>
+      </div>
+      <div class="tool-grid">
+        <div class="card" style="margin:0;box-shadow:none">
+          <div class="card-hdr">
+            <div class="card-title">
+              <div class="c-ic" aria-hidden="true">A</div>
+              <span>Escenario A</span>
+            </div>
+          </div>
+          <div class="fg g1">
+            <div class="field">
+              <label data-help="Seleccioná la modalidad que querés usar en el escenario A.">Modalidad</label>
+              <select id="compMode1">
+                <option value="con">Tareas Generales — Con retiro</option>
+                <option value="sin">Tareas Generales — Sin retiro</option>
+              </select>
+            </div>
+            <div class="field">
+              <label data-help="Elegí el mes a comparar en el escenario A.">Mes</label>
+              <select id="compMonth1">
+                <option value="may26">Mayo 2026</option>
+                <option value="jun26">Junio 2026</option>
+                <option value="jul26">Julio 2026</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin:0;box-shadow:none">
+          <div class="card-hdr">
+            <div class="card-title">
+              <div class="c-ic" aria-hidden="true">B</div>
+              <span>Escenario B</span>
+            </div>
+          </div>
+          <div class="fg g1">
+            <div class="field">
+              <label data-help="Seleccioná la modalidad que querés usar en el escenario B.">Modalidad</label>
+              <select id="compMode2">
+                <option value="con">Tareas Generales — Con retiro</option>
+                <option value="sin">Tareas Generales — Sin retiro</option>
+              </select>
+            </div>
+            <div class="field">
+              <label data-help="Elegí el mes a comparar en el escenario B.">Mes</label>
+              <select id="compMonth2">
+                <option value="may26">Mayo 2026</option>
+                <option value="jun26">Junio 2026</option>
+                <option value="jul26">Julio 2026</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="nav-row" style="margin-top:14px">
+        <button class="btn btn-secondary btn-sm" onclick="syncComparatorDefaults()">Usar escenario actual</button>
+        <button class="btn btn-primary" onclick="comparar()">Comparar</button>
+      </div>
+      <div id="compRes" style="margin-top:16px"></div>
+    </div>
+  </div>
+
+  <footer class="footer">e-Sueldos · Calculadora generada para Personal de Casas Particulares · Ley 26.844</footer>
 </div>
-<div id="sec-guia" class="main-section"><div class="card"><div class="card-hdr"><div class="card-title"><div class="c-ic">📊</div>Escala salarial — Mayo 2026</div><span class="badge b-green">Vigente</span></div><div class="escala-box"><table class="dt"><thead><tr><th>Modalidad</th><th class="num">Valor hora</th><th>Base</th></tr></thead><tbody><tr><td>Tareas Generales — Con retiro</td><td class="num">$3.547,45</td><td>Resumen escala mayo 2026</td></tr><tr><td>Tareas Generales — Sin retiro</td><td class="num">$3.805,10</td><td>Resumen escala mayo 2026</td></tr></tbody></table></div></div><div class="two-col"><div class="card"><div class="card-hdr"><div class="card-title"><div class="c-ic">⚖️</div>Régimen</div></div><p class="hint">Ley 26.844. Regula el trabajo en casas particulares en Argentina. Modalidades: con retiro para un empleador, con retiro para varios empleadores y sin retiro.</p></div><div class="card"><div class="card-hdr"><div class="card-title"><div class="c-ic">✅</div>Derechos detectados</div></div><p class="hint">Vacaciones pagas, licencia por maternidad, SAC, jornada máxima, salario mínimo, indemnización por despido, preaviso, ART y seguridad social.</p></div></div></div>
-<div id="sec-comp" class="main-section"><div class="card"><div class="card-hdr"><div class="card-title"><div class="c-ic">📊</div>Comparador de modalidades</div></div><div id="compRes"></div></div></div>
-<footer class="footer">e-Sueldos · Calculadora generada para Personal de Casas Particulares · Ley 26.844</footer></div>
+
 <script>
-const DATA={con:{nombre:'Tareas Generales — Con retiro',vh:3547.45},sin:{nombre:'Tareas Generales — Sin retiro',vh:3805.10}};const INCS={may26:1,jun26:1.015,jul26:1.015*1.014};let paso=1;const fmt=n=>new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS'}).format(Number(n||0));function $(id){return document.getElementById(id)}function toast(t,typ='ok'){const d=document.createElement('div');d.className='toast '+typ;d.textContent=t;$('tc').appendChild(d);setTimeout(()=>d.remove(),2600)}function renderStepper(){const labels=['Trabajador','Período','Adicionales','Descuentos','Resultado'];let h='';labels.forEach((l,i)=>{const n=i+1;h+=`<div class="step ${n===paso?'active':n<paso?'done':''}"><div class="step-num">${n}</div><div class="step-lbl">${l}</div></div>`;if(i<labels.length-1)h+=`<div class="step-line ${n<paso?'done':''}"></div>`});$('stepper').innerHTML=h}function ip(n){document.querySelectorAll('.paso').forEach(p=>p.classList.remove('active'));$('paso'+n).classList.add('active');paso=n;renderStepper();prevCat();updHoras();window.scrollTo({top:0,behavior:'smooth'})}function swMain(s,b){document.querySelectorAll('.mn-tab').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.main-section').forEach(x=>x.classList.remove('active'));$('sec-'+s).classList.add('active');if(s==='comp')comparar()}function swRes(s,b){document.querySelectorAll('.rt').forEach(x=>x.classList.remove('active'));b.classList.add('active');['recibo','calc','conf'].forEach(k=>$('res-'+k).style.display=k===s?'block':'none')}function cat(){return DATA[$('p1cat').value]||DATA.con}function factor(){return INCS[$('p2m')?.value||'may26']||1}function valorHora(){return cat().vh*factor()}function calcAntig(){const f=$('p1i').value;if(!f){$('ha').textContent='';return 0}const y=new Date().getFullYear()-new Date(f).getFullYear();$('ha').textContent=`Antigüedad aproximada: ${Math.max(0,y)} años`;return Math.max(0,y)}function prevCat(){const c=cat();$('cprev').classList.add('show');$('cprev').innerHTML=`<strong>Escala seleccionada</strong><div class="prev-grid"><div class="pi"><span class="pk">Modalidad</span><span class="pv">${c.nombre}</span></div><div class="pi"><span class="pk">Valor hora</span><span class="pv">${fmt(valorHora())}</span></div></div>`}function updHoras(){$('hvh').textContent=`Base estimada: ${fmt(valorHora()*Number($('p2h')?.value||0))}`}function calcData(){const vh=valorHora(),hs=Number($('p2h').value||0),h50=Number($('p2h50').value||0),h100=Number($('p2h100').value||0),base=vh*hs,extra50=vh*h50*1.5,extra100=vh*h100*2,anios=Number($('p3am').value||0)||calcAntig(),ant=$('p3an').checked?base*0.01*anios:0,manual=Number($('p3man').value||0),desc=Number($('p4desc').value||0),bruto=base+extra50+extra100+ant+manual,neto=bruto-desc;return{vh,hs,h50,h100,base,extra50,extra100,anios,ant,manual,desc,bruto,neto,c:cat()}}function calcular(){const r=calcData();$('statWrap').innerHTML=`<div class="stat-grid"><div class="sc"><div class="sl">Valor hora</div><div class="sv">${fmt(r.vh)}</div><div class="ss">${r.c.nombre}</div></div><div class="sc"><div class="sl">Base</div><div class="sv">${fmt(r.base)}</div><div class="ss">${r.hs} horas</div></div><div class="sc"><div class="sl">Bruto</div><div class="sv">${fmt(r.bruto)}</div><div class="ss">Antes de descuentos</div></div><div class="sc"><div class="sl">Neto</div><div class="sv">${fmt(r.neto)}</div><div class="ss">Estimado</div></div></div>`;$('res-recibo').innerHTML=`<div class="rec-wrap"><div class="rec-hdr-box"><div class="rec-emp">${$('p1n').value||'Trabajador/a de casas particulares'}</div><div class="rec-meta"><span>CUIL: ${$('p1c').value||'No informado'}</span><span>${r.c.nombre}</span><span>Mayo 2026</span></div></div><div class="rec-cols"><div class="rec-block"><h4 class="gh">Haberes remunerativos</h4><div class="rec-row"><span class="rc">Horas normales (${r.hs})</span><span class="rm pos">${fmt(r.base)}</span></div><div class="rec-row"><span class="rc">Horas extra 50%</span><span class="rm pos">${fmt(r.extra50)}</span></div><div class="rec-row"><span class="rc">Horas extra 100%</span><span class="rm pos">${fmt(r.extra100)}</span></div><div class="rec-row"><span class="rc">Antigüedad ${r.anios}%</span><span class="rm pos">${fmt(r.ant)}</span></div><div class="rec-row"><span class="rc">Adicional manual</span><span class="rm pos">${fmt(r.manual)}</span></div><div class="rec-sub"><span>Total haberes</span><span>${fmt(r.bruto)}</span></div></div><div class="rec-block"><h4 class="rh">Descuentos</h4><div class="rec-row"><span class="rc">Descuentos manuales</span><span class="rm neg">-${fmt(r.desc)}</span></div><div class="rec-sub"><span>Total descuentos</span><span>${fmt(r.desc)}</span></div></div></div><div class="tot-card"><div class="tot-row"><span>Total bruto</span><span class="tv">${fmt(r.bruto)}</span></div><div class="tot-row"><span>Descuentos</span><span class="tv">-${fmt(r.desc)}</span></div><div class="tot-row main"><span>Neto estimado</span><span class="tv">${fmt(r.neto)}</span></div></div></div>`;$('res-calc').innerHTML=`<div class="card-hdr"><div class="card-title"><div class="c-ic">🧮</div>Detalle de cálculo</div></div><div class="cs"><div class="ct">1. Base por horas</div><div class="cf">${fmt(r.vh)} × ${r.hs} horas</div><div class="cr">${fmt(r.base)}</div></div><div class="cs"><div class="ct">2. Horas extra</div><div class="cf">50%: ${r.h50} hs · 100%: ${r.h100} hs</div><div class="cr">${fmt(r.extra50+r.extra100)}</div></div><div class="cs"><div class="ct">3. Antigüedad</div><div class="cf">Base × 1% × ${r.anios} años</div><div class="cr">${fmt(r.ant)}</div></div>`;$('res-conf').innerHTML=`<div class="card-hdr"><div class="card-title"><div class="c-ic">🔍</div>Confianza y revisión</div><span class="badge b-amber">0.82</span></div><div class="callout warn"><span class="ci">⚠️</span><span>Los documentos usados son resúmenes. Validar contra la escala oficial completa y las reglas ARCA antes de liquidar en producción.</span></div>`;ip(5)}function comparar(){$('compRes').innerHTML=`<div class="escala-box"><table class="dt"><thead><tr><th>Modalidad</th><th class="num">Valor hora mayo</th><th class="num">80 hs</th></tr></thead><tbody><tr><td>${DATA.con.nombre}</td><td class="num">${fmt(DATA.con.vh)}</td><td class="num">${fmt(DATA.con.vh*80)}</td></tr><tr><td>${DATA.sin.nombre}</td><td class="num">${fmt(DATA.sin.vh)}</td><td class="num">${fmt(DATA.sin.vh*80)}</td></tr></tbody></table></div>`}renderStepper();prevCat();updHoras();comparar();
+const DATA={
+  con:{id:"con",nombre:"Tareas Generales - Con retiro",vh:3547.45},
+  sin:{id:"sin",nombre:"Tareas Generales - Sin retiro",vh:3805.10}
+};
+
+const MONTHS={
+  may26:{label:"Mayo 2026",factor:1,source:"Escala base mayo 2026"},
+  jun26:{label:"Junio 2026",factor:1.015,source:"Proyección +1,5% sobre mayo 2026"},
+  jul26:{label:"Julio 2026",factor:1.015*1.014,source:"Proyección acumulada mayo-julio 2026"}
+};
+
+const ARCA_ACTIVE=[
+  {key:"lt12",label:"Menos de 12 hs semanales",min:0,max:12,aporte:1784.27,contribucion:624.67,art:6597.84,total:9006.78},
+  {key:"mid",label:"Desde 12 a menos de 16 hs semanales",min:12,max:16,aporte:3306.32,contribucion:1249.06,art:9522.51,total:14077.89},
+  {key:"full",label:"16 o más hs semanales",min:16,max:Number.POSITIVE_INFINITY,aporte:21990.11,contribucion:1821.88,art:13759.06,total:37571.05}
+];
+
+const WEEKS_PER_MONTH=52/12;
+let paso=1;
+let lastResult=null;
+
+const fmt=n=>new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS"}).format(Number(n||0));
+const pct=n=>`${Number(n||0).toFixed(2).replace(".",",")}%`;
+
+function $(id){return document.getElementById(id)}
+
+function toast(text,type="ok"){
+  const node=document.createElement("div");
+  node.className=`toast ${type}`;
+  node.textContent=text;
+  $("tc").appendChild(node);
+  setTimeout(()=>node.remove(),2800);
+}
+
+function monthMeta(key){
+  return MONTHS[key]||MONTHS.may26;
+}
+
+function monthLabel(key){
+  return monthMeta(key).label;
+}
+
+function cat(modeKey){
+  return DATA[modeKey]||DATA[$("p1cat")?.value]||DATA.con;
+}
+
+function factor(monthKey){
+  return monthMeta(monthKey||$("p2m")?.value).factor||1;
+}
+
+function valorHora(modeKey,monthKey){
+  return cat(modeKey).vh*factor(monthKey);
+}
+
+function computeYearsFromDate(value){
+  if(!value) return 0;
+  const today=new Date();
+  const entry=new Date(`${value}T00:00:00`);
+  let years=today.getFullYear()-entry.getFullYear();
+  const monthDiff=today.getMonth()-entry.getMonth();
+  if(monthDiff<0||(monthDiff===0&&today.getDate()<entry.getDate())) years--;
+  return Math.max(0,years);
+}
+
+function calcAntig(){
+  const value=$("p1i").value;
+  const years=computeYearsFromDate(value);
+  $("ha").textContent=value?`Antigüedad aproximada: ${years} años`:"";
+  return years;
+}
+
+function renderStepper(){
+  const labels=["Trabajador","Período","Adicionales","Descuentos","Resultado"];
+  let html="";
+  labels.forEach((label,index)=>{
+    const n=index+1;
+    html+=`<div class="step ${n===paso?"active":n<paso?"done":""}"><div class="step-num">${n}</div><div class="step-lbl">${label}</div></div>`;
+    if(index<labels.length-1) html+=`<div class="step-line ${n<paso?"done":""}"></div>`;
+  });
+  $("stepper").innerHTML=html;
+}
+
+function ip(n){
+  document.querySelectorAll(".paso").forEach(section=>section.classList.remove("active"));
+  $("paso"+n).classList.add("active");
+  paso=n;
+  renderStepper();
+  prevCat();
+  updHoras();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function swMain(section,button){
+  document.querySelectorAll(".mn-tab").forEach(node=>node.classList.remove("active"));
+  button.classList.add("active");
+  document.querySelectorAll(".main-section").forEach(node=>node.classList.remove("active"));
+  $("sec-"+section).classList.add("active");
+  if(section==="sim") simular(true);
+  if(section==="comp"){
+    syncComparatorDefaults();
+    comparar(true);
+  }
+}
+
+function swRes(section,button){
+  document.querySelectorAll(".rt").forEach(node=>node.classList.remove("active"));
+  button.classList.add("active");
+  ["recibo","dist","calc","costo","conf"].forEach(key=>{
+    const node=$("res-"+key);
+    if(node) node.style.display=key===section?"block":"none";
+  });
+}
+
+function activateReceiptTab(){
+  const firstButton=document.querySelector(".rt");
+  if(firstButton) swRes("recibo",firstButton);
+}
+
+function prevCat(){
+  const modeKey=$("p1cat").value;
+  const monthKey=$("p2m").value;
+  const current=cat(modeKey);
+  $("cprev").classList.add("show");
+  $("cprev").innerHTML=`<strong>Escala seleccionada</strong><div class="prev-grid"><div class="pi"><span class="pk">Modalidad</span><span class="pv">${current.nombre}</span></div><div class="pi"><span class="pk">Mes</span><span class="pv">${monthLabel(monthKey)}</span></div><div class="pi"><span class="pk">Valor hora</span><span class="pv">${fmt(valorHora(modeKey,monthKey))}</span></div><div class="pi"><span class="pk">Referencia</span><span class="pv">${monthMeta(monthKey).source}</span></div></div>`;
+}
+
+function updHoras(){
+  const hours=Number($("p2h")?.value||0);
+  $("hvh").textContent=`Base estimada: ${fmt(valorHora($("p1cat").value,$("p2m").value)*hours)}`;
+}
+
+function estimateArcaCharge(totalMonthlyHours){
+  const weeklyHours=totalMonthlyHours/WEEKS_PER_MONTH;
+  const bracket=ARCA_ACTIVE.find(item=>weeklyHours>=item.min&&weeklyHours<item.max)||ARCA_ACTIVE[ARCA_ACTIVE.length-1];
+  return{
+    ...bracket,
+    estimatedWeeklyHours:weeklyHours,
+    monthlyHours:totalMonthlyHours
+  };
+}
+
+function calcData(overrides={}){
+  const modeKey=overrides.modeKey??$("p1cat").value;
+  const monthKey=overrides.monthKey??$("p2m").value;
+  const vh=valorHora(modeKey,monthKey);
+  const hs=Number(overrides.hs ?? ($("p2h").value || 0));
+  const h50=Number(overrides.h50 ?? ($("p2h50").value || 0));
+  const h100=Number(overrides.h100 ?? ($("p2h100").value || 0));
+  const base=vh*hs;
+  const extra50=vh*h50*1.5;
+  const extra100=vh*h100*2;
+  const seniorityYearsInput=Number(overrides.anios ?? ($("p3am").value || 0));
+  const anios=seniorityYearsInput||computeYearsFromDate(overrides.fechaIngreso??$("p1i").value);
+  const seniorityEnabled=Boolean(overrides.antiguedadActiva??$("p3an").checked);
+  const ant=seniorityEnabled?base*0.01*anios:0;
+  const manual=Number(overrides.manual ?? ($("p3man").value || 0));
+  const desc=Number(overrides.desc ?? ($("p4desc").value || 0));
+  const bruto=base+extra50+extra100+ant+manual;
+  const neto=bruto-desc;
+  const arcaMode=overrides.arcaMode??$("p4ap").value;
+  const arca=arcaMode==="1"?estimateArcaCharge(hs+h50+h100):null;
+  const employerCost=bruto+(arca?arca.total:0);
+  return{
+    vh,
+    hs,
+    h50,
+    h100,
+    base,
+    extra50,
+    extra100,
+    anios,
+    ant,
+    manual,
+    desc,
+    bruto,
+    neto,
+    employerCost,
+    arcaMode,
+    arca,
+    totalMonthlyHours:hs+h50+h100,
+    monthKey,
+    monthLabel:monthLabel(monthKey),
+    monthSource:monthMeta(monthKey).source,
+    modeKey,
+    c:cat(modeKey)
+  };
+}
+
+function scenarioRows(result){
+  return[
+    {label:"Horas normales",amount:result.base,color:"#00796B"},
+    {label:"Horas extra 50%",amount:result.extra50,color:"#1D4ED8"},
+    {label:"Horas extra 100%",amount:result.extra100,color:"#0EA5E9"},
+    {label:"Antigüedad",amount:result.ant,color:"#F59E0B"},
+    {label:"Adicional manual",amount:result.manual,color:"#EC4899"}
+  ].filter(item=>Number(item.amount||0)>0);
+}
+
+function buildEmptyCard(icon,title,body){
+  return `<div class="card-hdr"><div class="card-title"><div class="c-ic">${icon}</div><span>${title}</span></div></div><p class="hint">${body}</p>`;
+}
+
+function buildContribBox(result){
+  if(!result.arca) return "";
+  return `<div class="rec-contrib"><h4>Aportes, contribuciones y ART — referencia ARCA</h4><div class="c2"><div class="cr2"><span class="ck">Tramo estimado</span><span class="cv">${result.arca.label}</span></div><div class="cr2"><span class="ck">Horas semanales estimadas</span><span class="cv">${result.arca.estimatedWeeklyHours.toFixed(2).replace(".",",")} hs</span></div><div class="cr2"><span class="ck">Aporte OSS</span><span class="cv">${fmt(result.arca.aporte)}</span></div><div class="cr2"><span class="ck">Contribución SIPA</span><span class="cv">${fmt(result.arca.contribucion)}</span></div><div class="cr2"><span class="ck">Cuota ART</span><span class="cv">${fmt(result.arca.art)}</span></div><div class="cr2"><span class="ck">Referencia vigente</span><span class="cv">ARCA abr/2026</span></div></div><div class="c-sub"><span>Total mensual informativo</span><span>${fmt(result.arca.total)}</span></div></div>`;
+}
+
+function renderDistribution(result){
+  const rows=scenarioRows(result);
+  if(!rows.length){
+    $("res-dist").innerHTML=buildEmptyCard("📊","Distribución salarial","No hay conceptos positivos para representar en este escenario.");
+    return;
+  }
+
+  const total=rows.reduce((accumulator,row)=>accumulator+row.amount,0);
+  $("res-dist").innerHTML=`<div class="card-hdr"><div class="card-title"><div class="c-ic">📊</div><span>Distribución salarial</span></div></div><div class="distribution-view"><div class="distribution-topline"><article><small>Valor hora</small><strong>${fmt(result.vh)}</strong></article><article><small>Total bruto</small><strong>${fmt(result.bruto)}</strong></article><article><small>Descuentos</small><strong>${fmt(result.desc)}</strong></article><article><small>Neto</small><strong>${fmt(result.neto)}</strong></article></div><div class="distribution-stack">${rows.map(row=>{const share=row.amount/total;return `<div><div class="distribution-row"><div><strong>${row.label}</strong><small>${pct(share*100)} del bruto</small></div><span>${fmt(row.amount)}</span></div><div class="distribution-track"><span class="distribution-fill" style="width:${Math.max(share*100,4)}%;background:${row.color}"></span></div></div>`;}).join("")}</div><p class="distribution-footnote">La distribución toma solo los conceptos positivos del sueldo. Los descuentos se muestran aparte para que la lectura sea más clara.</p></div>`;
+}
+
+function renderCost(result){
+  if(!result.arca){
+    $("res-costo").innerHTML=`<div class="card-hdr"><div class="card-title"><div class="c-ic">🏠</div><span>Costo empleador</span></div></div><div class="distribution-view"><div class="distribution-topline"><article><small>Costo salarial directo</small><strong>${fmt(result.bruto)}</strong></article><article><small>Cargas ARCA</small><strong>${fmt(0)}</strong></article><article><small>Total estimado</small><strong>${fmt(result.bruto)}</strong></article><article><small>Modo actual</small><strong>Sin ARCA</strong></article></div><p class="cost-note">Activá "Solo informativo / ARCA" en descuentos para sumar la referencia oficial de aportes, contribuciones y ART al costo del empleador.</p></div>`;
+    return;
+  }
+
+  $("res-costo").innerHTML=`<div class="card-hdr"><div class="card-title"><div class="c-ic">🏠</div><span>Costo empleador referencial</span></div><span class="badge b-amber">ARCA</span></div><div class="cost-view"><div class="distribution-topline"><article><small>Costo salarial directo</small><strong>${fmt(result.bruto)}</strong></article><article><small>Aporte OSS</small><strong>${fmt(result.arca.aporte)}</strong></article><article><small>Contribuciones + ART</small><strong>${fmt(result.arca.contribucion+result.arca.art)}</strong></article><article><small>Total estimado</small><strong>${fmt(result.employerCost)}</strong></article></div><div class="escala-box"><table class="dt"><thead><tr><th>Concepto</th><th class="num">Importe</th><th>Referencia</th></tr></thead><tbody><tr><td>Sueldo bruto del período</td><td class="num">${fmt(result.bruto)}</td><td>Liquidación actual</td></tr><tr><td>Aporte OSS</td><td class="num">${fmt(result.arca.aporte)}</td><td>${result.arca.label}</td></tr><tr><td>Contribución SIPA</td><td class="num">${fmt(result.arca.contribucion)}</td><td>${result.arca.label}</td></tr><tr><td>Cuota ART</td><td class="num">${fmt(result.arca.art)}</td><td>${result.arca.label}</td></tr><tr class="tr-tot"><td>Costo total empleador</td><td class="num">${fmt(result.employerCost)}</td><td>Bruto + referencia ARCA</td></tr></tbody></table></div><p class="cost-note">Referencia oficial para trabajador activo mayor de 18 años. El tramo se estima a partir de las horas mensuales cargadas, convertido a horas semanales promedio.</p></div>`;
+}
+
+function confidenceData(result){
+  let score=100;
+  const warnings=[];
+
+  if(result.hs<=0){
+    score-=40;
+    warnings.push("No cargaste horas normales, por lo que la liquidación queda sin base real.");
+  }
+  if(result.desc>result.bruto){
+    score-=28;
+    warnings.push("Los descuentos manuales superan el bruto estimado.");
+  }
+  if(result.h50+result.h100>result.hs&&result.hs>0){
+    score-=8;
+    warnings.push("Las horas extra superan a las horas normales informadas.");
+  }
+  if($("p3an").checked&&!$("p1i").value&&!Number($("p3am").value||0)){
+    score-=10;
+    warnings.push("La antigüedad está activa, pero no hay fecha de ingreso ni años manuales.");
+  }
+  if(result.monthKey!=="may26"){
+    score-=6;
+    warnings.push("El mes elegido es una proyección respecto de la escala base mayo 2026.");
+  }
+  if(result.manual>0){
+    score-=3;
+    warnings.push("Incluís un adicional manual; revisá el respaldo antes de usarlo en producción.");
+  }
+  if(result.arcaMode!=="1"){
+    score-=4;
+    warnings.push("No estás mostrando la referencia ARCA de obligaciones del empleador.");
+  }
+  if(result.totalMonthlyHours>240){
+    score-=5;
+    warnings.push("La cantidad total de horas del mes es alta y conviene revisarla.");
+  }
+
+  score=Math.max(0,score);
+  return{score,warnings};
+}
+
+function renderConfidence(result,confidence){
+  const badge=(confidence.score/100).toFixed(2).replace(".",",");
+  $("res-conf").innerHTML=`<div class="card-hdr"><div class="card-title"><div class="c-ic">🔍</div><span>Confianza y revisión</span></div><span class="badge b-amber">${badge}</span></div><div class="callout warn"><span class="ci">⚠️</span><span>Esta calculadora usa resúmenes de escala y una referencia ARCA informativa. Siempre validá contra la normativa y la documentación oficial antes de liquidar en producción.</span></div>${confidence.warnings.length?`<div class="card-hdr" style="margin-top:14px"><div class="card-title"><div class="c-ic">🧭</div><span>Puntos a revisar</span></div></div><div class="distribution-stack">${confidence.warnings.map(item=>`<div class="cs"><div class="ct">Observación preventiva</div><div class="cf">${item}</div></div>`).join("")}</div>`:`<div class="callout ok"><span class="ci">✅</span><span>El escenario no presenta alertas internas relevantes con los datos cargados.</span></div>`}`;
+}
+
+function calcular(){
+  const result=calcData();
+  const confidence=confidenceData(result);
+  lastResult=result;
+
+  $("statWrap").innerHTML=`<div class="stat-grid"><div class="sc"><div class="sl">Valor hora</div><div class="sv">${fmt(result.vh)}</div><div class="ss">${result.c.nombre}</div></div><div class="sc"><div class="sl">Base</div><div class="sv">${fmt(result.base)}</div><div class="ss">${result.hs} horas</div></div><div class="sc"><div class="sl">Bruto</div><div class="sv">${fmt(result.bruto)}</div><div class="ss">Antes de descuentos</div></div><div class="sc"><div class="sl">Neto</div><div class="sv">${fmt(result.neto)}</div><div class="ss">${result.monthLabel}</div></div></div>`;
+
+  $("res-recibo").innerHTML=`<div class="rec-wrap"><div class="rec-hdr-box"><div class="rec-emp">${$("p1n").value||"Trabajador/a de casas particulares"}</div><div class="rec-meta"><span>CUIL: ${$("p1c").value||"No informado"}</span><span>${result.c.nombre}</span><span>${result.monthLabel}</span><span>${result.monthSource}</span></div></div><div class="rec-cols"><div class="rec-block"><h4 class="gh">Haberes remunerativos</h4><div class="rec-row"><span class="rc">Horas normales (${result.hs})</span><span class="rm pos">${fmt(result.base)}</span></div><div class="rec-row"><span class="rc">Horas extra 50%</span><span class="rm pos">${fmt(result.extra50)}</span></div><div class="rec-row"><span class="rc">Horas extra 100% (${result.h100} hs x 2)</span><span class="rm pos">${fmt(result.extra100)}</span></div><div class="rec-row"><span class="rc">Antigüedad ${result.anios}%</span><span class="rm pos">${fmt(result.ant)}</span></div><div class="rec-row"><span class="rc">Adicional manual</span><span class="rm pos">${fmt(result.manual)}</span></div><div class="rec-sub"><span>Total haberes</span><span>${fmt(result.bruto)}</span></div></div><div class="rec-block"><h4 class="rh">Descuentos</h4><div class="rec-row"><span class="rc">Descuentos manuales</span><span class="rm neg">-${fmt(result.desc)}</span></div><div class="rec-sub"><span>Total descuentos</span><span>${fmt(result.desc)}</span></div></div></div>${buildContribBox(result)}<div class="tot-card"><div class="tot-row"><span>Total bruto</span><span class="tv">${fmt(result.bruto)}</span></div><div class="tot-row"><span>Descuentos</span><span class="tv">-${fmt(result.desc)}</span></div><div class="tot-row main"><span>Neto estimado</span><span class="tv">${fmt(result.neto)}</span></div></div></div>`;
+
+  $("res-calc").innerHTML=`<div class="card-hdr"><div class="card-title"><div class="c-ic">🧮</div><span>Detalle de cálculo</span></div></div><div class="cs"><div class="ct">1. Base por horas</div><div class="cf">${fmt(result.vh)} x ${result.hs} horas</div><div class="cr">${fmt(result.base)}</div></div><div class="cs"><div class="ct">2. Horas extra</div><div class="cf">50%: ${fmt(result.vh)} x ${result.h50} x 1,5 = ${fmt(result.extra50)}</div><div class="cf">100%: ${fmt(result.vh)} x ${result.h100} x 2 = ${fmt(result.extra100)}</div><div class="cr">${fmt(result.extra50+result.extra100)}</div></div><div class="cs"><div class="ct">3. Antigüedad</div><div class="cf">Base x 1% x ${result.anios} años</div><div class="cr">${fmt(result.ant)}</div></div><div class="cs"><div class="ct">4. Cierre de bolsillo</div><div class="cf">Bruto ${fmt(result.bruto)} - descuentos manuales ${fmt(result.desc)}</div><div class="cr">${fmt(result.neto)}</div></div>${result.arca?`<div class="cs"><div class="ct">5. Referencia ARCA</div><div class="cf">${result.arca.label} (${result.arca.estimatedWeeklyHours.toFixed(2).replace(".",",")} hs semanales estimadas)</div><div class="cr">${fmt(result.arca.total)}</div></div>`:""}`;
+
+  renderDistribution(result);
+  renderCost(result);
+  renderConfidence(result,confidence);
+  activateReceiptTab();
+  ip(5);
+}
+
+function simular(silent=false){
+  const baseResult=calcData();
+  const months=Math.max(1,Math.min(24,Number($("simMes")?.value||6)));
+  const hourRate=Number($("simRate")?.value||0)/100;
+  const manualRate=Number($("simManualRate")?.value||0)/100;
+
+  if(baseResult.hs<=0){
+    $("simRes").innerHTML=buildEmptyCard("🔮","Simulación pendiente","Cargá horas normales en la calculadora para proyectar escenarios futuros.");
+    if(!silent) toast("Cargá horas normales para simular","warn");
+    return;
+  }
+
+  const rows=[];
+  for(let index=1;index<=months;index++){
+    const factorHour=Math.pow(1+hourRate,index);
+    const factorManual=Math.pow(1+manualRate,index);
+    const projectedVh=baseResult.vh*factorHour;
+    const projectedBase=projectedVh*baseResult.hs;
+    const projectedExtra50=projectedVh*baseResult.h50*1.5;
+    const projectedExtra100=projectedVh*baseResult.h100*2;
+    const projectedAnt=$("p3an").checked?projectedBase*0.01*baseResult.anios:0;
+    const projectedManual=baseResult.manual*factorManual;
+    const projectedGross=projectedBase+projectedExtra50+projectedExtra100+projectedAnt+projectedManual;
+    const projectedNet=projectedGross-baseResult.desc;
+    const projectedEmployerCost=projectedGross+(baseResult.arca?baseResult.arca.total:0);
+    rows.push({period:index,vh:projectedVh,gross:projectedGross,net:projectedNet,cost:projectedEmployerCost});
+  }
+
+  $("simRes").innerHTML=`<div class="sim-meta"><span class="sim-chip">${baseResult.c.nombre}</span><span class="sim-chip">${baseResult.monthLabel}</span><span class="sim-chip">Valor hora actual ${fmt(baseResult.vh)}</span><span class="sim-chip">Aumento mensual ${pct(hourRate*100)}</span></div><div class="escala-box"><table class="dt"><thead><tr><th>Mes proyectado</th><th class="num">Valor hora</th><th class="num">Bruto estimado</th><th class="num">Neto estimado</th><th class="num">Costo empleador</th></tr></thead><tbody><tr><td>Base actual</td><td class="num">${fmt(baseResult.vh)}</td><td class="num">${fmt(baseResult.bruto)}</td><td class="num">${fmt(baseResult.neto)}</td><td class="num">${fmt(baseResult.employerCost)}</td></tr>${rows.map(row=>`<tr><td>+${row.period} mes${row.period>1?"es":""}</td><td class="num">${fmt(row.vh)}</td><td class="num">${fmt(row.gross)}</td><td class="num">${fmt(row.net)}</td><td class="num">${fmt(row.cost)}</td></tr>`).join("")}</tbody></table></div>`;
+  if(!silent) toast("Simulación generada","ok");
+}
+
+function syncComparatorDefaults(){
+  const currentMode=$("p1cat").value||"con";
+  const otherMode=currentMode==="con"?"sin":"con";
+  const currentMonth=$("p2m").value||"may26";
+  $("compMode1").value=currentMode;
+  $("compMode2").value=otherMode;
+  $("compMonth1").value=currentMonth;
+  $("compMonth2").value=currentMonth;
+}
+
+function compareScenario(modeKey,monthKey){
+  return calcData({modeKey,monthKey});
+}
+
+function comparar(silent=false){
+  const modeA=$("compMode1")?.value||$("p1cat").value||"con";
+  const modeB=$("compMode2")?.value||"sin";
+  const monthA=$("compMonth1")?.value||$("p2m").value||"may26";
+  const monthB=$("compMonth2")?.value||$("p2m").value||"may26";
+  const left=compareScenario(modeA,monthA);
+  const right=compareScenario(modeB,monthB);
+  const rows=[
+    {label:"Valor hora",left:left.vh,right:right.vh},
+    {label:"Base por horas",left:left.base,right:right.base},
+    {label:"Horas extra 50%",left:left.extra50,right:right.extra50},
+    {label:"Horas extra 100%",left:left.extra100,right:right.extra100},
+    {label:"Antigüedad",left:left.ant,right:right.ant},
+    {label:"Bruto",left:left.bruto,right:right.bruto},
+    {label:"Descuentos manuales",left:left.desc,right:right.desc},
+    {label:"Neto estimado",left:left.neto,right:right.neto},
+    {label:"Costo empleador",left:left.employerCost,right:right.employerCost}
+  ];
+
+  $("compRes").innerHTML=`<div class="sim-meta"><span class="sim-chip">Usa ${left.hs} hs normales y ${left.h50+left.h100} hs extra del wizard</span><span class="sim-chip">Antigüedad ${left.anios} años</span><span class="sim-chip">Descuentos manuales ${fmt(left.desc)}</span></div><div class="escala-box"><table class="dt"><thead><tr><th>Variable</th><th class="num">${left.c.nombre}<br>${left.monthLabel}</th><th class="num">${right.c.nombre}<br>${right.monthLabel}</th><th class="num">Diferencia B - A</th></tr></thead><tbody>${rows.map(row=>`<tr><td>${row.label}</td><td class="num">${fmt(row.left)}</td><td class="num">${fmt(row.right)}</td><td class="num">${fmt(row.right-row.left)}</td></tr>`).join("")}</tbody></table></div>`;
+  if(!silent) toast("Comparación generada","ok");
+}
+
+function initHelpIcons(){
+  const targets=[...document.querySelectorAll("[data-help]")];
+  if(!targets.length||document.getElementById("help-popover")) return;
+
+  const popover=document.createElement("div");
+  popover.className="help-popover";
+  popover.id="help-popover";
+  popover.setAttribute("role","tooltip");
+  popover.hidden=true;
+  popover.innerHTML='<strong class="help-popover-title"></strong><span class="help-popover-body"></span>';
+  document.body.appendChild(popover);
+
+  const hoverQuery=window.matchMedia("(hover: hover)");
+  let activeButton=null;
+  let locked=false;
+  let hideTimer=null;
+
+  targets.forEach(target=>{
+    const label=(target.getAttribute("data-help-label")||target.textContent||"Ayuda").trim();
+    target.setAttribute("data-help-label",label);
+    if(target.querySelector(".help-trigger")) return;
+    target.classList.add("has-help");
+    const button=document.createElement("button");
+    button.type="button";
+    button.className="help-trigger";
+    button.setAttribute("aria-label",`Ayuda sobre ${label}`);
+    button.setAttribute("aria-expanded","false");
+    button.innerHTML='<span aria-hidden="true">?</span>';
+    target.appendChild(button);
+  });
+
+  const buttons=[...document.querySelectorAll(".help-trigger")];
+
+  function clearHideTimer(){
+    if(!hideTimer) return;
+    clearTimeout(hideTimer);
+    hideTimer=null;
+  }
+
+  function setContent(target){
+    popover.querySelector(".help-popover-title").textContent=target.getAttribute("data-help-label")||"Ayuda";
+    popover.querySelector(".help-popover-body").textContent=target.getAttribute("data-help")||"";
+  }
+
+  function positionHelp(button){
+    const buttonRect=button.getBoundingClientRect();
+    const margin=12;
+    const gap=12;
+    popover.style.left="0px";
+    popover.style.top="0px";
+    const popRect=popover.getBoundingClientRect();
+    const maxLeft=window.innerWidth-popRect.width-margin;
+    let left=buttonRect.left+buttonRect.width/2-popRect.width/2;
+    left=Math.max(margin,Math.min(maxLeft,left));
+    let top=buttonRect.bottom+gap;
+    if(top+popRect.height>window.innerHeight-margin){
+      top=buttonRect.top-popRect.height-gap;
+    }
+    top=Math.max(margin,top);
+    popover.style.left=`${left}px`;
+    popover.style.top=`${top}px`;
+  }
+
+  function openHelp(button,persist=false){
+    const target=button.parentElement;
+    if(!target) return;
+    clearHideTimer();
+    buttons.forEach(btn=>{
+      if(btn===button) return;
+      btn.setAttribute("aria-expanded","false");
+      btn.classList.remove("is-active");
+    });
+    activeButton=button;
+    locked=persist;
+    button.setAttribute("aria-expanded","true");
+    button.classList.add("is-active");
+    setContent(target);
+    popover.hidden=false;
+    positionHelp(button);
+    requestAnimationFrame(()=>{popover.dataset.open="true";});
+  }
+
+  function closeHelp(force=false){
+    if(!activeButton) return;
+    if(locked&&!force) return;
+    activeButton.setAttribute("aria-expanded","false");
+    activeButton.classList.remove("is-active");
+    activeButton=null;
+    locked=false;
+    clearHideTimer();
+    popover.dataset.open="false";
+    setTimeout(()=>{
+      if(!activeButton) popover.hidden=true;
+    },160);
+  }
+
+  function scheduleClose(){
+    clearHideTimer();
+    hideTimer=setTimeout(()=>closeHelp(true),110);
+  }
+
+  buttons.forEach(button=>{
+    button.addEventListener("mouseenter",()=>{
+      if(!hoverQuery.matches) return;
+      if(locked&&activeButton!==button) return;
+      openHelp(button,false);
+    });
+
+    button.addEventListener("mouseleave",()=>{
+      if(!hoverQuery.matches||locked) return;
+      scheduleClose();
+    });
+
+    button.addEventListener("focus",()=>openHelp(button,false));
+    button.addEventListener("blur",()=>{
+      if(locked) return;
+      scheduleClose();
+    });
+
+    button.addEventListener("click",event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      if(activeButton===button&&locked){
+        closeHelp(true);
+        return;
+      }
+      openHelp(button,true);
+    });
+  });
+
+  document.addEventListener("click",event=>{
+    if(activeButton&&!event.target.closest(".help-trigger")) closeHelp(true);
+  });
+
+  document.addEventListener("focusin",event=>{
+    if(activeButton&&!event.target.closest(".help-trigger")) closeHelp(true);
+  });
+
+  document.addEventListener("keydown",event=>{
+    if(event.key==="Escape") closeHelp(true);
+  });
+
+  window.addEventListener("resize",()=>{
+    if(activeButton) positionHelp(activeButton);
+  });
+
+  window.addEventListener("scroll",()=>{
+    if(activeButton) positionHelp(activeButton);
+  },true);
+}
+
+renderStepper();
+calcAntig();
+prevCat();
+updHoras();
+syncComparatorDefaults();
+simular(true);
+comparar(true);
+initHelpIcons();
 </script>
 </body>
 </html>

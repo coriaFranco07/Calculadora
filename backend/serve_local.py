@@ -9,10 +9,19 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import unquote
 
-from backend.qwen_client import DEFAULT_MODEL, QwenClientError, build_audit_prompt, call_qwen
+from backend.gemini_proxy import DEFAULT_MODEL, FALLBACK_MODELS, GeminiClientError, call_gemini, gemini_enabled
 
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
+
+
+def build_audit_prompt(data: dict) -> str:
+    return (
+        "Revisá preventivamente esta liquidación laboral argentina. "
+        "Devolvé observaciones accionables, riesgos AFIP/LSD, inconsistencias y próximos pasos. "
+        "No inventes normativa.\n\nDatos:\n"
+        + json.dumps(data, ensure_ascii=False, indent=2)
+    )
 
 
 class LocalHandler(SimpleHTTPRequestHandler):
@@ -30,9 +39,10 @@ class LocalHandler(SimpleHTTPRequestHandler):
             self._json(
                 {
                     "status": "ok",
-                    "ai_enabled": bool(os.getenv("QWEN_API_KEY", "").strip()),
+                    "ai_enabled": gemini_enabled(),
                     "model": DEFAULT_MODEL,
-                    "qwen_enabled": bool(os.getenv("QWEN_API_KEY", "").strip()),
+                    "fallback_models": FALLBACK_MODELS,
+                    "gemini_enabled": gemini_enabled(),
                 }
             )
             return
@@ -58,7 +68,7 @@ class LocalHandler(SimpleHTTPRequestHandler):
 
         try:
             prompt = build_audit_prompt(payload)
-            result = call_qwen(
+            result = call_gemini(
                 system_prompt=(
                     "Sos un auditor preventivo senior de payroll argentino, AFIP y Libro de Sueldos Digital. "
                     "Responde breve, claro y accionable."
@@ -66,16 +76,27 @@ class LocalHandler(SimpleHTTPRequestHandler):
                 user_prompt=prompt,
                 model=DEFAULT_MODEL,
                 temperature=0.1,
-                max_tokens=4096,
+                max_output_tokens=4096,
                 stage="audit",
+                response_mime_type="text/plain",
             )
-            text = result["text"]
-        except QwenClientError as exc:
+            text = result.text
+        except GeminiClientError as exc:
             status = HTTPStatus.SERVICE_UNAVAILABLE if "API_KEY" in str(exc) else HTTPStatus.BAD_GATEWAY
             self._json({"detail": str(exc)}, status=status)
             return
 
-        self._json({"mode": "qwen", "model": result["model"], "text": text, "usage": result["usage"], "response_ms": result["response_ms"]})
+        self._json(
+            {
+                "mode": "gemini",
+                "model": result.model,
+                "text": text,
+                "usage": result.usage,
+                "response_ms": result.response_ms,
+                "fallback_used": result.fallback_used,
+                "attempts": result.attempts,
+            }
+        )
 
     def _json(self, payload: dict, status: HTTPStatus = HTTPStatus.OK) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")

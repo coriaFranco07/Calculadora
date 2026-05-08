@@ -1094,7 +1094,7 @@
         font-size: 1.15rem;
       }
 
-      .qwen-grid {
+      .gemini-grid {
         display: grid;
         gap: 24px;
         grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
@@ -1315,6 +1315,71 @@
         display: block;
         margin-top: 4px;
         color: var(--muted);
+      }
+
+      .toolbelt-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
+        margin: 24px 0;
+      }
+
+      .tool-context {
+        margin: 0 0 14px;
+        color: var(--muted);
+        line-height: 1.55;
+      }
+
+      .distribution-view,
+      .cost-view {
+        display: grid;
+        gap: 18px;
+      }
+
+      .distribution-stack {
+        display: grid;
+        gap: 12px;
+      }
+
+      .distribution-row {
+        display: grid;
+        gap: 8px;
+      }
+
+      .distribution-topline {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .distribution-topline span {
+        font-weight: 700;
+      }
+
+      .distribution-topline strong {
+        font-size: 0.95rem;
+      }
+
+      .distribution-track {
+        width: 100%;
+        height: 10px;
+        border-radius: 999px;
+        overflow: hidden;
+        background: rgba(27, 35, 33, 0.08);
+      }
+
+      .distribution-fill {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+      }
+
+      .distribution-footnote,
+      .cost-note {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.55;
       }
 
       .pill {
@@ -1701,7 +1766,7 @@
         .workspace,
         .hero,
         .wizard-grid,
-        .qwen-grid {
+        .gemini-grid {
           grid-template-columns: 1fr;
         }
 
@@ -1747,6 +1812,7 @@
         .workflow-strip,
         .matrix-stats,
         .guide-grid,
+        .toolbelt-grid,
         .receipt-columns,
         .audit-layout,
         .audit-status-strip {
@@ -1838,6 +1904,75 @@
         </aside>
       </header>
 
+      <section class="toolbelt-grid" aria-label="Herramientas complementarias">
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-label">Herramienta reutilizada</p>
+              <h2>Simulador rapido</h2>
+            </div>
+          </div>
+          <p id="sim-context-caption" class="tool-context">
+            Usa la configuracion actual del wizard para proyectar remunerativos, descuentos y bolsillo en escenarios futuros.
+          </p>
+          <div class="mini-field-grid">
+            <label class="field">
+              <span>Meses a proyectar</span>
+              <input id="sim-months" type="number" min="1" max="24" step="1" value="6" />
+            </label>
+            <label class="field">
+              <span>% mensual remunerativo</span>
+              <input id="sim-rem-percent" type="number" min="-50" max="200" step="0.1" value="2" />
+            </label>
+            <label class="field">
+              <span>% mensual no remunerativo</span>
+              <input id="sim-nr-percent" type="number" min="-50" max="200" step="0.1" value="1" />
+            </label>
+          </div>
+          <div class="wizard-actions" style="margin-top: 18px;">
+            <div class="step-note">
+              <strong>Fuente de trabajo</strong>
+              <p>La proyeccion toma la fecha, categoria, tipo y configuracion que hoy tenes cargadas en el wizard.</p>
+            </div>
+            <div class="wizard-actions-right">
+              <button id="run-sim-button" type="button" class="primary-button">Generar simulacion</button>
+            </div>
+          </div>
+          <div id="sim-result" class="table-wrap" style="margin-top: 18px;">
+            <div class="skill-empty">Todavia no generaste una simulacion.</div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="section-label">Herramienta reutilizada</p>
+              <h2>Comparador de categorias</h2>
+            </div>
+          </div>
+          <p id="compare-context-caption" class="tool-context">
+            Compara dos categorias bajo la misma fecha, tipo de liquidacion y configuracion cargadas en la calculadora principal.
+          </p>
+          <div class="mini-field-grid">
+            <label class="field">
+              <span>Categoria A</span>
+              <select id="compare-category-left"></select>
+            </label>
+            <label class="field">
+              <span>Categoria B</span>
+              <select id="compare-category-right"></select>
+            </label>
+            <div class="field">
+              <span>Accion</span>
+              <button id="run-compare-button" type="button" class="ghost-button" style="justify-content:center; min-height: 48px;">Comparar escenario</button>
+            </div>
+          </div>
+          <div id="compare-result" class="table-wrap" style="margin-top: 18px;">
+            <div class="skill-empty">Selecciona dos categorias para comparar el mismo escenario.</div>
+          </div>
+        </section>
+      </section>
+
       <div class="wizard-shell">
         <section class="wizard-progress-card">
           <p class="section-label">Proceso guiado enterprise</p>
@@ -1886,10 +2021,10 @@
               <small>Recibo, bruto, neto, descuentos, bases y salida operativa.</small>
             </div>
           </button>
-          <button type="button" class="wizard-step-button" data-wizard-step="qwen">
+          <button type="button" class="wizard-step-button" data-wizard-step="gemini">
             <strong>6</strong>
             <div>
-              <span>Revision Qwen</span>
+              <span>Revision Gemini</span>
               <small>Interpretacion opcional del resultado de auditoria.</small>
             </div>
           </button>
@@ -2055,7 +2190,7 @@
                   </article>
                   <article>
                     <strong>Principio UX</strong>
-                    <p>El calculo se prepara primero, la auditoria se muestra en una pantalla exclusiva y Qwen queda al final.</p>
+                    <p>El calculo se prepara primero, la auditoria se muestra en una pantalla exclusiva y Gemini queda al final.</p>
                   </article>
                 </div>
               </section>
@@ -2434,7 +2569,9 @@
             <div class="result-tabs" role="tablist" aria-label="Vistas del resultado">
               <button type="button" class="result-tab is-active" data-result-tab="summary">Resumen</button>
               <button type="button" class="result-tab" data-result-tab="receipt">Vista recibo</button>
+              <button type="button" class="result-tab" data-result-tab="distribution">Distribucion</button>
               <button type="button" class="result-tab" data-result-tab="calc">Como se calculo</button>
+              <button type="button" class="result-tab" data-result-tab="cost">Costo empleador</button>
               <button type="button" class="result-tab" data-result-tab="debug">Debug y fuentes</button>
             </div>
 
@@ -2501,6 +2638,10 @@
               <div id="receipt-view" class="receipt-view"></div>
             </div>
 
+            <div id="result-pane-distribution" class="result-pane">
+              <div id="distribution-view" class="distribution-view"></div>
+            </div>
+
             <div id="result-pane-calc" class="result-pane">
               <details class="detail-box" open>
                 <summary>Explicacion del calculo</summary>
@@ -2511,6 +2652,10 @@
                 <summary>Detalle paso a paso</summary>
                 <div id="step-by-step" class="steps"></div>
               </details>
+            </div>
+
+            <div id="result-pane-cost" class="result-pane">
+              <div id="employer-cost-view" class="cost-view"></div>
             </div>
 
             <div id="result-pane-debug" class="result-pane">
@@ -2557,26 +2702,26 @@
               </div>
               <div class="wizard-actions-right">
                 <button type="button" class="ghost-button" data-wizard-prev="audit">Volver a auditoria</button>
-                <button type="button" class="primary-button" data-wizard-next="qwen">Ir a revision Qwen</button>
+                <button type="button" class="primary-button" data-wizard-next="gemini">Ir a revision Gemini</button>
               </div>
             </div>
           </section>
         </div>
       </section>
 
-      <section id="section-qwen" class="section-pane">
+      <section id="section-gemini" class="section-pane">
         <div class="step-intro">
           <div>
             <p class="section-label">Paso 6</p>
-            <h2>Revision Qwen opcional</h2>
+            <h2>Revision Gemini opcional</h2>
           </div>
           <p>
-            Qwen recibe solo un resumen de la auditoria. No calcula montos ni reemplaza reglas deterministicas: solo
+            Gemini recibe solo un resumen de la auditoria. No calcula montos ni reemplaza reglas deterministicas: solo
             interpreta, explica, sugiere y ayuda a priorizar riesgo.
           </p>
         </div>
 
-        <div class="qwen-grid">
+        <div class="gemini-grid">
           <section class="panel">
             <div class="panel-heading">
               <div>
@@ -2584,11 +2729,11 @@
                 <h2>Interpretacion sobre auditoria ya cerrada</h2>
               </div>
               <div class="result-actions">
-                <button id="audit-ai-run" type="button" class="ghost-button">Pedir revision Qwen</button>
+                <button id="audit-ai-run" type="button" class="ghost-button">Pedir revision Gemini</button>
               </div>
             </div>
             <div id="audit-ai-status" class="audit-empty">
-              <strong>Qwen no inicializado.</strong>
+              <strong>Gemini no inicializado.</strong>
               <p>La capa IA es opcional y solo agrega revision experta sobre hallazgos ya calculados localmente.</p>
             </div>
             <div id="audit-ai-output" class="audit-ai-output" hidden></div>

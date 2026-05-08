@@ -593,7 +593,7 @@ def _build_origin(provider: str, kind: str, ocr_payload: dict[str, Any]) -> dict
     }
 
 
-def parse_document(ocr_payload: dict[str, Any], *, kind: str, file_name: str, provider: str = "Mistral OCR") -> dict[str, Any]:
+def parse_document(ocr_payload: dict[str, Any], *, kind: str, file_name: str, provider: str = "PDF local + Parser") -> dict[str, Any]:
     markdown = str(ocr_payload.get("markdown") or "")
     plain_text = str(ocr_payload.get("text") or strip_markdown(markdown))
     tables = list(ocr_payload.get("tables") or extract_markdown_tables(markdown))
@@ -746,7 +746,7 @@ def merge_document_payloads(primary: dict[str, Any] | None, fallback: dict[str, 
     merged["zonas"] = [item for item in (overlay.get("zonas") or []) + (base.get("zonas") or []) if has_meaningful_value(item)]
     merged["pendientes_revision"] = dedupe_strings([*(base.get("pendientes_revision") or []), *(overlay.get("pendientes_revision") or [])])
     merged["alertas"] = dedupe_strings([*(base.get("alertas") or []), *(overlay.get("alertas") or [])])
-    merged["estado"] = f"mistral_qwen_{kind}" if primary else base.get("estado")
+    merged["estado"] = f"gemini_codex_{kind}" if primary else base.get("estado")
 
     if kind == "scale":
         merged["no_remunerativos"] = dedupe_records(
@@ -847,9 +847,9 @@ def merge_calculator_payload(cct_json: dict[str, Any], escala_json: dict[str, An
     return {
         "version": date.today().isoformat(),
         "archivo_fuente": f"{cct.get('archivo_fuente') or 'cct.pdf'} + {scale.get('archivo_fuente') or 'escala.pdf'}",
-        "estado": "payload_mistral_qwen_fusionado",
+        "estado": "payload_gemini_codex_fusionado",
         "origen": {
-            "proveedor": "Mistral OCR + Qwen + Parser",
+            "proveedor": "Gemini + Codex + Parser local",
             "documentos": [cct.get("origen"), scale.get("origen")],
         },
         "convenio": convenio,
