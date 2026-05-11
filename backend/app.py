@@ -734,7 +734,6 @@ def extract_cct_from_text(file_name: str, text: str) -> dict[str, Any]:
             "result": enriched,
             "generated": generated_html,
             "html_url": generated_html["html_url"],
-            
         }
 
     except GeminiProxyError as exc:
@@ -759,9 +758,8 @@ def extract_cct_from_text(file_name: str, text: str) -> dict[str, Any]:
             "result": fallback,
             "generated": generated_html,
             "html_url": generated_html["html_url"],
-            
         }
-    
+            
     
 @app.get("/health")
 def health() -> dict[str, Any]:
