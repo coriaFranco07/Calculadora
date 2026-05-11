@@ -86,7 +86,7 @@ def build_generated_calculator_html(payload: dict[str, Any]) -> str:
     ) or '<tr><td colspan="5">No se detectaron adicionales.</td></tr>'
 
     concept_rows = "\n".join(
-        f"<tr><td>{text(item.get('codigo'))}</td><td>{text(item.get('nombre'))}<small>{text(item.get('formula'))}</small></td><td><span class="pill pill-rem">{text(item.get('tipo'))}</span></td><td>{text(item.get('lsd'))}</td></tr>"
+        f'<tr><td>{text(item.get("codigo"))}</td><td>{text(item.get("nombre"))}<small>{text(item.get("formula"))}</small></td><td><span class="pill pill-rem">{text(item.get("tipo"))}</span></td><td>{text(item.get("lsd"))}</td></tr>'
         for item in conceptos
     ) or '<tr><td colspan="4">No se generaron conceptos tecnicos.</td></tr>'
 

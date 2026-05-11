@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMATA - ACA</title>
+  <style>
+    :root { --bg:#f7f2e8; --bg-soft:rgba(255,255,255,.76); --surface:rgba(255,251,245,.9); --surface-strong:#fffdf8; --text:#1b2321; --muted:#53615d; --line:rgba(27,35,33,.08); --line-strong:rgba(27,35,33,.16); --accent:#d06224; --accent-deep:#a54516; --green:#1f6a52; --warning-soft:rgba(182,91,25,.14); --error-soft:rgba(158,47,47,.12); --green-soft:rgba(31,106,82,.14); --shadow:0 24px 60px rgba(54,40,22,.12); --radius-xl:28px; --radius-lg:22px; --radius-md:16px; --radius-sm:12px; --font-display:"Rockwell","Georgia",serif; --font-body:"Aptos","Bahnschrift","Trebuchet MS",sans-serif; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; font-family:var(--font-body); color:var(--text); background:radial-gradient(circle at top left,rgba(214,131,73,.22),transparent 28%),radial-gradient(circle at right 18%,rgba(64,132,107,.18),transparent 24%),linear-gradient(180deg,#f7f0e2 0%,#f4efe7 36%,#eef4f0 100%); }
+    button,input,select,summary { font:inherit; }
+    .page-shell { width:min(1440px,calc(100% - 32px)); margin:24px auto 40px; }
+    .hero,.panel { backdrop-filter:blur(14px); background:var(--bg-soft); border:1px solid var(--line); box-shadow:var(--shadow); }
+    .hero { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(280px,.9fr); gap:24px; padding:28px; border-radius:var(--radius-xl); }
+    .eyebrow,.section-label { margin:0 0 8px; text-transform:uppercase; letter-spacing:.18em; font-size:.72rem; color:var(--accent-deep); font-weight:700; }
+    h1,h2,h3 { margin:0; font-family:var(--font-display); letter-spacing:-.02em; }
+    .hero h1 { font-size:clamp(2.2rem,4vw,3.6rem); line-height:.98; max-width:14ch; }
+    .hero-text,p { color:var(--muted); line-height:1.6; }
+    .hero-pills,.app-actions,.quick-nav,.result-tabs,.wizard-actions-right { display:flex; flex-wrap:wrap; gap:10px; }
+    .hero-pills span,.app-pill,.pill { display:inline-flex; align-items:center; padding:9px 12px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.82); color:var(--muted); font-size:.84rem; font-weight:700; }
+    .app-bar { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:20px; padding:16px 20px; border-radius:var(--radius-lg); border:1px solid var(--line); background:rgba(255,255,255,.74); box-shadow:0 16px 36px rgba(51,39,24,.08); backdrop-filter:blur(14px); }
+    .app-brand { display:grid; gap:4px; } .app-brand strong { font-size:1.08rem; } .app-brand small { color:var(--muted); }
+    .brand-kicker { display:inline-flex; width:fit-content; padding:6px 10px; border-radius:999px; background:rgba(208,98,36,.12); color:var(--accent-deep); font-size:.74rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+    .hero-panel,.summary-card,.indicator-card,.scale-card,.audit-status-card,.audit-finding,.audit-empty,.step-note { border:1px solid var(--line); border-radius:var(--radius-lg); background:rgba(255,255,255,.76); }
+    .hero-panel { padding:22px; background:linear-gradient(160deg,rgba(208,98,36,.14),transparent 40%),linear-gradient(180deg,rgba(255,255,255,.82),rgba(255,255,255,.52)); }
+    .hero-metrics,.guide-list,.wizard-stack,.scale-deck { display:grid; gap:14px; } .hero-metrics dd { margin:0; font-weight:700; } .hero-metrics dt { color:var(--muted); font-size:.8rem; text-transform:uppercase; letter-spacing:.12em; }
+    .wizard-shell { display:grid; gap:18px; margin-top:20px; } .wizard-progress-card,.panel { padding:24px; border-radius:var(--radius-xl); border:1px solid var(--line); background:rgba(255,255,255,.78); box-shadow:var(--shadow); }
+    .wizard-stepper { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:12px; }
+    .wizard-step-button,.nav-chip,.primary-button,.ghost-button,.result-tab { border:1px solid var(--line); cursor:pointer; }
+    .wizard-step-button { display:grid; gap:8px; align-content:start; padding:16px; text-align:left; border-radius:var(--radius-md); background:rgba(255,255,255,.8); color:var(--text); }
+    .wizard-step-button strong { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; background:rgba(31,106,82,.12); color:var(--green); }
+    .wizard-step-button.is-active { border-color:rgba(208,98,36,.34); background:rgba(208,98,36,.12); }
+    .wizard-progress-track { width:100%; height:12px; border-radius:999px; background:rgba(27,35,33,.08); overflow:hidden; } .wizard-progress-fill { display:block; height:100%; width:20%; border-radius:inherit; background:linear-gradient(135deg,var(--accent),#e18a41); transition:.22s ease; }
+    .section-pane { display:none; margin-top:24px; } .section-pane.is-active { display:block; }
+    .step-intro,.panel-heading,.scale-card header,.wizard-actions { display:flex; justify-content:space-between; gap:18px; align-items:start; margin-bottom:18px; }
+    .wizard-grid { display:grid; gap:24px; grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr); }
+    .field-grid,.toggle-grid,.summary-grid,.indicator-grid,.matrix-stats { display:grid; gap:14px; } .field-grid,.toggle-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .summary-grid,.indicator-grid,.matrix-stats { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .field { display:grid; gap:8px; } .field span { font-weight:700; font-size:.95rem; } .field input,.field select { width:100%; padding:13px 14px; border-radius:var(--radius-sm); border:1px solid var(--line); background:var(--surface-strong); color:var(--text); } .field-full { grid-column:1/-1; }
+    .toggle-card { position:relative; display:grid; gap:6px; padding:16px 16px 16px 48px; border-radius:var(--radius-md); background:var(--surface); border:1px solid var(--line); cursor:pointer; } .toggle-card input { position:absolute; inset:18px auto auto 16px; width:18px; height:18px; accent-color:var(--accent); } .toggle-card small { color:var(--muted); }
+    .primary-button,.ghost-button { border-radius:999px; padding:13px 20px; font-weight:700; } .primary-button { background:linear-gradient(135deg,var(--accent),#e18a41); color:#fff; border-color:transparent; } .ghost-button { background:rgba(255,255,255,.74); color:var(--text); border-color:var(--line); text-decoration:none; }
+    .summary-card,.indicator-card,.mini-stat { padding:18px; border-radius:var(--radius-lg); background:var(--surface); border:1px solid var(--line); display:grid; gap:8px; } .summary-card span,.indicator-card span,.mini-stat span { color:var(--muted); font-size:.9rem; } .summary-card strong,.indicator-card strong { font-family:var(--font-display); font-size:1.65rem; } .highlight-card { background:linear-gradient(160deg,rgba(31,106,82,.18),transparent 50%),var(--surface-strong); }
+    .result-tabs { margin:18px 0; } .result-tab,.nav-chip { border-radius:999px; padding:10px 14px; background:rgba(255,255,255,.82); color:var(--muted); font-weight:700; } .result-tab.is-active,.nav-chip.is-active { color:var(--green); border-color:rgba(31,106,82,.28); background:rgba(31,106,82,.12); }
+    .result-pane { display:none; } .result-pane.is-active { display:block; }
+    .table-wrap { overflow-x:auto; border-radius:var(--radius-md); border:1px solid var(--line); background:rgba(255,255,255,.82); } .tech-table,.scale-table { width:100%; border-collapse:collapse; font-size:.94rem; } .tech-table th,.tech-table td,.scale-table th,.scale-table td { padding:12px 14px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; } .tech-table th,.scale-table th { background:rgba(31,106,82,.08); font-size:.8rem; text-transform:uppercase; letter-spacing:.08em; } .tech-table td small { display:block; margin-top:4px; color:var(--muted); }
+    .scale-card { overflow:hidden; } .scale-card header { padding:18px 20px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.72); margin:0; } .scale-card p { margin:0; } .scale-table td:last-child,.scale-table th:last-child { text-align:right; }
+    .pill-rem { background:rgba(31,106,82,.14); color:var(--green); } .pill-info { background:rgba(84,97,93,.12); color:var(--muted); }
+    .receipt-hero { display:grid; gap:10px; padding:20px 22px; border-radius:var(--radius-lg); color:#fff; background:linear-gradient(145deg,rgba(16,58,51,.96),rgba(31,106,82,.94)); } .receipt-columns { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin-top:16px; } .receipt-column { padding:18px; border-radius:var(--radius-md); border:1px solid var(--line); background:rgba(255,255,255,.82); } .receipt-row,.receipt-total { display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid var(--line); } .receipt-total { margin-top:16px; padding:16px; border-radius:var(--radius-md); border:1px solid rgba(208,98,36,.16); background:linear-gradient(135deg,rgba(208,98,36,.14),rgba(31,106,82,.12)); }
+    .guide-list article,.audit-finding,.audit-empty,.step-note { padding:14px 16px; } .guide-list p,.audit-finding p,.audit-empty p,.step-note p { margin:6px 0 0; color:var(--muted); line-height:1.55; } .audit-finding.is-warning { border-color:rgba(208,98,36,.22); background:var(--warning-soft); }
+    .mono { white-space:pre-wrap; background:#101916; color:#e6f3ed; border-radius:10px; padding:12px; overflow:auto; max-height:420px; font-family:Consolas,monospace; font-size:12px; }
+    @media(max-width:1120px) { .hero,.wizard-grid { grid-template-columns:1fr; } .wizard-stepper,.summary-grid,.indicator-grid,.matrix-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media(max-width:760px) { .page-shell { width:min(100%,calc(100% - 20px)); margin:12px auto 28px; } .hero,.panel,.wizard-progress-card { padding:18px; border-radius:20px; } .app-bar,.step-intro,.panel-heading,.scale-card header,.wizard-actions { flex-direction:column; } .wizard-stepper,.field-grid,.toggle-grid,.summary-grid,.indicator-grid,.matrix-stats,.receipt-columns { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <div class="app-bar">
+      <div class="app-brand"><span class="brand-kicker">Meta-modelo + 454/2006</span><strong>SMATA - ACA</strong><small>HTML unico, offline y trazable generado desde convenio y escala salarial.</small></div>
+      <div class="app-actions"><span class="app-pill">Remunerativos + NR</span><span class="app-pill">Auditoria + recibo</span><button id="print-button" type="button" class="ghost-button">Imprimir</button><a class="ghost-button" href="/portal-cct.html">Portal</a></div>
+    </div>
+
+    <header class="hero">
+      <div><p class="eyebrow">Liquidacion profesional y trazable</p><h1>SMATA - ACA</h1><p class="hero-text">Estaciones de Servicio del Automóvil Club Argentino</p><div class="hero-pills"><span>Escalas detectadas</span><span>Recibo dinamico</span><span>Modo auditoria</span><span>JSON tecnico</span></div></div>
+      <aside class="hero-panel"><h2>Fuente activa</h2><p>Calculadora generada desde PDF con estructura JSON revisable.</p><dl class="hero-metrics"><div><dt>Convenio</dt><dd>454/2006</dd></div><div><dt>Divisor mensual</dt><dd>30 dias</dd></div><div><dt>Horas mensuales</dt><dd>196</dd></div><div><dt>Estado</dt><dd>json_codex_estructurado</dd></div></dl></aside>
+    </header>
+
+    <div class="wizard-shell"><section class="wizard-progress-card"><p class="section-label">Proceso guiado enterprise</p><h2 id="wizard-progress-title">Paso 1 de 5 · Datos generales</h2><p id="wizard-progress-caption" class="wizard-progress-caption">Configura el contexto del legajo antes de revisar escalas, liquidacion y auditoria.</p><div class="wizard-progress-track"><span id="wizard-progress-fill" class="wizard-progress-fill"></span></div></section><nav class="wizard-stepper" aria-label="Pasos"><button type="button" class="wizard-step-button is-active" data-step="general"><strong>1</strong><span>Datos generales</span><small>Categoria, dias y jornada.</small></button><button type="button" class="wizard-step-button" data-step="concepts"><strong>2</strong><span>Conceptos</span><small>Adicionales y descuentos.</small></button><button type="button" class="wizard-step-button" data-step="result"><strong>3</strong><span>Resultado</span><small>Resumen y recibo.</small></button><button type="button" class="wizard-step-button" data-step="audit"><strong>4</strong><span>Auditoria</span><small>Alertas y matriz tecnica.</small></button><button type="button" class="wizard-step-button" data-step="json"><strong>5</strong><span>JSON tecnico</span><small>Datos fuente.</small></button></nav></div>
+
+    <section id="section-general" class="section-pane is-active"><div class="step-intro"><div><p class="section-label">Paso 1</p><h2>Datos generales del legajo</h2></div><p>Elegí la categoria y los tiempos liquidados. El motor usa sueldo mensual si existe; si no, valor hora.</p></div><div class="wizard-grid"><section class="panel"><div class="field-grid"><label class="field field-full"><span>Categoria</span><select id="category-id"><option value="0">Oficial Superior</option>
+<option value="1">Oficial de Primera</option>
+<option value="2">Oficial</option>
+<option value="3">Medio Oficial</option>
+<option value="4">Operario Inicial</option>
+<option value="5">Operario Múltiple</option>
+<option value="6">Administrativo A</option>
+<option value="7">Administrativo B</option>
+<option value="8">=== ARCHIVO DEL CONVENIO</option>
+<option value="9">23/4/26, 11</option>
+<option value="10">Bol.Oficial</option>
+<option value="11">SMATA, Automóvil Club Argentino, CCT 454/2006. Obreros y administrativos. Convenio</option>
+<option value="12">Actividad y Categoría de Trabajadores a que se refiere</option>
+<option value="13">d) Jefes y/o Encargados y/o Capataces que dirijan o distribuyan el trabajo al personal. Dichos cargos</option>
+<option value="14">Personal Administrativo.</option>
+<option value="15">Personal de producción</option>
+<option value="16">CATEGORÍAS</option>
+<option value="17">Auxilio mecánico</option>
+<option value="18">enseña a todos sus compañeros. La promoción a esta categoría deberá ser consensuada en la</option>
+<option value="19">Oficial de Primera</option></select></label><label class="field"><span>Dias trabajados</span><input id="worked-days" type="number" min="0" max="31" step="1" value="30" /></label><label class="field"><span>Horas trabajadas</span><input id="worked-hours" type="number" min="0" step="0.5" value="0" /></label><label class="field"><span>Antiguedad (%)</span><input id="seniority-rate" type="number" min="0" step="0.1" value="0" /></label><label class="field"><span>Coeficiente jornada</span><input id="jornada-coefficient" type="number" min="0.1" max="1" step="0.05" value="1" /></label></div><div class="toggle-grid"><label class="toggle-card"><input id="union-toggle" type="checkbox" checked /><span>Aplicar sindicato</span><small>Descuento configurable 2%.</small></label><label class="toggle-card"><input id="debug-toggle" type="checkbox" /><span>Modo debug</span><small>Muestra JSON y trazas.</small></label></div><div class="wizard-actions"><div class="step-note"><strong>Objetivo</strong><p>Definir la base de calculo antes de cargar conceptos.</p></div><div class="wizard-actions-right"><button type="button" class="primary-button" data-next="concepts">Continuar</button></div></div></section><section class="wizard-stack"><section class="panel"><p class="section-label">Escala activa</p><h2>Referencia detectada</h2><div class="summary-grid" style="margin-top:16px"><article class="summary-card"><span>Categorias</span><strong>20</strong></article><article class="summary-card"><span>Adicionales</span><strong>19</strong></article><article class="summary-card"><span>Confianza</span><strong>0.6</strong></article><article class="summary-card"><span>Horas</span><strong>196</strong></article></div></section></section></div></section>
+
+    <section id="section-concepts" class="section-pane"><div class="step-intro"><div><p class="section-label">Paso 2</p><h2>Conceptos, adicionales y escalas</h2></div><p>Revisá importes detectados y cargá ajustes manuales del periodo.</p></div><div class="wizard-grid"><section class="panel"><div class="field-grid"><label class="field"><span>Adicional manual ($)</span><input id="manual-additional" type="number" min="0" step="0.01" value="0" /></label><label class="field"><span>Descuentos manuales ($)</span><input id="manual-deductions" type="number" min="0" step="0.01" value="0" /></label><label class="field"><span>Horas extra 50%</span><input id="overtime-50" type="number" min="0" step="0.5" value="0" /></label><label class="field"><span>Horas extra 100%</span><input id="overtime-100" type="number" min="0" step="0.5" value="0" /></label></div><div class="wizard-actions"><button type="button" class="ghost-button" data-prev="general">Volver</button><button type="button" class="primary-button" id="calculate-button" data-next="result">Calcular</button></div></section><section class="panel"><p class="section-label">Escalas salariales</p><h2>Categorias detectadas</h2><div class="scale-deck" style="margin-top:16px">
+        <article class="scale-card">
+          <header>
+            <div><h3>Oficial Superior</h3><p>Personal obrero calificado</p></div>
+            <span class="pill pill-info">obrero</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>Art. 4</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>Oficial de Primera</h3><p>Personal obrero calificado</p></div>
+            <span class="pill pill-info">obrero</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>Art. 4</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>Oficial</h3><p>Personal obrero calificado</p></div>
+            <span class="pill pill-info">obrero</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>Art. 4</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>Medio Oficial</h3><p>Personal obrero calificado</p></div>
+            <span class="pill pill-info">obrero</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>Art. 4</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>Operario Inicial</h3><p>Personal obrero inicial</p></div>
+            <span class="pill pill-info">obrero</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>Art. 4</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>Operario Múltiple</h3><p>Personal obrero múltiple</p></div>
+            <span class="pill pill-info">obrero</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>Art. 4</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>Administrativo A</h3><p>Más de 1 año de antigüedad</p></div>
+            <span class="pill pill-info">administrativo</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>Art. 4</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>Administrativo B</h3><p>Hasta 1 año de antigüedad</p></div>
+            <span class="pill pill-info">administrativo</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>Art. 4</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>=== ARCHIVO DEL CONVENIO</h3><p>CCT 454_2006. Obreros y administrativos. Convenio Colectivo_ (1).pdf ===</p></div>
+            <span class="pill pill-info">otro</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>=== ARCHIVO DEL CONVENIO: CCT 454_2006. Obreros y administrativos. Convenio Colectivo_ (1).pdf ===</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>23/4/26, 11</h3><p>28 a.m. SMATA, Automóvil Club Argentino, CCT 454/2006. Obreros y administrativos. Convenio Colectivo.</p></div>
+            <span class="pill pill-info">otro</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>23/4/26, 11:28 a.m. SMATA, Automóvil Club Argentino, CCT 454/2006. Obreros y administrativos. Convenio Colectivo.</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>Bol.Oficial</h3><p>01/08/2006</p></div>
+            <span class="pill pill-info">jornalizado</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>Bol.Oficial: 01/08/2006</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>SMATA, Automóvil Club Argentino, CCT 454/2006. Obreros y administrativos. Convenio</h3><p>SMATA, Automóvil Club Argentino, CCT 454/2006. Obreros y administrativos. Convenio</p></div>
+            <span class="pill pill-info">administrativo</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>SMATA, Automóvil Club Argentino, CCT 454/2006. Obreros y administrativos. Convenio</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>Actividad y Categoría de Trabajadores a que se refiere</h3><p>Personal obrero y administrativo dependiente</p></div>
+            <span class="pill pill-info">otro</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>Actividad y Categoría de Trabajadores a que se refiere: Personal obrero y administrativo dependiente</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>d) Jefes y/o Encargados y/o Capataces que dirijan o distribuyan el trabajo al personal. Dichos cargos</h3><p>d) Jefes y/o Encargados y/o Capataces que dirijan o distribuyan el trabajo al personal. Dichos cargos</p></div>
+            <span class="pill pill-info">mensualizado</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>d) Jefes y/o Encargados y/o Capataces que dirijan o distribuyan el trabajo al personal. Dichos cargos</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>Personal Administrativo.</h3><p>Personal Administrativo.</p></div>
+            <span class="pill pill-info">administrativo</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>Personal Administrativo.</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>Personal de producción</h3><p>quedan establecidas las siguientes ramas y sus respectivas categorías</p></div>
+            <span class="pill pill-info">otro</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>Personal de producción: quedan establecidas las siguientes ramas y sus respectivas categorías</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>CATEGORÍAS</h3><p>CATEGORÍAS</p></div>
+            <span class="pill pill-info">otro</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>CATEGORÍAS</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>Auxilio mecánico</h3><p>Auxilio mecánico</p></div>
+            <span class="pill pill-info">otro</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>Auxilio mecánico</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>enseña a todos sus compañeros. La promoción a esta categoría deberá ser consensuada en la</h3><p>enseña a todos sus compañeros. La promoción a esta categoría deberá ser consensuada en la</p></div>
+            <span class="pill pill-info">otro</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>enseña a todos sus compañeros. La promoción a esta categoría deberá ser consensuada en la</td></tr>
+          </tbody></table>
+        </article>
+        
+
+        <article class="scale-card">
+          <header>
+            <div><h3>Oficial de Primera</h3><p>Es el personal de auxilio mecánico con más de 2 años de antigüedad.</p></div>
+            <span class="pill pill-info">jornalizado</span>
+          </header>
+          <table class="scale-table"><tbody>
+            <tr><th>Sueldo mensual</th><td>-</td></tr>
+            <tr><th>Valor hora</th><td>-</td></tr>
+            <tr><th>Fuente</th><td>Oficial de Primera: Es el personal de auxilio mecánico con más de 2 años de antigüedad.</td></tr>
+          </tbody></table>
+        </article>
+        </div></section></div></section>
+
+    <section id="section-result" class="section-pane"><div class="step-intro"><div><p class="section-label">Paso 3</p><h2>Resultado final y salida operativa</h2></div><p>Resumen, vista recibo y explicacion paso a paso.</p></div><section class="panel"><div class="result-tabs"><button type="button" class="result-tab is-active" data-tab="summary">Resumen</button><button type="button" class="result-tab" data-tab="receipt">Vista recibo</button><button type="button" class="result-tab" data-tab="calc">Como se calculo</button></div><div id="pane-summary" class="result-pane is-active"><div class="summary-grid"><article class="summary-card"><span>Bruto remunerativo</span><strong id="gross-rem">$ 0,00</strong></article><article class="summary-card"><span>Descuentos</span><strong id="deductions-total">$ 0,00</strong></article><article class="summary-card"><span>No remunerativos</span><strong id="non-rem-total">$ 0,00</strong></article><article class="summary-card highlight-card"><span>Total bolsillo</span><strong id="take-home-total">$ 0,00</strong></article></div><div class="indicator-grid" style="margin-top:14px"><article class="indicator-card"><span>Valor hora</span><strong id="hour-value">$ 0,00</strong></article><article class="indicator-card"><span>Base social</span><strong id="social-base">$ 0,00</strong></article><article class="indicator-card"><span>Base obra/sindicato</span><strong id="health-base">$ 0,00</strong></article><article class="indicator-card"><span>% descuentos</span><strong id="discount-rate">0,00%</strong></article></div></div><div id="pane-receipt" class="result-pane"><div id="receipt-view"></div></div><div id="pane-calc" class="result-pane"><div class="guide-list" id="step-by-step"></div></div><div class="wizard-actions"><button type="button" class="ghost-button" data-prev="concepts">Volver</button><button type="button" class="primary-button" data-next="audit">Continuar a auditoria</button></div></section></section>
+
+    <section id="section-audit" class="section-pane"><div class="step-intro"><div><p class="section-label">Paso 4</p><h2>Auditoria preventiva laboral</h2></div><p>Alertas, pendientes, adicionales y matriz tecnica separada del resultado final.</p></div><div class="wizard-grid"><section class="panel"><div class="matrix-stats"><article class="mini-stat"><span>Estado</span><strong>json_codex_estructurado</strong></article><article class="mini-stat"><span>Pendientes</span><strong>5</strong></article><article class="mini-stat"><span>Alertas</span><strong>2</strong></article><article class="mini-stat"><span>Conceptos</span><strong>6</strong></article></div><div class="guide-list" style="margin-top:18px"><article class='audit-finding is-warning'><strong>Alerta</strong><p>Los valores monetarios detectados son históricos (2006) y no aptos para liquidación actual</p></article>
+<article class='audit-finding is-warning'><strong>Alerta</strong><p>El archivo 2026 no contiene tablas salariales legibles</p></article><article><strong>Pendiente</strong><p>Validar escalas e importes exactos por categoria.</p></article>
+<article><strong>Pendiente</strong><p>Confirmar formulas y base de calculo antes de usar la calculadora.</p></article>
+<article><strong>Pendiente</strong><p>Revisar conceptos especiales, licencias y no remunerativos del convenio.</p></article>
+<article><strong>Pendiente</strong><p>Valores salariales 2026 no encontrados en el texto</p></article>
+<article><strong>Pendiente</strong><p>Confirmar si el valor base de antigüedad de $1100 debe actualizarse</p></article></div></section><section class="panel"><p class="section-label">Adicionales</p><h2>Detectados</h2><div class="table-wrap"><table class="tech-table"><thead><tr><th>Nombre</th><th>Tipo</th><th>Valor</th><th>Base</th><th>Condicion</th></tr></thead><tbody><tr><td>Antigüedad</td><td>porcentaje</td><td>-</td><td>1100</td><td>Escala progresiva 1% a 29%</td></tr>
+<tr><td>Jornada 6x2 y 2x2</td><td>porcentaje</td><td>32.5</td><td>basico</td><td>Jornadas especiales</td></tr>
+<tr><td>Otras jornadas especiales</td><td>porcentaje</td><td>18.5</td><td>basico</td><td>Otras modalidades</td></tr>
+<tr><td>Zona desfavorable</td><td>otro</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>Adicional detectado</td><td>porcentaje</td><td>15</td><td>-</td><td>-</td></tr>
+<tr><td>Antiguedad</td><td>otro</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>Antiguedad</td><td>otro</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>Antiguedad</td><td>otro</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>Antiguedad</td><td>otro</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>Antiguedad</td><td>otro</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>Antiguedad</td><td>otro</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>Antiguedad</td><td>otro</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>Antiguedad</td><td>otro</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>Antiguedad</td><td>otro</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>Antiguedad</td><td>otro</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>Antiguedad</td><td>otro</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>Antiguedad</td><td>otro</td><td>-</td><td>-</td><td>-</td></tr>
+<tr><td>Adicional detectado</td><td>porcentaje</td><td>1</td><td>-</td><td>-</td></tr>
+<tr><td>Adicional detectado</td><td>porcentaje</td><td>2</td><td>-</td><td>-</td></tr></tbody></table></div></section></div><section class="panel" style="margin-top:24px"><p class="section-label">Matriz tecnica</p><h2>Reglas y conceptos</h2><div class="table-wrap"><table class="tech-table"><thead><tr><th>Codigo</th><th>Concepto</th><th>Tipo</th><th>LSD</th></tr></thead><tbody><tr><td>101</td><td>Sueldo Basico Proporcional<small>escala_categoria * dias_trabajados / divisor_mensual</small></td><td><span class="pill pill-rem">remunerativo</span></td><td>001</td></tr>
+<tr><td>102</td><td>Antiguedad<small>basico_proporcional * porcentaje_antiguedad</small></td><td><span class="pill pill-rem">remunerativo</span></td><td>005</td></tr>
+<tr><td>103</td><td>Presentismo<small>segun regla convencional confirmada</small></td><td><span class="pill pill-rem">remunerativo</span></td><td>010</td></tr>
+<tr><td>120</td><td>Zona desfavorable<small>base_convencional * porcentaje_zona</small></td><td><span class="pill pill-rem">remunerativo</span></td><td>020</td></tr>
+<tr><td>130</td><td>Horas extra 50%<small>valor_hora * horas_50 * 1.5</small></td><td><span class="pill pill-rem">remunerativo</span></td><td>030</td></tr>
+<tr><td>131</td><td>Horas extra 100%<small>valor_hora * horas_100 * 2</small></td><td><span class="pill pill-rem">remunerativo</span></td><td>031</td></tr></tbody></table></div><div class="table-wrap" style="margin-top:18px"><table class="tech-table"><thead><tr><th>Paso</th><th>Concepto</th><th>Formula</th><th>Incidencia</th></tr></thead><tbody><tr><td>1</td><td>Sueldo Basico Proporcional</td><td>escala_categoria * dias_trabajados / divisor_mensual</td><td>SI/SI/SI</td></tr>
+<tr><td>2</td><td>Antiguedad</td><td>basico_proporcional * porcentaje_antiguedad</td><td>SI/SI/SI</td></tr>
+<tr><td>3</td><td>Presentismo</td><td>segun regla convencional confirmada</td><td>SI/SI/SI</td></tr>
+<tr><td>4</td><td>Zona desfavorable</td><td>base_convencional * porcentaje_zona</td><td>SI/SI/SI</td></tr>
+<tr><td>5</td><td>Horas extra 50%</td><td>valor_hora * horas_50 * 1.5</td><td>SI/SI/SI</td></tr>
+<tr><td>6</td><td>Horas extra 100%</td><td>valor_hora * horas_100 * 2</td><td>SI/SI/SI</td></tr></tbody></table></div><div class="wizard-actions"><button type="button" class="ghost-button" data-prev="result">Volver</button><button type="button" class="primary-button" data-next="json">Ver JSON</button></div></section></section>
+
+    <section id="section-json" class="section-pane"><div class="step-intro"><div><p class="section-label">Paso 5</p><h2>JSON tecnico</h2></div><p>Datos fuente usados para construir esta calculadora.</p></div><section class="panel"><div class="mono" id="jsonbox"></div><div class="wizard-actions"><button type="button" class="ghost-button" data-prev="audit">Volver</button><button type="button" class="primary-button" onclick="window.print()">Imprimir</button></div></section></section>
+  </div>
+
+  <script>
+    const DATA = {"version": "2025-05-22", "archivo_fuente": "CCT 454_2006. Obreros y administrativos. Convenio Colectivo_ (1).pdf + escala_salarial_smata_aca_2026.pdf", "estado": "json_codex_estructurado", "convenio": {"nombre": "SMATA - ACA", "actividad": "Estaciones de Servicio del Automóvil Club Argentino", "ambito": "Nacional", "cct_numero": "454/2006", "vigencia_detectada": "2005-2006"}, "parametros": {"divisor_mensual": 30, "horas_mensuales": 196, "horas_semanales": 48, "base_calculo": "simple"}, "categorias": [{"id": "oficial_superior", "nombre": "Oficial Superior", "tipo": "obrero", "descripcion": "Personal obrero calificado", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "Art. 4"}, {"id": "oficial_primera", "nombre": "Oficial de Primera", "tipo": "obrero", "descripcion": "Personal obrero calificado", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "Art. 4"}, {"id": "oficial", "nombre": "Oficial", "tipo": "obrero", "descripcion": "Personal obrero calificado", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "Art. 4"}, {"id": "medio_oficial", "nombre": "Medio Oficial", "tipo": "obrero", "descripcion": "Personal obrero calificado", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "Art. 4"}, {"id": "operario_inicial", "nombre": "Operario Inicial", "tipo": "obrero", "descripcion": "Personal obrero inicial", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "Art. 4"}, {"id": "operario_multiple", "nombre": "Operario Múltiple", "tipo": "obrero", "descripcion": "Personal obrero múltiple", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "Art. 4"}, {"id": "administrativo_a", "nombre": "Administrativo A", "tipo": "administrativo", "descripcion": "Más de 1 año de antigüedad", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "Art. 4"}, {"id": "administrativo_b", "nombre": "Administrativo B", "tipo": "administrativo", "descripcion": "Hasta 1 año de antigüedad", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "Art. 4"}, {"id": "archivo_del_convenio", "nombre": "=== ARCHIVO DEL CONVENIO", "tipo": "otro", "descripcion": "CCT 454_2006. Obreros y administrativos. Convenio Colectivo_ (1).pdf ===", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "=== ARCHIVO DEL CONVENIO: CCT 454_2006. Obreros y administrativos. Convenio Colectivo_ (1).pdf ==="}, {"id": "23_4_26_11", "nombre": "23/4/26, 11", "tipo": "otro", "descripcion": "28 a.m. SMATA, Automóvil Club Argentino, CCT 454/2006. Obreros y administrativos. Convenio Colectivo.", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "23/4/26, 11:28 a.m. SMATA, Automóvil Club Argentino, CCT 454/2006. Obreros y administrativos. Convenio Colectivo."}, {"id": "bol_oficial", "nombre": "Bol.Oficial", "tipo": "jornalizado", "descripcion": "01/08/2006", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "Bol.Oficial: 01/08/2006"}, {"id": "smata_automovil_club_argentino_cct_454_2006_obre", "nombre": "SMATA, Automóvil Club Argentino, CCT 454/2006. Obreros y administrativos. Convenio", "tipo": "administrativo", "descripcion": "SMATA, Automóvil Club Argentino, CCT 454/2006. Obreros y administrativos. Convenio", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "SMATA, Automóvil Club Argentino, CCT 454/2006. Obreros y administrativos. Convenio"}, {"id": "actividad_y_categoria_de_trabajadores_a_que_se_r", "nombre": "Actividad y Categoría de Trabajadores a que se refiere", "tipo": "otro", "descripcion": "Personal obrero y administrativo dependiente", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "Actividad y Categoría de Trabajadores a que se refiere: Personal obrero y administrativo dependiente"}, {"id": "d_jefes_y_o_encargados_y_o_capataces_que_dirijan", "nombre": "d) Jefes y/o Encargados y/o Capataces que dirijan o distribuyan el trabajo al personal. Dichos cargos", "tipo": "mensualizado", "descripcion": "d) Jefes y/o Encargados y/o Capataces que dirijan o distribuyan el trabajo al personal. Dichos cargos", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "d) Jefes y/o Encargados y/o Capataces que dirijan o distribuyan el trabajo al personal. Dichos cargos"}, {"id": "personal_administrativo", "nombre": "Personal Administrativo.", "tipo": "administrativo", "descripcion": "Personal Administrativo.", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "Personal Administrativo."}, {"id": "personal_de_produccion", "nombre": "Personal de producción", "tipo": "otro", "descripcion": "quedan establecidas las siguientes ramas y sus respectivas categorías", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "Personal de producción: quedan establecidas las siguientes ramas y sus respectivas categorías"}, {"id": "categorias", "nombre": "CATEGORÍAS", "tipo": "otro", "descripcion": "CATEGORÍAS", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "CATEGORÍAS"}, {"id": "auxilio_mecanico", "nombre": "Auxilio mecánico", "tipo": "otro", "descripcion": "Auxilio mecánico", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "Auxilio mecánico"}, {"id": "ensena_a_todos_sus_companeros_la_promocion_a_est", "nombre": "enseña a todos sus compañeros. La promoción a esta categoría deberá ser consensuada en la", "tipo": "otro", "descripcion": "enseña a todos sus compañeros. La promoción a esta categoría deberá ser consensuada en la", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "enseña a todos sus compañeros. La promoción a esta categoría deberá ser consensuada en la"}, {"id": "oficial_de_primera", "nombre": "Oficial de Primera", "tipo": "jornalizado", "descripcion": "Es el personal de auxilio mecánico con más de 2 años de antigüedad.", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": "Oficial de Primera: Es el personal de auxilio mecánico con más de 2 años de antigüedad."}], "adicionales": [{"nombre": "Antigüedad", "tipo": "porcentaje", "valor": null, "base": "1100", "condicion": "Escala progresiva 1% a 29%", "codigo_sugerido": "antiguedad", "lsd": null, "fuente_textual": "Art. 7"}, {"nombre": "Jornada 6x2 y 2x2", "tipo": "porcentaje", "valor": 32.5, "base": "basico", "condicion": "Jornadas especiales", "codigo_sugerido": "adic_jornada", "lsd": null, "fuente_textual": "Art. 3"}, {"nombre": "Otras jornadas especiales", "tipo": "porcentaje", "valor": 18.5, "base": "basico", "condicion": "Otras modalidades", "codigo_sugerido": "adic_jornada", "lsd": null, "fuente_textual": "Art. 3"}, {"nombre": "Zona desfavorable", "tipo": "otro", "valor": null, "base": null, "condicion": null, "codigo_sugerido": "120", "lsd": null, "fuente_textual": "Zona de aplicación: Todo el territorio de la República Argentina."}, {"nombre": "Adicional detectado", "tipo": "porcentaje", "valor": 15, "base": null, "condicion": null, "codigo_sugerido": "150", "lsd": null, "fuente_textual": "no podrán superar el 15% (quince por ciento) del personal;"}, {"nombre": "Antiguedad", "tipo": "otro", "valor": null, "base": null, "condicion": null, "codigo_sugerido": "102", "lsd": null, "fuente_textual": "Oficial de Primera: Es el personal de auxilio mecánico con más de 2 años de antigüedad."}, {"nombre": "Antiguedad", "tipo": "otro", "valor": null, "base": null, "condicion": null, "codigo_sugerido": "102", "lsd": null, "fuente_textual": "Oficial: es el personal de auxilio mecánico cuya antigüedad esté comprendida entre un año y hasta"}, {"nombre": "Antiguedad", "tipo": "otro", "valor": null, "base": null, "condicion": null, "codigo_sugerido": "102", "lsd": null, "fuente_textual": "Medio oficial: Es el personal de auxilio mecánico que ingresa hasta un año de antigüedad."}, {"nombre": "Antiguedad", "tipo": "otro", "valor": null, "base": null, "condicion": null, "codigo_sugerido": "102", "lsd": null, "fuente_textual": "Oficial de primera: Es el personal con más de un año de antigüedad."}, {"nombre": "Antiguedad", "tipo": "otro", "valor": null, "base": null, "condicion": null, "codigo_sugerido": "102", "lsd": null, "fuente_textual": "Oficial: Es el personal que ingresa hasta un año de antigüedad."}, {"nombre": "Antiguedad", "tipo": "otro", "valor": null, "base": null, "condicion": null, "codigo_sugerido": "102", "lsd": null, "fuente_textual": "Medio oficial: Es el personal desde su ingreso hasta un año de antigüedad."}, {"nombre": "Antiguedad", "tipo": "otro", "valor": null, "base": null, "condicion": null, "codigo_sugerido": "102", "lsd": null, "fuente_textual": "Medio oficial: Es el personal con más de un año de antigüedad."}, {"nombre": "Antiguedad", "tipo": "otro", "valor": null, "base": null, "condicion": null, "codigo_sugerido": "102", "lsd": null, "fuente_textual": "Operario inicial: Es el personal hasta un año de antigüedad."}, {"nombre": "Antiguedad", "tipo": "otro", "valor": null, "base": null, "condicion": null, "codigo_sugerido": "102", "lsd": null, "fuente_textual": "año de antigüedad."}, {"nombre": "Antiguedad", "tipo": "otro", "valor": null, "base": null, "condicion": null, "codigo_sugerido": "102", "lsd": null, "fuente_textual": "hasta un año de antigüedad."}, {"nombre": "Antiguedad", "tipo": "otro", "valor": null, "base": null, "condicion": null, "codigo_sugerido": "102", "lsd": null, "fuente_textual": "ADICIONAL POR ANTIGÜEDAD"}, {"nombre": "Antiguedad", "tipo": "otro", "valor": null, "base": null, "condicion": null, "codigo_sugerido": "102", "lsd": null, "fuente_textual": "antigüedad de acuerdo a la siguiente escala:"}, {"nombre": "Adicional detectado", "tipo": "porcentaje", "valor": 1, "base": null, "condicion": null, "codigo_sugerido": "150", "lsd": null, "fuente_textual": "1 1% 16 16%"}, {"nombre": "Adicional detectado", "tipo": "porcentaje", "valor": 2, "base": null, "condicion": null, "codigo_sugerido": "150", "lsd": null, "fuente_textual": "2 2% 17 17%"}], "reglas_liquidacion": {"antiguedad": "Escala progresiva", "presentismo": {"tipo": "otro", "valor": null, "fuente_textual": "tendrá a su cargo la introducción de bonificaciones para los trabajadores, que contemplen presentismo;"}, "zona_desfavorable": {"tipo": "otro", "valor": null, "fuente_textual": "Zona de aplicación: Todo el territorio de la República Argentina."}, "horas_extra": "Recargo según ley", "licencias": ["Vacaciones 15 a 36 días según antigüedad"], "no_remunerativos": [{"tipo": "otro", "valor": null, "fuente_textual": "2. Gratificación Extraordinaria No Remunerativa (GENR)"}]}, "pendientes_revision": ["Validar escalas e importes exactos por categoria.", "Confirmar formulas y base de calculo antes de usar la calculadora.", "Revisar conceptos especiales, licencias y no remunerativos del convenio.", "Valores salariales 2026 no encontrados en el texto", "Confirmar si el valor base de antigüedad de $1100 debe actualizarse"], "alertas": ["Los valores monetarios detectados son históricos (2006) y no aptos para liquidación actual", "El archivo 2026 no contiene tablas salariales legibles"], "nivel_confianza": 0.6, "conceptos": [{"codigo": "101", "nombre": "Sueldo Basico Proporcional", "tipo": "remunerativo", "formula": "escala_categoria * dias_trabajados / divisor_mensual", "lsd": "001", "ganancias": "gravado", "incidencia": {"jubilacion": true, "obra_social": true, "sindicato": true}}, {"codigo": "102", "nombre": "Antiguedad", "tipo": "remunerativo", "formula": "basico_proporcional * porcentaje_antiguedad", "lsd": "005", "ganancias": "gravado", "incidencia": {"jubilacion": true, "obra_social": true, "sindicato": true}}, {"codigo": "103", "nombre": "Presentismo", "tipo": "remunerativo", "formula": "segun regla convencional confirmada", "lsd": "010", "ganancias": "gravado", "incidencia": {"jubilacion": true, "obra_social": true, "sindicato": true}}, {"codigo": "120", "nombre": "Zona desfavorable", "tipo": "remunerativo", "formula": "base_convencional * porcentaje_zona", "lsd": "020", "ganancias": "gravado", "incidencia": {"jubilacion": true, "obra_social": true, "sindicato": true}}, {"codigo": "130", "nombre": "Horas extra 50%", "tipo": "remunerativo", "formula": "valor_hora * horas_50 * 1.5", "lsd": "030", "ganancias": "gravado", "incidencia": {"jubilacion": true, "obra_social": true, "sindicato": true}}, {"codigo": "131", "nombre": "Horas extra 100%", "tipo": "remunerativo", "formula": "valor_hora * horas_100 * 2", "lsd": "031", "ganancias": "gravado", "incidencia": {"jubilacion": true, "obra_social": true, "sindicato": true}}], "matriz_tecnica": [{"paso": 1, "codigo": "101", "concepto": "Sueldo Basico Proporcional", "formula": "escala_categoria * dias_trabajados / divisor_mensual", "lsd": "001", "ganancias": "gravado", "incidencia": "SI/SI/SI"}, {"paso": 2, "codigo": "102", "concepto": "Antiguedad", "formula": "basico_proporcional * porcentaje_antiguedad", "lsd": "005", "ganancias": "gravado", "incidencia": "SI/SI/SI"}, {"paso": 3, "codigo": "103", "concepto": "Presentismo", "formula": "segun regla convencional confirmada", "lsd": "010", "ganancias": "gravado", "incidencia": "SI/SI/SI"}, {"paso": 4, "codigo": "120", "concepto": "Zona desfavorable", "formula": "base_convencional * porcentaje_zona", "lsd": "020", "ganancias": "gravado", "incidencia": "SI/SI/SI"}, {"paso": 5, "codigo": "130", "concepto": "Horas extra 50%", "formula": "valor_hora * horas_50 * 1.5", "lsd": "030", "ganancias": "gravado", "incidencia": "SI/SI/SI"}, {"paso": 6, "codigo": "131", "concepto": "Horas extra 100%", "formula": "valor_hora * horas_100 * 2", "lsd": "031", "ganancias": "gravado", "incidencia": "SI/SI/SI"}]};
+    const steps = ['general','concepts','result','audit','json'];
+    const money = (n) => new Intl.NumberFormat('es-AR', { style:'currency', currency:'ARS' }).format(Number(n || 0));
+    let last = { gross:0, deductions:0, net:0, base:0, hour:0 };
+    function showStep(id) {
+      document.querySelectorAll('.section-pane').forEach(el => el.classList.toggle('is-active', el.id === 'section-' + id));
+      document.querySelectorAll('.wizard-step-button').forEach(btn => btn.classList.toggle('is-active', btn.dataset.step === id));
+      const index = steps.indexOf(id); document.querySelector('#wizard-progress-fill').style.width = ((index + 1) / steps.length * 100) + '%';
+      document.querySelector('#wizard-progress-title').textContent = `Paso ${index + 1} de ${steps.length} · ${document.querySelector(`[data-step="${id}"] span`).textContent}`;
+    }
+    function currentCategory() { const idx = Number(document.querySelector('#category-id').value || 0); return DATA.categorias?.[idx] || {}; }
+    function calc() {
+      const cat = currentCategory(); const dias = Number(document.querySelector('#worked-days').value || 0); const horas = Number(document.querySelector('#worked-hours').value || 0); const coef = Number(document.querySelector('#jornada-coefficient').value || 1); const antPct = Number(document.querySelector('#seniority-rate').value || 0); const add = Number(document.querySelector('#manual-additional').value || 0); const manualDed = Number(document.querySelector('#manual-deductions').value || 0); const h50 = Number(document.querySelector('#overtime-50').value || 0); const h100 = Number(document.querySelector('#overtime-100').value || 0); const divisor = Number(DATA.parametros?.divisor_mensual || 30); const mensual = Number(cat.sueldo_mensual || 0); const hour = Number(cat.valor_hora || (mensual > 0 && DATA.parametros?.horas_mensuales ? mensual / Number(DATA.parametros.horas_mensuales) : 0)); const base = mensual > 0 ? mensual * coef * dias / divisor : hour * horas * coef; const antig = base * antPct / 100; const extras = hour * h50 * 1.5 + hour * h100 * 2; const gross = base + antig + extras + add; const social = gross * 0.17; const union = document.querySelector('#union-toggle').checked ? gross * 0.02 : 0; const deductions = social + union + manualDed; const net = gross - deductions; last = { gross, deductions, net, base, hour };
+      document.querySelector('#gross-rem').textContent = money(gross); document.querySelector('#deductions-total').textContent = money(deductions); document.querySelector('#non-rem-total').textContent = money(0); document.querySelector('#take-home-total').textContent = money(net); document.querySelector('#hour-value').textContent = money(hour); document.querySelector('#social-base').textContent = money(gross); document.querySelector('#health-base').textContent = money(gross); document.querySelector('#discount-rate').textContent = gross ? (deductions / gross * 100).toFixed(2).replace('.', ',') + '%' : '0,00%';
+      document.querySelector('#receipt-view').innerHTML = `<div class="receipt-hero"><strong>Recibo estimado</strong><span>${DATA.convenio?.nombre || DATA.convenio?.cct_numero || 'CCT generado'}</span></div><div class="receipt-columns"><div class="receipt-column"><h4>Haberes</h4><div class="receipt-row"><span>Basico proporcional</span><strong>${money(base)}</strong></div><div class="receipt-row"><span>Antiguedad</span><strong>${money(antig)}</strong></div><div class="receipt-row"><span>Horas extra</span><strong>${money(extras)}</strong></div><div class="receipt-row"><span>Adicional manual</span><strong>${money(add)}</strong></div></div><div class="receipt-column"><h4>Descuentos</h4><div class="receipt-row"><span>Seguridad social estimada</span><strong>${money(social)}</strong></div><div class="receipt-row"><span>Sindicato</span><strong>${money(union)}</strong></div><div class="receipt-row"><span>Manual</span><strong>${money(manualDed)}</strong></div></div></div><div class="receipt-total"><strong>Total bolsillo</strong><strong>${money(net)}</strong></div>`;
+      document.querySelector('#step-by-step').innerHTML = `<article><strong>1. Basico</strong><p>${money(base)} calculado segun escala y proporcion de dias/horas.</p></article><article><strong>2. Antiguedad</strong><p>${money(antig)} segun porcentaje informado.</p></article><article><strong>3. Extras y adicionales</strong><p>${money(extras + add)}.</p></article><article><strong>4. Descuentos</strong><p>${money(deductions)}.</p></article>`;
+    }
+    document.querySelectorAll('[data-step]').forEach(btn => btn.addEventListener('click', () => showStep(btn.dataset.step)));
+    document.querySelectorAll('[data-next]').forEach(btn => btn.addEventListener('click', () => { if (btn.id === 'calculate-button') calc(); showStep(btn.dataset.next); }));
+    document.querySelectorAll('[data-prev]').forEach(btn => btn.addEventListener('click', () => showStep(btn.dataset.prev)));
+    document.querySelectorAll('[data-tab]').forEach(btn => btn.addEventListener('click', () => { document.querySelectorAll('.result-tab').forEach(b => b.classList.toggle('is-active', b === btn)); document.querySelectorAll('.result-pane').forEach(p => p.classList.toggle('is-active', p.id === 'pane-' + btn.dataset.tab)); }));
+    document.querySelector('#print-button').addEventListener('click', () => window.print());
+    document.querySelector('#jsonbox').textContent = JSON.stringify(DATA, null, 2); calc();
+  </script>
+</body>
+</html>
