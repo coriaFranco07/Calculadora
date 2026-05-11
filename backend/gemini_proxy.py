@@ -8,18 +8,22 @@ from typing import Any, Mapping
 from urllib import error, parse, request
 
 
-DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-pro-exp")
+DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 GENERATION_MODEL_CASCADE = [
-    "gemini-2.0-pro-exp",
-    "gemini-1.5-pro",
-    "gemini-2.0-flash-thinking-exp",
+    "gemini-2.5-flash",
     "gemini-2.0-flash",
-    "gemini-1.5-flash",
-    "gemini-1.5-flash-latest",
     "gemini-2.0-flash-lite",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-pro-latest",
+    "gemini-2.0-flash-thinking-exp",
     "learnlm-1.5-pro-experimental",
 ]
-NON_GENERATIVE_MODELS = ["text-embedding-004"]
+NON_GENERATIVE_MODELS = [
+    "text-embedding-004",
+    "gemini-1.5-flash",
+    "gemini-1.5-pro",
+    "gemini-2.0-pro-exp",
+]
 FALLBACK_MODELS = [
     item.strip()
     for item in os.getenv(
