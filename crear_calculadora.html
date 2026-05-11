@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crear Calculadora CCT</title>
+    <style>
+      :root {
+        --bg: #f4f6f3;
+        --surface: #ffffff;
+        --ink: #17221c;
+        --muted: #66736c;
+        --line: #d9e1db;
+        --brand: #155a43;
+        --ok: #23704e;
+        --warn: #936500;
+        --shadow: 0 18px 45px rgba(23, 34, 28, 0.12);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: Aptos, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          linear-gradient(135deg, rgba(21, 90, 67, 0.1), transparent 38%),
+          linear-gradient(180deg, #fbfcfa 0%, var(--bg) 100%);
+      }
+
+      .shell {
+        width: min(980px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 32px 0 48px;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(255,255,255,.92);
+        box-shadow: var(--shadow);
+        padding: 24px;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 20px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(30px, 4vw, 48px);
+      }
+
+      p {
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--ink);
+        padding: 0 16px;
+        text-decoration: none;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .button.primary {
+        background: var(--brand);
+        border-color: var(--brand);
+        color: #fff;
+      }
+
+      .button:disabled {
+        opacity: .6;
+        cursor: not-allowed;
+      }
+
+      .upload-box {
+        margin-top: 18px;
+        border: 1px dashed rgba(21,90,67,.35);
+        border-radius: 12px;
+        padding: 18px;
+        background: rgba(255,255,255,.7);
+      }
+
+      label {
+        display: grid;
+        gap: 8px;
+      }
+
+      label span {
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: var(--muted);
+      }
+
+      input[type="file"] {
+        width: 100%;
+        min-height: 46px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px 12px;
+        background: #fff;
+      }
+
+      .actions {
+        margin-top: 18px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .status-box {
+        display: none;
+        margin-top: 18px;
+        border-radius: 10px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        white-space: pre-wrap;
+      }
+
+      .status-box.visible { display: block; }
+      .status-box.ok { background: #e6f3ed; border-color: #b8dfcb; color: var(--ok); }
+      .status-box.warn { background: #fff5d7; border-color: #ead28b; color: var(--warn); }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <div>
+          <h1>Crear Calculadora</h1>
+          <p>Subí un CCT en PDF para generar el JSON base de una nueva calculadora laboral.</p>
+        </div>
+        <a class="button" href="./portal-cct.html">Volver al portal</a>
+      </div>
+
+      <section class="panel">
+        <h2>Generador Gemini + Codex</h2>
+        <p>El sistema analiza el PDF, detecta categorías, adicionales y reglas de liquidación, y descarga un borrador JSON listo para revisar.</p>
+
+        <div class="upload-box">
+          <label>
+            <span>Archivo PDF del convenio</span>
+            <input id="cct-pdf" type="file" accept="application/pdf,.pdf" />
+          </label>
+
+          <div class="actions">
+            <button id="create-calculator" class="button primary" type="button">Crear Calculadora</button>
+          </div>
+
+          <div id="upload-status" class="status-box"></div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const refs = {
+        pdf: document.querySelector("#cct-pdf"),
+        createCalculator: document.querySelector("#create-calculator"),
+        uploadStatus: document.querySelector("#upload-status")
+      };
+
+      function setUploadStatus(message, type = "") {
+        refs.uploadStatus.textContent = message;
+        refs.uploadStatus.className = `status-box visible ${type}`.trim();
+      }
+
+      function downloadJson(payload, filename = "calculadora-cct.json") {
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      async function createCalculatorFromPdf() {
+        const file = refs.pdf.files?.[0];
+
+        if (!file) {
+          setUploadStatus("Seleccioná un PDF antes de continuar.", "warn");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        refs.createCalculator.disabled = true;
+        setUploadStatus("Procesando PDF con Gemini/Codex...");
+
+        try {
+          const response = await fetch("/extract-cct-pdf", {
+            method: "POST",
+            body: formData
+          });
+
+          const payload = await response.json();
+
+          if (!response.ok) {
+            throw new Error(payload?.detail || "No se pudo generar la calculadora.");
+          }
+
+          const result = payload.result || payload;
+
+          const baseName = file.name
+            .replace(/\.pdf$/i, "")
+            .replace(/[^a-z0-9_-]+/gi, "-")
+            .replace(/^-+|-+$/g, "") || "calculadora-cct";
+
+          downloadJson(result, `${baseName}.json`);
+
+          setUploadStatus(
+            `Calculadora generada correctamente.\nModo: ${payload.mode || "gemini-codex-cct"}`,
+            "ok"
+          );
+        } catch (error) {
+          setUploadStatus(error?.message || "Error inesperado.", "warn");
+        } finally {
+          refs.createCalculator.disabled = false;
+        }
+      }
+
+      refs.createCalculator.addEventListener("click", createCalculatorFromPdf);
+    </script>
+  </body>
+</html>
