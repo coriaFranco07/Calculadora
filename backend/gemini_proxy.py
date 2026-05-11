@@ -8,14 +8,25 @@ from typing import Any, Mapping
 from urllib import error, parse, request
 
 
-DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.0-pro-exp")
+GENERATION_MODEL_CASCADE = [
+    "gemini-2.0-pro-exp",
+    "gemini-1.5-pro",
+    "gemini-2.0-flash-thinking-exp",
+    "gemini-2.0-flash",
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-latest",
+    "gemini-2.0-flash-lite",
+    "learnlm-1.5-pro-experimental",
+]
+NON_GENERATIVE_MODELS = ["text-embedding-004"]
 FALLBACK_MODELS = [
     item.strip()
     for item in os.getenv(
         "GEMINI_FALLBACK_MODELS",
-        "gemini-2.0-flash,gemini-2.0-flash-lite,gemini-1.5-flash-latest",
+        ",".join(GENERATION_MODEL_CASCADE),
     ).split(",")
-    if item.strip()
+    if item.strip() and item.strip() not in NON_GENERATIVE_MODELS
 ]
 
 
@@ -245,24 +256,25 @@ def call_gemini(prompt: str, model: str | None = None) -> str:
     models_to_try = []
     first_model = model or DEFAULT_MODEL
     for candidate in [first_model, *FALLBACK_MODELS]:
-        if candidate and candidate not in models_to_try:
+        if candidate and candidate not in NON_GENERATIVE_MODELS and candidate not in models_to_try:
             models_to_try.append(candidate)
 
     errors: list[str] = []
     for active_model in models_to_try:
         try:
+            print(f"[Gemini] intentando modelo: {active_model}")
             return _call_gemini_once(prompt, active_model, api_key)
         except error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")
-            errors.append(f"{active_model}: {detail}")
-            if exc.code == 404:
+            errors.append(f"{active_model}: HTTP {exc.code} {detail}")
+            if exc.code in {400, 401, 403, 404, 429, 500, 502, 503, 504}:
                 continue
-            if exc.code not in {429, 500, 502, 503, 504}:
-                break
+            continue
         except error.URLError as exc:
             errors.append(f"{active_model}: {exc.reason}")
+            continue
         except GeminiProxyError as exc:
             errors.append(f"{active_model}: {exc}")
-            break
+            continue
 
-    raise GeminiProxyError("Gemini no pudo responder temporalmente. Ultimos errores: " + " | ".join(errors[-2:]))
+    raise GeminiProxyError("Gemini no pudo responder con ningun modelo generativo. Ultimos errores: " + " | ".join(errors[-4:]))
