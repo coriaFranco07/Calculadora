@@ -71,9 +71,6 @@ def sha256_text(value: Any) -> str:
 
 
 def strip_json_fence(text: str) -> str:
-    """
-    Limpia respuestas tipo ```json ... ``` por si el modelo no respeta el pedido.
-    """
     raw = str(text or "").strip()
 
     if raw.startswith("```"):
@@ -106,7 +103,7 @@ def safe_json_loads(text: str) -> dict[str, Any]:
 def build_prompt(payload: Mapping[str, Any]) -> str:
     """
     Prompt de auditoría conversacional general.
-    No se usa para estructurar CCT; se conserva para compatibilidad con tu backend.
+    No se usa para estructurar CCT; se conserva para compatibilidad.
     """
     return f"""
 Actua como auditor preventivo senior de payroll argentino, AFIP, Libro de Sueldos Digital y normativa laboral argentina.
@@ -122,16 +119,10 @@ Contexto: {json.dumps(payload.get("contexto_documental", []), ensure_ascii=False
 
 
 def is_noise_line(line: str) -> bool:
-    """
-    Elimina encabezados/pies repetidos y basura típica de PDFs legales/OCR.
-    """
     normalized = normalize_text(line)
     compact = re.sub(r"\s+", " ", line).strip()
 
-    if not compact:
-        return True
-
-    if len(compact) < 4:
+    if not compact or len(compact) < 4:
         return True
 
     if "https://" in normalized or "http://" in normalized:
@@ -176,7 +167,6 @@ def clean_extracted_pdf_text(text: Any) -> str:
 
         normalized = normalize_text(line)
 
-        # Evita repetir encabezados largos de la misma fuente.
         if len(line) > 40 and (
             "convenio colectivo" in normalized
             or "obreros y administrativos" in normalized
@@ -191,17 +181,24 @@ def clean_extracted_pdf_text(text: Any) -> str:
     return "\n".join(cleaned_lines).strip()
 
 
-def build_focus_cct_text(text: Any, limit: int = 20000) -> str:
+def build_focus_cct_text(text: Any, limit: int = 26000) -> str:
+    """
+    Recorta el OCR, pero intenta no perder tablas salariales.
+    El problema anterior era que el modelo recibía mucho convenio y poca escala.
+    """
     raw = clean_extracted_pdf_text(text)
 
     if len(raw) <= limit:
         return raw
 
-    headline = raw[:6000]
+    headline = raw[:5000]
 
     keywords = (
         "categoria",
         "categorias",
+        "puesto",
+        "rol",
+        "rama",
         "operario",
         "oficial",
         "administr",
@@ -240,6 +237,9 @@ def build_focus_cct_text(text: Any, limit: int = 20000) -> str:
         "deduccion",
         "retencion",
         "empleador",
+        "ene",
+        "abr",
+        "2026",
         "$",
         "%",
     )
@@ -251,7 +251,7 @@ def build_focus_cct_text(text: Any, limit: int = 20000) -> str:
     for raw_line in raw.splitlines():
         line = re.sub(r"\s+", " ", raw_line).strip()
 
-        if len(line) < 8 or len(line) > 360:
+        if len(line) < 4 or len(line) > 420:
             continue
 
         normalized = normalize_text(line)
@@ -371,14 +371,20 @@ def empty_agreement_schema(payload: Mapping[str, Any] | None = None) -> dict[str
     }
 
 
-def build_cct_text_extraction_prompt(payload: Mapping[str, Any]) -> str:
-    cct_text = build_focus_cct_text(payload.get("text", ""), limit=20000)
+def build_salary_table_extraction_prompt(payload: Mapping[str, Any]) -> str:
+    """
+    ETAPA 1 REAL.
+    Esta función reemplaza la idea de pedir JSON directo a Gemini.
+    Primero se le pide texto plano tabular, para que no invente JSON ni mezcle OCR.
+    """
+    cct_text = build_focus_cct_text(payload.get("text", ""), limit=26000)
     file_name = payload.get("file_name", "CCT.pdf")
 
     return f"""
 Sos un extractor tecnico de convenios colectivos argentinos para un sistema de liquidacion de sueldos.
 
-Objetivo: transcribir y normalizar SOLO datos salariales verificables del archivo. No liquides sueldos, no inventes importes, no completes valores faltantes.
+Objetivo: transcribir y normalizar SOLO datos salariales verificables del archivo.
+No liquides sueldos, no inventes importes, no completes valores faltantes.
 
 Archivo: {file_name}
 
@@ -394,25 +400,32 @@ Reglas criticas:
 - Si hay tablas, preserva la relacion fila-columna. Una fila de escala debe mantener puesto/rol/categoria + basico en la misma linea.
 - No separes importes de sus categorias.
 - No resumas tablas salariales.
-- En ESCALA_SALARIAL_CATEGORIAS, copia literalmente el nombre completo del puesto/rol/categoria de la celda original. No lo abrevies, no lo partas por palabras, no lo conviertas en tags.
+- En ESCALA_SALARIAL_CATEGORIAS, copia literalmente el nombre completo del puesto/rol/categoria de la celda original.
+- No abrevies, no partas por palabras y no conviertas categorias en tags.
 - Cada puesto de la escala debe ser una fila independiente. Si la tabla tiene 30 puestos, devuelve 30 filas.
 - No uses nombres genericos como "categoria", "puesto", "operario" o "administrativo" si la tabla trae un nombre mas especifico.
 - Si el codigo/categoria de origen es una letra o numero A, B, 1, 2, etc., ponelo en category_id y conserva el nombre completo en puesto_rol_categoria.
 - Si la tabla contiene jornada completa, jornada reducida, media jornada, supervisor, coordinador, oficial, auxiliar, peon, conductor, chofer, administrativo u otros modificadores, mantenelos dentro de puesto_rol_categoria.
 - Mantene importes tal como aparecen, con pesos, puntos y comas.
+- Si hay varias vigencias o meses, conserva la columna/periodo original.
 - Si un valor aplica por categoria, agrega una fila por categoria.
 - Si un valor no esta indicado, escribi NO_INDICADO.
-- En retenciones/deducciones, cada fila debe ser una retencion separada. No agrupes jubilacion, obra social, ley 19032, sindicato, seguro, contribucion solidaria ni aportes en una sola fila.
-- Extrae retenciones legales argentinas solamente si aparecen en el documento o en la tabla: Jubilacion 11%, Ley 19.032 / INSSJP / PAMI 3%, Obra Social 3%. Deben ser filas separadas.
+- No conviertas requisitos de antiguedad de una categoria en adicional por antiguedad.
+  Ejemplo: "Oficial de Primera: mas de 2 años de antiguedad" describe una categoria, NO es un adicional salarial.
+- No conviertas "Zona de aplicacion: todo el territorio..." en adicional por zona desfavorable.
+- No conviertas porcentajes de limites, cupos, exclusiones o cantidad de personal en adicionales salariales.
+  Ejemplo: "no podran superar el 15% del personal" NO es adicional.
+- Extrae adicionales SOLO si aparecen como rubro salarial, beneficio, suplemento, asignacion, adicional o concepto remunerativo/no remunerativo.
+- En retenciones/deducciones, cada fila debe ser una retencion separada.
+- Extrae retenciones legales argentinas solamente si aparecen en el documento o en la tabla.
 - No reemplaces Jubilacion + Ley 19.032 + Obra Social por una fila generica llamada "Aportes" salvo que el documento solo lo muestre agregado y no permita separarlo.
 - Si aparece "Aportes de ley" junto con el detalle de sus componentes, desagregalo en JUBILACION, LEY_19032 y OBRA_SOCIAL.
-- Si el documento no trae codigo para una retencion, crea un code corto desde el concepto: JUBILACION, OBRA_SOCIAL, LEY_19032, SINDICATO, SEGURO_SEPELIO, CONTRIBUCION_SOLIDARIA, etc.
-- Si hay varias vigencias o meses, conserva la columna/periodo original.
-- Si un concepto depende de una carga mensual del usuario, por ejemplo kilometros, km, viajes, dias, comidas por dia, pernoctadas, comisiones o productividad variable, en observaciones escribi "CARGA_MANUAL" y conserva la unidad en base u observaciones.
+- Si el documento no trae codigo para una retencion, crea un code corto desde el concepto.
+- Si un concepto depende de carga mensual del usuario, por ejemplo kilometros, viajes, dias, comidas por dia, pernoctadas, comisiones o productividad variable, en observaciones escribi "CARGA_MANUAL".
 - No conviertas viaticos por kilometro, viajes, pernoctadas o comisiones en importes automaticos mensuales.
-- No expliques nada fuera de las secciones pedidas.
 - Ignora encabezados, pies de pagina, URLs, fechas de impresion, numeros de pagina y basura OCR.
 - No inventes articulos, porcentajes, fechas, categorias ni importes.
+- No expliques nada fuera de las secciones pedidas.
 
 Devuelve texto plano en este formato exacto:
 
@@ -460,7 +473,18 @@ TEXTO EXTRAIDO DEL PDF:
 """.strip()
 
 
+def build_cct_text_extraction_prompt(payload: Mapping[str, Any]) -> str:
+    """
+    Alias para no romper imports anteriores.
+    """
+    return build_salary_table_extraction_prompt(payload)
+
+
 def build_codex_json_structuring_prompt(payload: Mapping[str, Any]) -> str:
+    """
+    ETAPA 2 REAL.
+    Recibe la salida tabular de la etapa 1 y recién ahí arma JSON.
+    """
     file_name = payload.get("file_name", "CCT.pdf")
     extracted_text = str(payload.get("extracted_text", "")).strip()
     now = utc_now_iso()
@@ -482,8 +506,8 @@ def build_codex_json_structuring_prompt(payload: Mapping[str, Any]) -> str:
     return f"""
 Sos un estructurador de datos laborales argentinos para una calculadora de liquidacion CCT.
 
-Vas a recibir texto tecnico ya limpiado por una etapa anterior.
-Tu tarea es devolver SOLO JSON valido usando EXACTAMENTE el schema productivo indicado.
+Vas a recibir TEXTO PLANO TABULAR generado por una etapa anterior.
+Tu tarea es convertir SOLO esas tablas al JSON productivo indicado.
 
 Reglas obligatorias:
 - Devolve SOLO JSON valido.
@@ -491,27 +515,44 @@ Reglas obligatorias:
 - Sin comentarios.
 - Sin ```json.
 - No inventes datos.
+- No uses datos que no estén en el texto tabular.
+- No crees categorias desde METADATA, PARAMETROS_LIQUIDACION, AMBIGUEDADES, encabezados o texto fuente.
+- Las categorias SOLO salen de la tabla ## ESCALA_SALARIAL_CATEGORIAS.
+- Si ## ESCALA_SALARIAL_CATEGORIAS no trae filas reales con categoria + basico, data.categories debe quedar [] y agregá review_flag.
+- No crees categorias desde frases como "Personal Administrativo", "Personal de produccion", "CATEGORIAS", "Bol.Oficial", fechas, URLs o nombres de archivo.
+- Cada fila de ## ESCALA_SALARIAL_CATEGORIAS debe convertirse en una categoria o en una vigencia dentro de una categoria existente.
+- Si una misma categoria aparece en varios periodos, debe ser UNA sola data.categories[] con varias salary_scales[].
+- data.categories[].name debe conservar el texto completo de puesto_rol_categoria.
+- data.categories[].category_id debe venir de category_id si existe; si es NO_INDICADO, generá slug desde puesto_rol_categoria.
+- data.categories[].base_salary debe ser el basico del periodo más reciente detectado.
+- data.categories[].salary_scales[] debe conservar todos los periodos detectados.
+- No mezcles escalas historicas con escalas vigentes: preservá valid_from/periodo.
 - Si falta un dato string, usa "".
-- Si falta un dato numérico, usa 0 solamente cuando el campo del schema sea numérico obligatorio; si el campo admite null, usa null.
+- Si falta un dato numérico obligatorio, usa 0.
+- Si un dato admite null, usa null.
 - Si un dato es dudoso, agregalo en metadata.ai_processing.warnings o data.review_flags.
-- No crees categorias a partir de encabezados, fechas, URLs, boletines, nombres de archivo ni basura OCR.
-- No mezcles categorias del convenio con conceptos adicionales.
-- No mezcles escalas historicas con escalas vigentes.
-- Si hay basicos por fecha, cargalos en data.categories[].salary_scales.
-- data.categories[].base_salary debe ser el basico vigente mas reciente detectado.
-- Si una categoria no tiene basico, dejá base_salary en 0 y agregá review_flag.
-- Si una categoria tiene varias vigencias, mantenerlas todas en salary_scales.
-- monthly_hours debe cargarse por categoria si se detecta; si no, usar data.agreement_rules.monthly_hours cuando exista.
-- No remunerativos van en salary_model.non_remunerative_items.
-- Horas extra van en salary_model.overtime_rules.
-- Contribuciones patronales van en salary_model.employer_contributions solo si aparecen expresamente.
-- Deducciones van en salary_model.deductions solo si aparecen expresamente.
+- No remunerativos van en data.salary_model.non_remunerative_items.
+- Remunerativos adicionales van en data.salary_model.remunerative_items.
+- Deducciones van en data.salary_model.deductions solo si aparecen en RETENCIONES_DEDUCCIONES.
+- Contribuciones patronales van en data.salary_model.employer_contributions solo si aparecen en CONTRIBUCIONES_EMPLEADOR.
+- Horas extra van en data.salary_model.overtime_rules solo si aparecen en HORAS_EXTRA.
 - Fiscal shields solo si aparecen expresamente.
-- compliance_rules debe incluir reglas preventivas útiles para auditoría cuando surjan del documento.
-- formulas debe incluir expresiones liquidables útiles, por ejemplo antiguedad, valor hora u horas extra.
-- Cada item relevante debe traer source_reference o source cuando corresponda.
+- formulas debe incluir expresiones liquidables útiles solo si aparecen en FORMULAS o PARAMETROS_LIQUIDACION.
 - confidence_score de 0 a 1.
-- production_ready solo true si hay categorías, escalas y reglas mínimas sin dudas relevantes.
+- production_ready solo true si hay categorias con salary_scales y no hay dudas relevantes.
+
+Mapeo:
+- METADATA -> metadata.identity, metadata.validity, metadata.source.
+- PARAMETROS_LIQUIDACION -> data.agreement_rules.
+- ESCALA_SALARIAL_CATEGORIAS -> data.categories[].salary_scales[].
+- HABERES_REMUNERATIVOS -> data.salary_model.remunerative_items.
+- HABERES_NO_REMUNERATIVOS -> data.salary_model.non_remunerative_items.
+- RETENCIONES_DEDUCCIONES -> data.salary_model.deductions.
+- CONTRIBUCIONES_EMPLEADOR -> data.salary_model.employer_contributions.
+- HORAS_EXTRA -> data.salary_model.overtime_rules.
+- EVENTOS_Y_LICENCIAS -> data.event_rules.
+- FORMULAS -> data.formulas.
+- AMBIGUEDADES -> data.review_flags y metadata.ai_processing.warnings.
 
 Schema requerido:
 {json.dumps(schema, ensure_ascii=False, indent=2)}
@@ -532,30 +573,21 @@ Estructura ampliada permitida:
 - En items de salary_model podes agregar "source_reference" y "remunerative" si ayuda.
 - En event_rules, compliance_rules y formulas podes agregar "source_reference".
 
-Texto tecnico normalizado:
+TEXTO TABULAR NORMALIZADO:
 {extracted_text}
 """.strip()
 
 
 def build_cct_extraction_prompt(payload: Mapping[str, Any]) -> str:
     """
-    Compatibilidad con flujo viejo de una sola llamada.
+    Compatibilidad con código viejo.
 
-    Recomendado para producción:
-    usar extract_agreement_json_text_validated(payload), que ejecuta las dos etapas reales.
+    IMPORTANTE:
+    Esta función ahora devuelve el prompt de ETAPA 1, no el JSON final.
+    Si tu backend hacía:
+        json_text = extract_cct_json_text_validated(payload)
     """
-    focused_text = build_focus_cct_text(payload.get("text", ""), limit=20000)
-    return build_codex_json_structuring_prompt(
-        {
-            "file_name": payload.get("file_name", "CCT.pdf"),
-            "raw_text": payload.get("text", ""),
-            "extracted_text": focused_text,
-            "document_type": payload.get("document_type", ""),
-            "total_pages": payload.get("total_pages", 0),
-            "uploaded_by": payload.get("uploaded_by", ""),
-            "uploaded_at": payload.get("uploaded_at", ""),
-        }
-    )
+    return build_salary_table_extraction_prompt(payload)
 
 
 def _call_gemini_once(prompt: str, active_model: str, api_key: str) -> str:
@@ -665,9 +697,9 @@ def call_gemini(prompt: str, model: str | None = None) -> str:
 def extract_agreement_text(payload: Mapping[str, Any], model: str | None = None) -> str:
     """
     Etapa 1:
-    PDF/OCR -> texto técnico limpio semiestructurado.
+    PDF/OCR -> texto plano tabular.
     """
-    prompt = build_cct_text_extraction_prompt(payload)
+    prompt = build_salary_table_extraction_prompt(payload)
     return call_gemini(prompt, model=model)
 
 
@@ -678,7 +710,7 @@ def structure_agreement_json_text(
 ) -> str:
     """
     Etapa 2:
-    texto técnico limpio -> JSON productivo.
+    texto plano tabular -> JSON productivo.
     """
     prompt = build_codex_json_structuring_prompt(
         {
@@ -692,20 +724,6 @@ def structure_agreement_json_text(
         }
     )
     return call_gemini(prompt, model=model)
-
-
-def ensure_path(root: dict[str, Any], path: list[str], default: Any) -> Any:
-    current: Any = root
-    for part in path[:-1]:
-        if not isinstance(current.get(part), dict):
-            current[part] = {}
-        current = current[part]
-
-    leaf = path[-1]
-    if leaf not in current:
-        current[leaf] = default
-
-    return current[leaf]
 
 
 def normalize_source_reference(value: Any) -> dict[str, Any]:
@@ -725,20 +743,56 @@ def parse_money_to_number(value: Any) -> float | int:
         return value
 
     raw = str(value or "").strip()
-    if not raw:
+
+    if not raw or normalize_text(raw) == "no_indicado":
         return 0
 
     raw = raw.replace("$", "").replace("ARS", "").strip()
-    raw = raw.replace(".", "").replace(",", ".")
+
+    if "," in raw and "." in raw:
+        # Formato AR: 1.234.567,89
+        raw = raw.replace(".", "").replace(",", ".")
+    elif "," in raw and "." not in raw:
+        # Puede ser decimal AR.
+        raw = raw.replace(",", ".")
+    else:
+        # Formato 1,234,567 o 1.234.567 ya limpiado por OCR.
+        raw = raw.replace(",", "")
+
     raw = re.sub(r"[^0-9.\-]", "", raw)
 
     if not raw:
         return 0
 
-    number = float(raw)
+    try:
+        number = float(raw)
+    except ValueError:
+        return 0
+
     if number.is_integer():
         return int(number)
     return number
+
+
+def parse_rate_to_number(value: Any) -> float:
+    if isinstance(value, (int, float)):
+        return float(value)
+
+    raw = str(value or "").strip()
+
+    if not raw or normalize_text(raw) == "no_indicado":
+        return 0
+
+    raw = raw.replace("%", "").replace(",", ".")
+    raw = re.sub(r"[^0-9.\-]", "", raw)
+
+    if not raw:
+        return 0
+
+    try:
+        return float(raw)
+    except ValueError:
+        return 0
 
 
 def postprocess_agreement_json(
@@ -748,7 +802,7 @@ def postprocess_agreement_json(
 ) -> dict[str, Any]:
     """
     Limpieza defensiva posterior.
-    No inventa datos; normaliza estructura, ids, features y ruido OCR evidente.
+    No inventa datos; normaliza estructura, ids, features, escalas y governance.
     """
     payload = payload or {}
     base = empty_agreement_schema(payload)
@@ -756,7 +810,6 @@ def postprocess_agreement_json(
     data.setdefault("metadata", {})
     data.setdefault("data", {})
 
-    # Completa ramas principales sin pisar lo que devolvió el modelo.
     for section, default_value in base["metadata"].items():
         data["metadata"].setdefault(section, default_value)
 
@@ -766,7 +819,6 @@ def postprocess_agreement_json(
     metadata = data["metadata"]
     data_node = data["data"]
 
-    # Completa subestructuras metadata.
     for section, default_value in base["metadata"].items():
         if not isinstance(metadata.get(section), dict):
             metadata[section] = default_value
@@ -774,7 +826,6 @@ def postprocess_agreement_json(
         for key, value in default_value.items():
             metadata[section].setdefault(key, value)
 
-    # Completa subestructuras data.
     if not isinstance(data_node.get("agreement_rules"), dict):
         data_node["agreement_rules"] = base["data"]["agreement_rules"]
 
@@ -816,9 +867,14 @@ def postprocess_agreement_json(
         "11:28",
         "jurisdiccion",
         "organismo",
+        "categorias",
+        "personal administrativo",
+        "personal de produccion",
+        "actividad y categoria",
     )
 
     clean_categories: list[dict[str, Any]] = []
+    categories_by_id: dict[str, dict[str, Any]] = {}
 
     for item in data_node.get("categories", []):
         if not isinstance(item, dict):
@@ -826,6 +882,7 @@ def postprocess_agreement_json(
 
         name = str(item.get("name") or item.get("nombre") or "").strip()
         category_id = str(item.get("category_id") or item.get("id") or "").strip()
+
         normalized_name = normalize_text(name)
         normalized_id = normalize_text(category_id)
 
@@ -844,10 +901,16 @@ def postprocess_agreement_json(
             warnings.append(f"Categoria descartada por fecha detectada como nombre: {name}")
             continue
 
-        item["category_id"] = slugify(category_id or name)
+        normalized_category_id = slugify(category_id or name)
+
+        item["category_id"] = normalized_category_id
         item["name"] = name
         item["group"] = str(item.get("group") or item.get("rama") or "")
-        item["monthly_hours"] = int(item.get("monthly_hours") or data_node["agreement_rules"].get("monthly_hours") or 0)
+        item["monthly_hours"] = int(
+            item.get("monthly_hours")
+            or data_node["agreement_rules"].get("monthly_hours")
+            or 0
+        )
         item["base_salary"] = parse_money_to_number(item.get("base_salary", 0))
         item["currency"] = str(item.get("currency") or "ARS")
 
@@ -860,35 +923,61 @@ def postprocess_agreement_json(
             if not isinstance(scale, dict):
                 continue
 
+            base_salary = parse_money_to_number(scale.get("base_salary", 0))
+
+            if base_salary == 0:
+                continue
+
             normalized_scales.append(
                 {
-                    "valid_from": str(scale.get("valid_from") or ""),
+                    "valid_from": str(scale.get("valid_from") or scale.get("period") or ""),
                     "valid_to": str(scale.get("valid_to") or ""),
-                    "base_salary": parse_money_to_number(scale.get("base_salary", 0)),
+                    "base_salary": base_salary,
                     "currency": str(scale.get("currency") or item["currency"] or "ARS"),
-                    "salary_type": str(scale.get("salary_type") or "unknown"),
-                    "source_reference": normalize_source_reference(scale.get("source_reference") or scale.get("source")),
+                    "salary_type": str(scale.get("salary_type") or "remunerative"),
+                    "source_reference": normalize_source_reference(
+                        scale.get("source_reference")
+                        or scale.get("source")
+                        or scale.get("observaciones")
+                    ),
                 }
             )
 
         item["salary_scales"] = normalized_scales
-        item["source_reference"] = normalize_source_reference(item.get("source_reference") or item.get("source"))
+        item["source_reference"] = normalize_source_reference(
+            item.get("source_reference") or item.get("source") or item.get("observaciones")
+        )
 
         if item["base_salary"] == 0 and normalized_scales:
-            # Usa el último básico no cero detectado como base actual.
-            for scale in reversed(normalized_scales):
-                if scale["base_salary"]:
-                    item["base_salary"] = scale["base_salary"]
-                    break
+            item["base_salary"] = normalized_scales[-1]["base_salary"]
 
         if item["base_salary"] == 0:
             review_flags.append(f"Categoria sin basico detectado: {name}")
 
+        if normalized_category_id in categories_by_id:
+            existing = categories_by_id[normalized_category_id]
+            existing_scales = existing.setdefault("salary_scales", [])
+            known = {
+                (str(s.get("valid_from")), int(s.get("base_salary") or 0))
+                for s in existing_scales
+                if isinstance(s, dict)
+            }
+
+            for scale in normalized_scales:
+                key = (str(scale.get("valid_from")), int(scale.get("base_salary") or 0))
+                if key not in known:
+                    existing_scales.append(scale)
+
+            if item["base_salary"]:
+                existing["base_salary"] = item["base_salary"]
+
+            continue
+
+        categories_by_id[normalized_category_id] = item
         clean_categories.append(item)
 
-    data_node["categories"] = clean_categories[:80]
+    data_node["categories"] = clean_categories[:120]
 
-    # Normaliza listas de salary_model.
     for key in (
         "remunerative_items",
         "non_remunerative_items",
@@ -898,30 +987,35 @@ def postprocess_agreement_json(
         "fiscal_shields",
     ):
         clean_items: list[dict[str, Any]] = []
+
         for item in data_node["salary_model"].get(key, []):
             if not isinstance(item, dict):
                 continue
-            if "code" in item:
-                item["code"] = slugify(item.get("code") or item.get("name") or key)
-            elif "name" in item:
-                item["code"] = slugify(item.get("name") or key)
+
+            item["code"] = slugify(item.get("code") or item.get("name") or item.get("concepto") or key)
+
+            if "name" not in item and "concepto" in item:
+                item["name"] = item.get("concepto")
 
             if "amount" in item:
                 item["amount"] = parse_money_to_number(item.get("amount"))
 
-            if "rate" in item and item.get("rate") not in (None, ""):
-                try:
-                    item["rate"] = float(str(item.get("rate")).replace("%", "").replace(",", "."))
-                except ValueError:
-                    item["rate"] = 0
+            if "importe" in item and "amount" not in item:
+                item["amount"] = parse_money_to_number(item.get("importe"))
+
+            if "rate" in item:
+                item["rate"] = parse_rate_to_number(item.get("rate"))
+
+            if "porcentaje" in item and "rate" not in item:
+                item["rate"] = parse_rate_to_number(item.get("porcentaje"))
 
             if "source_reference" in item:
                 item["source_reference"] = normalize_source_reference(item.get("source_reference"))
 
             clean_items.append(item)
+
         data_node["salary_model"][key] = clean_items
 
-    # Features automáticos.
     features = metadata["features"]
     features["has_categories"] = bool(data_node["categories"])
     features["has_salary_scales"] = any(
@@ -935,7 +1029,6 @@ def postprocess_agreement_json(
     features["has_fiscal_shields"] = bool(data_node["salary_model"]["fiscal_shields"])
     features["has_employer_contributions"] = bool(data_node["salary_model"]["employer_contributions"])
 
-    # Attendance rules: presentismo, ausentismo, puntualidad, asistencia.
     all_items_text = normalize_text(
         json.dumps(data_node["salary_model"], ensure_ascii=False)
         + " "
@@ -946,17 +1039,17 @@ def postprocess_agreement_json(
         for token in ("presentismo", "asistencia", "ausentismo", "puntualidad")
     )
 
-    # Governance.
     has_minimum = features["has_categories"] and features["has_salary_scales"]
     has_warnings = bool(warnings or review_flags)
 
     metadata["governance"]["review_required"] = has_warnings or not has_minimum
     metadata["governance"]["production_ready"] = bool(has_minimum and not has_warnings)
 
-    if metadata["governance"]["review_required"] and not metadata["governance"].get("review_reason"):
+    if metadata["governance"]["review_required"]:
         metadata["governance"]["review_reason"] = "Hay warnings, review_flags o faltan datos mínimos para producción."
+    else:
+        metadata["governance"]["review_reason"] = None
 
-    # Confidence defensivo.
     try:
         confidence = float(metadata["ai_processing"].get("confidence_score") or 0)
     except ValueError:
@@ -989,15 +1082,9 @@ def extract_agreement_json(
     """
     Pipeline recomendado para producción.
 
-    Ejecuta:
-    1. Gemini: limpia y ordena texto laboral.
-    2. Gemini/Codex-compatible prompt: estructura JSON productivo.
-    3. Valida JSON.
-    4. Postprocesa ruido OCR evidente, features y governance.
-
-    Nota:
-    Si más adelante conectás OpenAI/Codex como segunda etapa real,
-    reemplazá structure_agreement_json_text() por la llamada a ese servicio.
+    1. Gemini devuelve texto plano tabular.
+    2. Gemini/Codex-compatible prompt convierte ese texto en JSON productivo.
+    3. Postprocess normaliza, deduplica, calcula features y marca governance.
     """
     extracted_text = extract_agreement_text(payload, model=extraction_model)
 
@@ -1025,9 +1112,6 @@ def extract_agreement_json_text(
     structuring_model: str | None = None,
     postprocess: bool = True,
 ) -> str:
-    """
-    Variante útil para endpoints que esperan texto JSON.
-    """
     parsed = extract_agreement_json(
         payload,
         extraction_model=extraction_model,
@@ -1043,9 +1127,6 @@ def extract_agreement_json_text_validated(
     extraction_model: str | None = None,
     structuring_model: str | None = None,
 ) -> str:
-    """
-    Wrapper recomendado para usar desde API/backend.
-    """
     validate_agreement_payload(payload)
 
     return extract_agreement_json_text(
