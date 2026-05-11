@@ -734,6 +734,7 @@ def extract_cct_from_text(file_name: str, text: str) -> dict[str, Any]:
             "result": enriched,
             "generated": generated_html,
             "html_url": generated_html["html_url"],
+            
         }
 
     except GeminiProxyError as exc:
@@ -758,6 +759,7 @@ def extract_cct_from_text(file_name: str, text: str) -> dict[str, Any]:
             "result": fallback,
             "generated": generated_html,
             "html_url": generated_html["html_url"],
+            
         }
     
     
@@ -844,6 +846,12 @@ async def extract_cct_pdf(
 
     return extract_cct_from_text(combined_name, combined_text)
 
+
+app.mount(
+    "/generated",
+    StaticFiles(directory=str(TEMPLATES_DIR / "generated"), html=True),
+    name="generated",
+)
 
 app.mount("/", StaticFiles(directory=str(ROOT_DIR), html=True), name="static")
 
