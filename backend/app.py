@@ -706,6 +706,18 @@ def extract_cct_from_text(file_name: str, text: str) -> dict[str, Any]:
             "extracted_text": gemini_text,
         })
         codex_text = call_gemini(codex_prompt, os.getenv("CODEX_MODEL", os.getenv("GEMINI_MODEL", DEFAULT_MODEL)))
+    
+    
+        parsed_payload = parse_gemini_json(codex_text)
+
+        if isinstance(parsed_payload, dict) and parsed_payload.get("estado") == "respuesta_no_json":
+            recovered = recover_partial_gemini_payload(codex_text, file_name) or {}
+            parsed_payload = recovered or parsed_payload
+
+        normalized_payload = normalize_calculator_payload(parsed_payload, file_name)
+        merged_payload = merge_payload(normalized_payload, local_fallback)
+        enriched = enrich_calculator_payload(merged_payload)
+    
     except GeminiProxyError as exc:
 
         fallback = enrich_calculator_payload(local_fallback)
