@@ -809,13 +809,6 @@ def extract_cct(payload: CctExtractionRequest) -> dict[str, Any]:
     return extract_cct_from_text(payload.file_name, payload.text)
 
 
-@app.post("/extract-cct-pdf")
-async def extract_cct_pdf(file: UploadFile = File(...)) -> dict[str, Any]:
-    if not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Solo se aceptan archivos PDF.")
-    content = await file.read()
-    text = extract_text_from_pdf_bytes(content)
-    return extract_cct_from_text(file.filename, text)
 
 @app.get("/portal-cct.html", include_in_schema=False)
 def portal_cct_page():
@@ -844,9 +837,6 @@ def crear_calculadora_page():
         raise HTTPException(status_code=404, detail="crear_calculadora.html no encontrado en templates")
     return FileResponse(path)
 
-app.mount("/", StaticFiles(directory=str(ROOT_DIR), html=True), name="static")
-
-
 
 @app.post("/extract-cct-pdf")
 async def extract_cct_pdf(
@@ -871,3 +861,8 @@ async def extract_cct_pdf(
         combined_name = f"{file.filename} + {salary_file.filename}"
 
     return extract_cct_from_text(combined_name, combined_text)
+
+
+app.mount("/", StaticFiles(directory=str(ROOT_DIR), html=True), name="static")
+
+
