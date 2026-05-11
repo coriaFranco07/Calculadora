@@ -270,6 +270,7 @@ def call_gemini(prompt: str, model: str | None = None) -> str:
             return _call_gemini_once(prompt, active_model, api_key)
         except error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")
+            print(f"[Gemini] fallo modelo {active_model}: HTTP {exc.code} {detail[:600]}")
             errors.append(f"{active_model}: HTTP {exc.code} {detail}")
             if exc.code in {400, 401, 403, 404, 429, 500, 502, 503, 504}:
                 continue

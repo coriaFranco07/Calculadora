@@ -697,6 +697,10 @@ def extract_text_from_pdf_bytes(content: bytes) -> str:
     return text
 
 def extract_cct_from_text(file_name: str, text: str) -> dict[str, Any]:
+
+    print("GEMINI_MODEL efectivo:", os.getenv("GEMINI_MODEL"))
+    print("CODEX_MODEL efectivo:", os.getenv("CODEX_MODEL"))
+
     local_fallback = build_local_cct_fallback(file_name, text)
 
     try:
