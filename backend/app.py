@@ -15,6 +15,8 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from pypdf import PdfReader
 
+from backend.html_generator import write_generated_calculator
+
 from backend.gemini_proxy import (
     DEFAULT_MODEL,
     GeminiProxyError,
@@ -29,6 +31,7 @@ BACKEND_DIR = Path(__file__).resolve().parent
 ENV_FILE = BACKEND_DIR / ".env"
 
 TEMPLATES_DIR = ROOT_DIR / "templates"
+
 
 
 def load_env_file(path: Path) -> None:
@@ -693,10 +696,9 @@ def extract_text_from_pdf_bytes(content: bytes) -> str:
         )
     return text
 
-
 def extract_cct_from_text(file_name: str, text: str) -> dict[str, Any]:
     local_fallback = build_local_cct_fallback(file_name, text)
-    
+
     try:
         gemini_prompt = build_cct_text_extraction_prompt({"file_name": file_name, "text": text})
         gemini_text = call_gemini(gemini_prompt, os.getenv("GEMINI_MODEL", DEFAULT_MODEL))
@@ -705,9 +707,11 @@ def extract_cct_from_text(file_name: str, text: str) -> dict[str, Any]:
             "file_name": file_name,
             "extracted_text": gemini_text,
         })
-        codex_text = call_gemini(codex_prompt, os.getenv("CODEX_MODEL", os.getenv("GEMINI_MODEL", DEFAULT_MODEL)))
-    
-    
+        codex_text = call_gemini(
+            codex_prompt,
+            os.getenv("CODEX_MODEL", os.getenv("GEMINI_MODEL", DEFAULT_MODEL))
+        )
+
         parsed_payload = parse_gemini_json(codex_text)
 
         if isinstance(parsed_payload, dict) and parsed_payload.get("estado") == "respuesta_no_json":
@@ -717,80 +721,46 @@ def extract_cct_from_text(file_name: str, text: str) -> dict[str, Any]:
         normalized_payload = normalize_calculator_payload(parsed_payload, file_name)
         merged_payload = merge_payload(normalized_payload, local_fallback)
         enriched = enrich_calculator_payload(merged_payload)
-    
-    except GeminiProxyError as exc:
+        generated_html = write_generated_calculator(enriched, TEMPLATES_DIR)
 
+        return {
+            "mode": "gemini-codex-cct",
+            "pipeline": {
+                "lector": os.getenv("GEMINI_MODEL", DEFAULT_MODEL),
+                "estructurador": os.getenv("CODEX_MODEL", os.getenv("GEMINI_MODEL", DEFAULT_MODEL)),
+            },
+            "text_length": len(text),
+            "intermediate_text_length": len(gemini_text),
+            "result": enriched,
+            "generated": generated_html,
+            "html_url": generated_html["html_url"],
+        }
+
+    except GeminiProxyError as exc:
         fallback = enrich_calculator_payload(local_fallback)
         fallback["estado"] = "fallback_local_sin_ia"
-        fallback["alertas"] = dedupe_strings(
-            [
-                *fallback.get("alertas", []),
-                f"Gemini no estuvo disponible: {compact_text(exc, 180)}",
-                "Se devolvio un borrador local para no frenar la revision inicial.",
-            ]
-        )
-        fallback["pendientes_revision"] = dedupe_strings(
-            [
-                *fallback.get("pendientes_revision", []),
-                "Revisar manualmente categorias, reglas y parametros porque se uso fallback local.",
-            ]
-        )
+        fallback["alertas"] = dedupe_strings([
+            *fallback.get("alertas", []),
+            f"Gemini no estuvo disponible: {compact_text(exc, 180)}",
+            "Se devolvio un borrador local para no frenar la revision inicial.",
+        ])
+        fallback["pendientes_revision"] = dedupe_strings([
+            *fallback.get("pendientes_revision", []),
+            "Revisar manualmente categorias, reglas y parametros porque se uso fallback local.",
+        ])
+
+        generated_html = write_generated_calculator(fallback, TEMPLATES_DIR)
+
         return {
             "mode": "fallback-cct",
             "model": os.getenv("GEMINI_MODEL", DEFAULT_MODEL),
             "text_length": len(text),
             "result": fallback,
+            "generated": generated_html,
+            "html_url": generated_html["html_url"],
         }
-
-    parsed_payload = parse_gemini_json(codex_text)
-    if isinstance(parsed_payload, dict) and parsed_payload.get("estado") == "respuesta_no_json":
-        recovered = recover_partial_gemini_payload(codex_text, file_name) or {}
-        merged = merge_payload(recovered, local_fallback)
-        merged["estado"] = "json_recuperado_parcialmente"
-        merged["alertas"] = dedupe_strings(
-            [
-                *merged.get("alertas", []),
-                "La respuesta de Gemini llego truncada o sin cerrar el JSON.",
-                "Se completaron categorias y reglas con extractor local para no perder el analisis del PDF.",
-            ]
-        )
-        merged["pendientes_revision"] = dedupe_strings(
-            [
-                *merged.get("pendientes_revision", []),
-                "Verificar el JSON antes de crear la calculadora porque la salida IA se recupero parcialmente.",
-            ]
-        )
-        merged["debug_raw_excerpt"] = compact_text(gemini_text, 1200)
-        return {
-            "mode": "gemini-cct-recovered",
-            "model": os.getenv("GEMINI_MODEL", DEFAULT_MODEL),
-            "text_length": len(text),
-            "result": enrich_calculator_payload(merged),
-        }
-
-    normalized = normalize_calculator_payload(parsed_payload, file_name)
-    merged = merge_payload(normalized, local_fallback)
-
-    completion_alerts: list[str] = []
-    if not normalized.get("categorias"):
-        completion_alerts.append("La IA no devolvio categorias completas; se completaron con extractor local.")
-    if not normalized.get("adicionales") and local_fallback.get("adicionales"):
-        completion_alerts.append("La IA no devolvio adicionales suficientes; se sumaron hallazgos locales del PDF.")
-    if completion_alerts:
-        merged["alertas"] = dedupe_strings([*merged.get("alertas", []), *completion_alerts])
-
-    return {
-        "mode": "gemini-codex-cct",
-        "pipeline": {
-            "lector": os.getenv("GEMINI_MODEL", DEFAULT_MODEL),
-            "estructurador": os.getenv("CODEX_MODEL", os.getenv("GEMINI_MODEL", DEFAULT_MODEL)),
-        },
-        "text_length": len(text),
-        "intermediate_text_length": len(gemini_text),
-        "result": enriched,
-    }
-
-
+    
+    
 @app.get("/health")
 def health() -> dict[str, Any]:
     return {
