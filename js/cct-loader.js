@@ -284,16 +284,7 @@ async function handlePdf(file, refs) {
 
 function initCctLoader() {
   injectStyles();
-  const shell = createShell();
-  const refs = {
-    shell,
-    file: shell.querySelector("[data-cct-pdf]"),
-    status: shell.querySelector("[data-cct-status]"),
-    output: shell.querySelector("[data-cct-output]"),
-    create: shell.querySelector("[data-cct-create]"),
-    example: shell.querySelector("[data-cct-example]"),
-    preview: shell.querySelector("[data-cct-calculator-preview]")
-  };
+
 
   refs.file.addEventListener("change", async () => {
     const file = refs.file.files?.[0];
