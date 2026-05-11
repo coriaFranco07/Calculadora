@@ -71,13 +71,17 @@ def build_focus_cct_text(text: Any, limit: int = 24000) -> str:
         "escala",
         "sueldo",
         "salario",
+        "basico",
+        "remunerativo",
+        "aporte",
+        "contribucion",
     )
 
     selected_lines: list[str] = []
     seen: set[str] = set()
     for raw_line in raw.splitlines():
         line = re.sub(r"\s+", " ", raw_line).strip()
-        if len(line) < 8 or len(line) > 220:
+        if len(line) < 8 or len(line) > 260:
             continue
         normalized = normalize_text(line)
         if not any(keyword in normalized for keyword in keywords):
@@ -93,22 +97,53 @@ def build_focus_cct_text(text: Any, limit: int = 24000) -> str:
     return focused[:limit]
 
 
-def build_cct_extraction_prompt(payload: Mapping[str, Any]) -> str:
-    cct_text = build_focus_cct_text(payload.get("text", ""))
+def build_cct_text_extraction_prompt(payload: Mapping[str, Any]) -> str:
+    cct_text = build_focus_cct_text(payload.get("text", ""), limit=28000)
     file_name = payload.get("file_name", "CCT.pdf")
     return f"""
-Sos un extractor argentino de CCT para crear una calculadora preliminar.
+Sos Gemini leyendo un PDF laboral argentino para alimentar una calculadora de liquidacion.
+Tu tarea NO es devolver JSON. Tu tarea es limpiar, ordenar y resumir en texto tecnico fiel.
+No inventes importes, porcentajes, fechas ni categorias.
+Conserva importes, porcentajes, vigencias, categorias, articulos y fuentes textuales cuando aparezcan.
+Marca con "DATO NO DETECTADO" lo que no este claro.
+
+Archivo: {file_name}
+
+Devolve texto en estas secciones:
+1. Identificacion del convenio o norma.
+2. Vigencia y ambito.
+3. Jornada y parametros de liquidacion.
+4. Categorias y escalas detectadas.
+5. Adicionales remunerativos y no remunerativos.
+6. Horas extra, feriados, licencias y zona.
+7. Alertas de OCR o datos dudosos.
+8. Lineas fuente relevantes.
+
+TEXTO EXTRAIDO DEL PDF:
+{cct_text}
+""".strip()
+
+
+def build_codex_json_structuring_prompt(payload: Mapping[str, Any]) -> str:
+    file_name = payload.get("file_name", "CCT.pdf")
+    extracted_text = str(payload.get("extracted_text", "")).strip()
+    return f"""
+Sos Codex estructurando texto laboral argentino en JSON para una calculadora de CCT.
 Devolve SOLO JSON valido, sin markdown, sin comentarios, sin ```json.
-No inventes importes, porcentajes ni vigencias.
-Si falta un dato, usa null y agregalo en pendientes_revision.
-Si hay muchas categorias, devolve como maximo 10 representativas y aclara que hay mas.
-Mantenelo compacto: descripcion maximo 120 caracteres, fuente_textual maximo 80 caracteres.
-No devuelvas matrices, formulas extensas ni tablas completas.
+No inventes datos: si falta un dato, usa null y agregalo en pendientes_revision.
+Si hay muchas categorias, devuelve como maximo 24 y agrega una alerta si quedaron categorias afuera.
+Usa ids slug en minuscula con guion bajo.
+Manten descripciones y fuentes cortas.
 
 JSON exacto requerido:
 {{
   "version": "YYYY-MM-DD",
   "archivo_fuente": "{file_name}",
+  "estado": "json_codex_estructurado",
+  "pipeline": {{
+    "lector": "gemini",
+    "estructurador": "codex"
+  }},
   "convenio": {{
     "nombre": null,
     "actividad": null,
@@ -120,7 +155,7 @@ JSON exacto requerido:
     "divisor_mensual": 30,
     "horas_mensuales": null,
     "horas_semanales": null,
-    "base_calculo": "simple|compuesta|integrada|null"
+    "base_calculo": "simple"
   }},
   "categorias": [
     {{
@@ -158,9 +193,20 @@ JSON exacto requerido:
   "nivel_confianza": 0.0
 }}
 
-TEXTO RELEVANTE DEL PDF:
-{cct_text}
+TEXTO NORMALIZADO POR GEMINI:
+{extracted_text}
 """.strip()
+
+
+def build_cct_extraction_prompt(payload: Mapping[str, Any]) -> str:
+    """Compatibilidad: estructura directo a JSON si se usa el flujo viejo."""
+    text_prompt = build_cct_text_extraction_prompt(payload)
+    return build_codex_json_structuring_prompt(
+        {
+            "file_name": payload.get("file_name", "CCT.pdf"),
+            "extracted_text": text_prompt,
+        }
+    )
 
 
 def _call_gemini_once(prompt: str, active_model: str, api_key: str) -> str:
