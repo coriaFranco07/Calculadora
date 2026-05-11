@@ -8,21 +8,24 @@ from typing import Any, Mapping
 from urllib import error, parse, request
 
 
-DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
 GENERATION_MODEL_CASCADE = [
+    "gemini-3.1-flash-lite",
+    "gemini-2.5-flash-lite",
+    "gemini-3-flash",
     "gemini-2.5-flash",
-    "gemini-2.0-flash",
-    "gemini-2.0-flash-lite",
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-pro-latest",
-    "gemini-2.0-flash-thinking-exp",
-    "learnlm-1.5-pro-experimental",
 ]
 NON_GENERATIVE_MODELS = [
     "text-embedding-004",
     "gemini-1.5-flash",
     "gemini-1.5-pro",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-pro-latest",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-lite",
     "gemini-2.0-pro-exp",
+    "gemini-2.0-flash-thinking-exp",
+    "learnlm-1.5-pro-experimental",
 ]
 FALLBACK_MODELS = [
     item.strip()
@@ -61,35 +64,17 @@ Contexto: {json.dumps(payload.get("contexto_documental", []), ensure_ascii=False
 """.strip()
 
 
-def build_focus_cct_text(text: Any, limit: int = 24000) -> str:
+def build_focus_cct_text(text: Any, limit: int = 16000) -> str:
     raw = str(text or "").strip()
     if len(raw) <= limit:
         return raw
 
-    headline = raw[:9000]
+    headline = raw[:5000]
     keywords = (
-        "categoria",
-        "operario",
-        "oficial",
-        "administr",
-        "jornada",
-        "hora",
-        "horas extra",
-        "antiguedad",
-        "presentismo",
-        "zona",
-        "adicional",
-        "no remunerativ",
-        "licencia",
-        "feriado",
-        "viatico",
-        "escala",
-        "sueldo",
-        "salario",
-        "basico",
-        "remunerativo",
-        "aporte",
-        "contribucion",
+        "categoria", "operario", "oficial", "administr", "jornada", "hora", "horas extra",
+        "antiguedad", "presentismo", "zona", "adicional", "no remunerativ", "licencia", "feriado",
+        "viatico", "escala", "sueldo", "salario", "basico", "remunerativo", "aporte", "contribucion",
+        "$", "%",
     )
 
     selected_lines: list[str] = []
@@ -113,7 +98,7 @@ def build_focus_cct_text(text: Any, limit: int = 24000) -> str:
 
 
 def build_cct_text_extraction_prompt(payload: Mapping[str, Any]) -> str:
-    cct_text = build_focus_cct_text(payload.get("text", ""), limit=28000)
+    cct_text = build_focus_cct_text(payload.get("text", ""), limit=16000)
     file_name = payload.get("file_name", "CCT.pdf")
     return f"""
 Sos Gemini leyendo un PDF laboral argentino para alimentar una calculadora de liquidacion.
@@ -124,7 +109,7 @@ Marca con "DATO NO DETECTADO" lo que no este claro.
 
 Archivo: {file_name}
 
-Devolve texto en estas secciones:
+Devolve texto breve en estas secciones:
 1. Identificacion del convenio o norma.
 2. Vigencia y ambito.
 3. Jornada y parametros de liquidacion.
@@ -155,54 +140,12 @@ JSON exacto requerido:
   "version": "YYYY-MM-DD",
   "archivo_fuente": "{file_name}",
   "estado": "json_codex_estructurado",
-  "pipeline": {{
-    "lector": "gemini",
-    "estructurador": "codex"
-  }},
-  "convenio": {{
-    "nombre": null,
-    "actividad": null,
-    "ambito": null,
-    "cct_numero": null,
-    "vigencia_detectada": null
-  }},
-  "parametros": {{
-    "divisor_mensual": 30,
-    "horas_mensuales": null,
-    "horas_semanales": null,
-    "base_calculo": "simple"
-  }},
-  "categorias": [
-    {{
-      "id": "slug",
-      "nombre": "",
-      "tipo": "jornalizado|mensualizado|administrativo|otro|null",
-      "descripcion": "",
-      "valor_hora": null,
-      "sueldo_mensual": null,
-      "fuente_textual": ""
-    }}
-  ],
-  "adicionales": [
-    {{
-      "nombre": "",
-      "tipo": "porcentaje|importe|formula|otro",
-      "valor": null,
-      "base": null,
-      "condicion": null,
-      "codigo_sugerido": null,
-      "lsd": null,
-      "fuente_textual": ""
-    }}
-  ],
-  "reglas_liquidacion": {{
-    "antiguedad": null,
-    "presentismo": null,
-    "zona_desfavorable": null,
-    "horas_extra": null,
-    "licencias": [],
-    "no_remunerativos": []
-  }},
+  "pipeline": {{"lector": "gemini", "estructurador": "codex"}},
+  "convenio": {{"nombre": null, "actividad": null, "ambito": null, "cct_numero": null, "vigencia_detectada": null}},
+  "parametros": {{"divisor_mensual": 30, "horas_mensuales": null, "horas_semanales": null, "base_calculo": "simple"}},
+  "categorias": [{{"id": "slug", "nombre": "", "tipo": "jornalizado|mensualizado|administrativo|otro|null", "descripcion": "", "valor_hora": null, "sueldo_mensual": null, "fuente_textual": ""}}],
+  "adicionales": [{{"nombre": "", "tipo": "porcentaje|importe|formula|otro", "valor": null, "base": null, "condicion": null, "codigo_sugerido": null, "lsd": null, "fuente_textual": ""}}],
+  "reglas_liquidacion": {{"antiguedad": null, "presentismo": null, "zona_desfavorable": null, "horas_extra": null, "licencias": [], "no_remunerativos": []}},
   "pendientes_revision": [],
   "alertas": [],
   "nivel_confianza": 0.0
@@ -214,37 +157,17 @@ TEXTO NORMALIZADO POR GEMINI:
 
 
 def build_cct_extraction_prompt(payload: Mapping[str, Any]) -> str:
-    """Compatibilidad: estructura directo a JSON si se usa el flujo viejo."""
     text_prompt = build_cct_text_extraction_prompt(payload)
-    return build_codex_json_structuring_prompt(
-        {
-            "file_name": payload.get("file_name", "CCT.pdf"),
-            "extracted_text": text_prompt,
-        }
-    )
+    return build_codex_json_structuring_prompt({"file_name": payload.get("file_name", "CCT.pdf"), "extracted_text": text_prompt})
 
 
 def _call_gemini_once(prompt: str, active_model: str, api_key: str) -> str:
-    url = (
-        "https://generativelanguage.googleapis.com/v1beta/models/"
-        f"{parse.quote(active_model)}:generateContent?key={parse.quote(api_key)}"
-    )
-
-    body = {
-        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "temperature": 0.05,
-            "topP": 0.8,
-            "maxOutputTokens": 4096,
-        },
-    }
-
+    url = "https://generativelanguage.googleapis.com/v1beta/models/" f"{parse.quote(active_model)}:generateContent?key={parse.quote(api_key)}"
+    body = {"contents": [{"role": "user", "parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0.05, "topP": 0.8, "maxOutputTokens": 4096}}
     data = json.dumps(body).encode("utf-8")
     req = request.Request(url, data=data, headers={"Content-Type": "application/json"}, method="POST")
-
     with request.urlopen(req, timeout=90) as response:
         payload = json.loads(response.read().decode("utf-8"))
-
     parts = payload.get("candidates", [{}])[0].get("content", {}).get("parts", [])
     text = "\n".join(part.get("text", "") for part in parts if part.get("text"))
     if not text.strip():
@@ -258,27 +181,33 @@ def call_gemini(prompt: str, model: str | None = None) -> str:
         raise GeminiProxyError("GEMINI_API_KEY no configurada.")
 
     models_to_try = []
-    first_model = model or DEFAULT_MODEL
-    for candidate in [first_model, *FALLBACK_MODELS]:
+    requested = model or DEFAULT_MODEL
+    for candidate in [requested, *FALLBACK_MODELS]:
         if candidate and candidate not in NON_GENERATIVE_MODELS and candidate not in models_to_try:
             models_to_try.append(candidate)
 
     errors: list[str] = []
+    quota_exhausted = False
     for active_model in models_to_try:
         try:
             print(f"[Gemini] intentando modelo: {active_model}")
             return _call_gemini_once(prompt, active_model, api_key)
         except error.HTTPError as exc:
             detail = exc.read().decode("utf-8", errors="replace")
+            print(f"[Gemini] fallo modelo {active_model}: HTTP {exc.code} {detail[:600]}")
             errors.append(f"{active_model}: HTTP {exc.code} {detail}")
-            if exc.code in {400, 401, 403, 404, 429, 500, 502, 503, 504}:
+            if exc.code == 429:
+                quota_exhausted = True
                 continue
-            continue
+            if exc.code in {400, 401, 403, 404, 500, 502, 503, 504}:
+                continue
         except error.URLError as exc:
+            print(f"[Gemini] fallo red modelo {active_model}: {exc.reason}")
             errors.append(f"{active_model}: {exc.reason}")
             continue
         except GeminiProxyError as exc:
             errors.append(f"{active_model}: {exc}")
             continue
 
-    raise GeminiProxyError("Gemini no pudo responder con ningun modelo generativo. Ultimos errores: " + " | ".join(errors[-4:]))
+    reason = "Gemini sin cuota disponible para los modelos configurados. " if quota_exhausted else "Gemini no pudo responder con ningun modelo generativo. "
+    raise GeminiProxyError(reason + "Ultimos errores: " + " | ".join(errors[-4:]))
