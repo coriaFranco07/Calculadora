@@ -845,3 +845,29 @@ def crear_calculadora_page():
     return FileResponse(path)
 
 app.mount("/", StaticFiles(directory=str(ROOT_DIR), html=True), name="static")
+
+
+
+@app.post("/extract-cct-pdf")
+async def extract_cct_pdf(
+    file: UploadFile = File(...),
+    salary_file: UploadFile | None = File(None),
+):
+    convenio_text = extract_text_from_pdf_bytes(await file.read())
+
+    parts = [
+        f"=== ARCHIVO DEL CONVENIO: {file.filename} ===\n{convenio_text}"
+    ]
+
+    if salary_file is not None:
+        salary_text = extract_text_from_pdf_bytes(await salary_file.read())
+        parts.append(
+            f"=== ESCALAS SALARIALES: {salary_file.filename} ===\n{salary_text}"
+        )
+
+    combined_text = "\n\n".join(parts)
+    combined_name = file.filename
+    if salary_file is not None:
+        combined_name = f"{file.filename} + {salary_file.filename}"
+
+    return extract_cct_from_text(combined_name, combined_text)
