@@ -824,6 +824,18 @@ def portal_cct_page():
         raise HTTPException(status_code=404, detail="portal-cct.html no encontrado en templates")
     return FileResponse(path)
 
+@app.get("/ley-26844-empleadas-domesticas-mayo-2026.html", include_in_schema=False)
+def ley_26844_page():
+    path = TEMPLATES_DIR / "ley-26844-empleadas-domesticas-mayo-2026.html"
+
+    if not path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail="HTML no encontrado"
+        )
+
+    return FileResponse(path)
+
 
 @app.get("/crear_calculadora.html", include_in_schema=False)
 def crear_calculadora_page():
