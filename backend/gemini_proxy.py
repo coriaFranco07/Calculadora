@@ -44,10 +44,9 @@ load_gemini_env()
 
 DEFAULT_MODEL = os.getenv("GEMINI_MODEL") or os.getenv("GEMINI_DEFAULT_MODEL", "gemini-2.5-flash")
 FALLBACK_MODELS = [
-    "gemini-2.5-pro",
+    "gemini-2.5-flash",
     "gemini-2.0-flash",
     "gemini-2.0-flash-lite",
-    "gemini-1.5-flash-latest",
 ]
 GEMINI_API_BASE = os.getenv("GEMINI_API_BASE", "https://generativelanguage.googleapis.com/v1beta")
 GEMINI_TIMEOUT_SECONDS = float(os.getenv("GEMINI_TIMEOUT_SECONDS", "90"))

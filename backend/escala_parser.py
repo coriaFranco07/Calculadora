@@ -76,7 +76,8 @@ def normalize_salary_scales(payload: dict[str, Any], *, file_name: str = "") -> 
         vigencia_hasta = str(category.get("vigencia_hasta") or payload.get("vigencia_hasta") or "").strip()
         tipo = str(category.get("tipo") or ("hora" if valor_hora and not basico else "mensual")).strip()
         fuente = str(category.get("fuente_textual") or category.get("fuente") or file_name).strip()
-        key = (name.lower(), vigencia_desde, jornada.lower(), tipo.lower())
+        rama = str(category.get("rama") or category.get("grupo") or "").strip()
+        key = (rama.lower(), name.lower(), vigencia_desde, jornada.lower(), tipo.lower())
         if key in seen:
             continue
         seen.add(key)
@@ -84,11 +85,13 @@ def normalize_salary_scales(payload: dict[str, Any], *, file_name: str = "") -> 
             {
                 "categoria": name,
                 "basico": basico,
+                "basico_mensual": basico,
                 "valor_hora": valor_hora,
                 "vigencia_desde": vigencia_desde or None,
                 "vigencia_hasta": vigencia_hasta or None,
                 "jornada": jornada or None,
                 "tipo": tipo or None,
+                "rama": rama or None,
                 "fuente_textual": fuente or None,
             }
         )
@@ -99,11 +102,13 @@ def normalize_salary_scales(payload: dict[str, Any], *, file_name: str = "") -> 
         name = str(scale.get("categoria") or scale.get("nombre") or "").strip()
         if not _valid_scale_name(name):
             continue
-        basico = _parse_money(scale.get("basico"))
+        basico = _parse_money(scale.get("basico") or scale.get("basico_mensual") or scale.get("sueldo_mensual") or scale.get("valor"))
         valor_hora = _parse_money(scale.get("valor_hora"))
         if not _valid_money(basico) and not _valid_money(valor_hora):
             continue
+        rama = str(scale.get("rama") or scale.get("grupo") or "").strip()
         key = (
+            rama.lower(),
             name.lower(),
             str(scale.get("vigencia_desde") or "").strip(),
             str(scale.get("jornada") or "").strip().lower(),
@@ -116,11 +121,19 @@ def normalize_salary_scales(payload: dict[str, Any], *, file_name: str = "") -> 
             {
                 "categoria": name,
                 "basico": basico,
+                "basico_mensual": basico,
                 "valor_hora": valor_hora,
                 "vigencia_desde": scale.get("vigencia_desde") or None,
                 "vigencia_hasta": scale.get("vigencia_hasta") or None,
                 "jornada": scale.get("jornada") or None,
                 "tipo": scale.get("tipo") or None,
+                "rama": rama or None,
+                "articulo_11": scale.get("articulo_11"),
+                "multifuncionalidad": scale.get("multifuncionalidad"),
+                "adicional_1": scale.get("adicional_1"),
+                "adicional_2": scale.get("adicional_2"),
+                "adicional_3": scale.get("adicional_3"),
+                "columnas_detectadas": scale.get("columnas_detectadas") or [],
                 "fuente_textual": scale.get("fuente_textual") or file_name or None,
             }
         )

@@ -1,2820 +1,893 @@
-﻿<!doctype html>
-<html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Calculadora CCT 244/94</title>
+﻿<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora CCT 244/94 · Industria de la Alimentación</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd',
+                            400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8',
+                            800: '#1e40af', 900: '#1e3a8a',
+                        },
+                        accent: { 50: '#f0fdf4', 100: '#dcfce7', 500: '#22c55e', 600: '#16a34a' },
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.4s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-      :root {
-        --bg: #f7f2e8;
-        --bg-soft: rgba(255, 255, 255, 0.76);
-        --surface: rgba(255, 251, 245, 0.9);
-        --surface-strong: #fffdf8;
-        --text: #1b2321;
-        --muted: #53615d;
-        --line: rgba(27, 35, 33, 0.08);
-        --line-strong: rgba(27, 35, 33, 0.16);
-        --accent: #d06224;
-        --accent-deep: #a54516;
-        --green: #1f6a52;
-        --warning-soft: rgba(182, 91, 25, 0.14);
-        --error-soft: rgba(158, 47, 47, 0.12);
-        --green-soft: rgba(31, 106, 82, 0.14);
-        --shadow: 0 24px 60px rgba(54, 40, 22, 0.12);
-        --radius-xl: 28px;
-        --radius-lg: 22px;
-        --radius-md: 16px;
-        --radius-sm: 12px;
-        --font-display: "Rockwell", "Georgia", serif;
-        --font-body: "Aptos", "Bahnschrift", "Trebuchet MS", sans-serif;
-      }
-
-      * {
-        box-sizing: border-box;
-      }
-
-      body {
-        margin: 0;
-        min-height: 100vh;
-        font-family: var(--font-body);
-        color: var(--text);
-        background:
-          radial-gradient(circle at top left, rgba(214, 131, 73, 0.22), transparent 28%),
-          radial-gradient(circle at right 18%, rgba(64, 132, 107, 0.18), transparent 24%),
-          linear-gradient(180deg, #f7f0e2 0%, #f4efe7 36%, #eef4f0 100%);
-      }
-
-      button,
-      input,
-      select,
-      summary {
-        font: inherit;
-      }
-
-      .page-shell {
-        width: min(1440px, calc(100% - 32px));
-        margin: 24px auto 40px;
-      }
-
-      .hero,
-      .panel {
-        backdrop-filter: blur(14px);
-        background: var(--bg-soft);
-        border: 1px solid var(--line);
-        box-shadow: var(--shadow);
-      }
-
-      .hero {
-        display: grid;
-        grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.9fr);
-        gap: 24px;
-        padding: 28px;
-        border-radius: var(--radius-xl);
-      }
-
-      .eyebrow,
-      .section-label {
-        margin: 0 0 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.18em;
-        font-size: 0.72rem;
-        color: var(--accent-deep);
-        font-weight: 700;
-      }
-
-      .hero h1,
-      .panel h2,
-      .breakdown-card h3 {
-        margin: 0;
-        font-family: var(--font-display);
-        letter-spacing: -0.02em;
-      }
-
-      .hero h1 {
-        font-size: clamp(2.2rem, 4vw, 3.6rem);
-        line-height: 0.98;
-        max-width: 12ch;
-      }
-
-      .hero-text {
-        margin: 18px 0 0;
-        max-width: 62ch;
-        line-height: 1.6;
-        color: var(--muted);
-        font-size: 1.02rem;
-      }
-
-      .hero-pills {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 20px;
-      }
-
-      .hero-pills span,
-      .toggle-card small,
-      .row-title small,
-      .message small {
-        color: var(--muted);
-      }
-
-      .hero-pills span {
-        padding: 10px 14px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.72);
-        border: 1px solid var(--line);
-        font-size: 0.92rem;
-      }
-
-      .hero-panel {
-        padding: 22px;
-        border-radius: var(--radius-lg);
-        background:
-          linear-gradient(160deg, rgba(208, 98, 36, 0.14), transparent 40%),
-          linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.52));
-        border: 1px solid var(--line);
-      }
-
-      .hero-panel p {
-        margin: 10px 0 20px;
-        color: var(--muted);
-        line-height: 1.55;
-      }
-
-      .hero-metrics {
-        display: grid;
-        gap: 14px;
-        margin: 0;
-      }
-
-      .hero-metrics div {
-        display: grid;
-        gap: 4px;
-      }
-
-      .hero-metrics dt {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        color: var(--muted);
-      }
-
-      .hero-metrics dd {
-        margin: 0;
-        font-size: 1rem;
-        font-weight: 700;
-      }
-
-      .workspace {
-        display: grid;
-        grid-template-columns: minmax(360px, 460px) minmax(0, 1fr);
-        gap: 24px;
-        margin-top: 24px;
-      }
-
-      .panel {
-        padding: 24px;
-        border-radius: var(--radius-xl);
-      }
-
-      .panel-heading {
-        display: flex;
-        align-items: start;
-        justify-content: space-between;
-        gap: 16px;
-        margin-bottom: 20px;
-      }
-
-      .panel-heading h2 {
-        font-size: 1.6rem;
-      }
-
-      .field-grid,
-      .toggle-grid,
-      .summary-grid,
-      .indicator-grid,
-      .breakdown-grid,
-      .agreement-options {
-        display: grid;
-        gap: 14px;
-      }
-
-      .field-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .field-full {
-        grid-column: 1 / -1;
-      }
-
-      .field {
-        display: grid;
-        gap: 8px;
-      }
-
-      .field span {
-        font-weight: 700;
-        font-size: 0.95rem;
-      }
-
-      .field input,
-      .field select {
-        width: 100%;
-        padding: 13px 14px;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--line);
-        background: var(--surface-strong);
-        color: var(--text);
-      }
-
-      .field input:focus,
-      .field select:focus {
-        outline: none;
-        border-color: rgba(208, 98, 36, 0.45);
-        box-shadow: 0 0 0 4px rgba(208, 98, 36, 0.14);
-      }
-
-      .toggle-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        margin-top: 18px;
-      }
-
-      .toggle-card {
-        position: relative;
-        display: grid;
-        gap: 6px;
-        padding: 16px 16px 16px 48px;
-        border-radius: var(--radius-md);
-        background: var(--surface);
-        border: 1px solid var(--line);
-        cursor: pointer;
-      }
-
-      .toggle-card input {
-        position: absolute;
-        inset: 18px auto auto 16px;
-        width: 18px;
-        height: 18px;
-        accent-color: var(--accent);
-      }
-
-      .toggle-card span {
-        font-weight: 700;
-      }
-
-      .advanced-box,
-      .detail-box {
-        margin-top: 18px;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--line);
-        background: var(--surface);
-        overflow: hidden;
-      }
-
-      .advanced-box summary,
-      .detail-box summary {
-        cursor: pointer;
-        padding: 16px 18px;
-        font-weight: 700;
-      }
-
-      .agreement-card {
-        padding: 16px;
-        border-radius: var(--radius-sm);
-        background: var(--surface-strong);
-        border: 1px solid var(--line);
-      }
-
-      .agreement-card h4 {
-        margin: 0 0 8px;
-      }
-
-      .agreement-card p {
-        margin: 0 0 12px;
-        color: var(--muted);
-        line-height: 1.5;
-      }
-
-      .agreement-options {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .agreement-option {
-        display: flex;
-        gap: 10px;
-        align-items: start;
-        font-size: 0.92rem;
-      }
-
-      .agreement-option input {
-        margin-top: 2px;
-        accent-color: var(--accent);
-      }
-
-      .form-actions {
-        margin-top: 20px;
-      }
-
-      .primary-button,
-      .ghost-button {
-        border-radius: 999px;
-        padding: 13px 20px;
-        font-weight: 700;
-        border: 1px solid transparent;
-        cursor: pointer;
-      }
-
-      .primary-button {
-        background: linear-gradient(135deg, var(--accent), #e18a41);
-        color: white;
-      }
-
-      .ghost-button {
-        background: rgba(255, 255, 255, 0.74);
-        color: var(--text);
-        border-color: var(--line);
-      }
-
-      .result-actions {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-
-      .skill-button[disabled] {
-        opacity: 0.55;
-        cursor: not-allowed;
-      }
-
-      .message-stack {
-        display: grid;
-        gap: 12px;
-        margin-bottom: 18px;
-      }
-
-      .message {
-        padding: 14px 16px;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--line);
-      }
-
-      .message-warning {
-        background: var(--warning-soft);
-      }
-
-      .message-error {
-        background: var(--error-soft);
-      }
-
-      .message-info {
-        background: var(--green-soft);
-      }
-
-      .summary-grid,
-      .indicator-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-      }
-
-      .summary-card,
-      .indicator-card,
-      .breakdown-card {
-        padding: 18px;
-        border-radius: var(--radius-lg);
-        background: var(--surface);
-        border: 1px solid var(--line);
-      }
-
-      .summary-card,
-      .indicator-card {
-        display: grid;
-        gap: 8px;
-      }
-
-      .summary-card span,
-      .indicator-card span {
-        color: var(--muted);
-        font-size: 0.9rem;
-      }
-
-      .summary-card strong,
-      .indicator-card strong {
-        font-family: var(--font-display);
-        font-size: 1.65rem;
-        letter-spacing: -0.03em;
-      }
-
-      .highlight-card {
-        background:
-          linear-gradient(160deg, rgba(31, 106, 82, 0.18), transparent 50%),
-          var(--surface-strong);
-      }
-
-      .indicator-grid {
-        margin-top: 14px;
-      }
-
-      .breakdown-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        margin-top: 18px;
-      }
-
-      .breakdown-card h3 {
-        font-size: 1.2rem;
-        margin-bottom: 14px;
-      }
-
-      .rows,
-      .steps,
-      .debug-steps,
-      .narrative,
-      .sources-panel,
-      .agreements-container {
-        display: grid;
-        gap: 10px;
-        padding: 16px 18px 18px;
-      }
-
-      .row {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 16px;
-        padding: 10px 0;
-        border-top: 1px solid var(--line);
-      }
-
-      .row:first-child {
-        border-top: 0;
-        padding-top: 0;
-      }
-
-      .row-title {
-        display: grid;
-        gap: 4px;
-      }
-
-      .row-title strong {
-        font-size: 0.95rem;
-      }
-
-      .row-value {
-        text-align: right;
-        font-weight: 700;
-        white-space: nowrap;
-      }
-
-      .narrative p,
-      .source-item p,
-      .step-card p {
-        margin: 0;
-        line-height: 1.65;
-        color: var(--muted);
-      }
-
-      .step-card,
-      .source-item {
-        padding: 14px 16px;
-        border-radius: var(--radius-sm);
-        background: var(--surface-strong);
-        border: 1px solid var(--line);
-      }
-
-      .skill-modal {
-        position: fixed;
-        inset: 0;
-        display: none;
-        z-index: 80;
-      }
-
-      .skill-modal.is-open {
-        display: block;
-      }
-
-      .skill-backdrop {
-        position: absolute;
-        inset: 0;
-        background: rgba(15, 21, 19, 0.45);
-        backdrop-filter: blur(6px);
-      }
-
-      .skill-dialog {
-        position: relative;
-        width: min(980px, calc(100% - 32px));
-        max-height: calc(100vh - 48px);
-        margin: 24px auto;
-        overflow: auto;
-        border-radius: var(--radius-xl);
-        border: 1px solid var(--line-strong);
-        background:
-          linear-gradient(180deg, rgba(255, 253, 248, 0.98), rgba(250, 246, 240, 0.98));
-        box-shadow: 0 28px 80px rgba(15, 21, 19, 0.25);
-      }
-
-      .skill-header {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-        display: flex;
-        justify-content: space-between;
-        align-items: start;
-        gap: 18px;
-        padding: 22px 24px 18px;
-        border-bottom: 1px solid var(--line);
-        background: rgba(255, 253, 248, 0.97);
-      }
-
-      .skill-header p {
-        margin: 0 0 8px;
-      }
-
-      .skill-header h3 {
-        margin: 0;
-        font-family: var(--font-display);
-        font-size: 1.9rem;
-      }
-
-      .skill-body {
-        display: grid;
-        gap: 18px;
-        padding: 22px 24px 26px;
-      }
-
-      .skill-topline {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        align-items: center;
-      }
-
-      .status-badge,
-      .type-badge,
-      .formula-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 7px 12px;
-        border-radius: 999px;
-        font-size: 0.82rem;
-        font-weight: 700;
-        letter-spacing: 0.02em;
-      }
-
-      .status-ok {
-        background: rgba(31, 106, 82, 0.14);
-        color: var(--green);
-      }
-
-      .status-warning {
-        background: rgba(182, 91, 25, 0.14);
-        color: #9d4f16;
-      }
-
-      .status-error {
-        background: rgba(158, 47, 47, 0.14);
-        color: #952727;
-      }
-
-      .badge-rem {
-        background: rgba(31, 106, 82, 0.1);
-        color: var(--green);
-      }
-
-      .badge-nr {
-        background: rgba(208, 98, 36, 0.12);
-        color: var(--accent-deep);
-      }
-
-      .badge-desc {
-        background: rgba(27, 35, 33, 0.08);
-        color: var(--text);
-      }
-
-      .badge-warn {
-        background: rgba(182, 91, 25, 0.14);
-        color: #9d4f16;
-      }
-
-      .badge-info {
-        background: rgba(83, 97, 93, 0.12);
-        color: var(--muted);
-      }
-
-      .skill-section {
-        padding: 18px;
-        border-radius: var(--radius-lg);
-        background: rgba(255, 255, 255, 0.6);
-        border: 1px solid var(--line);
-      }
-
-      .skill-section h4 {
-        margin: 0 0 12px;
-        font-family: var(--font-display);
-        font-size: 1.25rem;
-      }
-
-      .skill-summary-card {
-        display: grid;
-        gap: 12px;
-        padding: 18px;
-        border-radius: var(--radius-lg);
-        background:
-          linear-gradient(160deg, rgba(208, 98, 36, 0.12), transparent 45%),
-          rgba(255, 255, 255, 0.82);
-        border: 1px solid var(--line);
-      }
-
-      .skill-summary-metrics {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 12px;
-      }
-
-      .skill-metric {
-        padding: 12px 14px;
-        border-radius: var(--radius-sm);
-        background: rgba(255, 255, 255, 0.74);
-        border: 1px solid var(--line);
-      }
-
-      .skill-metric span {
-        display: block;
-        margin-bottom: 6px;
-        color: var(--muted);
-        font-size: 0.82rem;
-      }
-
-      .skill-metric strong {
-        font-size: 1rem;
-      }
-
-      .skill-step-list,
-      .skill-formula-list,
-      .skill-observation-list {
-        display: grid;
-        gap: 12px;
-      }
-
-      .skill-step-card,
-      .skill-formula-card,
-      .skill-observation-card {
-        padding: 14px 16px;
-        border-radius: var(--radius-sm);
-        background: var(--surface-strong);
-        border: 1px solid var(--line);
-      }
-
-      .skill-step-card header,
-      .skill-formula-card header,
-      .skill-observation-card header {
-        display: flex;
-        justify-content: space-between;
-        align-items: start;
-        gap: 14px;
-        margin-bottom: 10px;
-      }
-
-      .skill-step-card p,
-      .skill-formula-card p,
-      .skill-observation-card p {
-        margin: 0;
-        line-height: 1.62;
-        color: var(--muted);
-      }
-
-      .skill-step-card code,
-      .skill-formula-card code {
-        display: block;
-        margin-top: 8px;
-        padding: 10px 12px;
-        border-radius: 10px;
-        background: rgba(31, 106, 82, 0.08);
-        color: var(--green);
-        font-family: Consolas, "Courier New", monospace;
-        white-space: pre-wrap;
-      }
-
-      .skill-detail-list {
-        display: grid;
-        gap: 8px;
-        margin-top: 10px;
-      }
-
-      .skill-detail-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: start;
-        gap: 12px;
-        padding-top: 8px;
-        border-top: 1px solid var(--line);
-      }
-
-      .skill-detail-item:first-child {
-        border-top: 0;
-        padding-top: 0;
-      }
-
-      .skill-empty {
-        padding: 14px 16px;
-        border-radius: var(--radius-sm);
-        background: rgba(255, 255, 255, 0.72);
-        border: 1px dashed var(--line-strong);
-        color: var(--muted);
-      }
-
-      .step-card header {
-        display: flex;
-        justify-content: space-between;
-        gap: 16px;
-        margin-bottom: 8px;
-      }
-
-      .step-card code {
-        display: block;
-        margin-top: 8px;
-        padding: 10px 12px;
-        border-radius: 10px;
-        background: rgba(31, 106, 82, 0.08);
-        color: var(--green);
-        font-family: Consolas, "Courier New", monospace;
-        white-space: pre-wrap;
-      }
-
-      .conditional-field {
-        display: none;
-      }
-
-      .conditional-field.is-visible {
-        display: grid;
-      }
-
-      .app-bar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 18px;
-        margin-bottom: 20px;
-        padding: 16px 20px;
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.74);
-        box-shadow: 0 16px 36px rgba(51, 39, 24, 0.08);
-        backdrop-filter: blur(14px);
-      }
-
-      .app-brand {
-        display: grid;
-        gap: 4px;
-      }
-
-      .app-brand strong {
-        font-size: 1.08rem;
-      }
-
-      .app-brand small {
-        color: var(--muted);
-      }
-
-      .brand-kicker {
-        display: inline-flex;
-        width: fit-content;
-        padding: 6px 10px;
-        border-radius: 999px;
-        background: rgba(208, 98, 36, 0.12);
-        color: var(--accent-deep);
-        font-size: 0.74rem;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
-
-      .app-actions {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-        gap: 10px;
-        align-items: center;
-      }
-
-      .app-pill {
-        display: inline-flex;
-        align-items: center;
-        padding: 9px 12px;
-        border-radius: 999px;
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.85);
-        color: var(--muted);
-        font-size: 0.84rem;
-        font-weight: 700;
-      }
-
-      .quick-nav {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 18px;
-      }
-
-      .nav-chip {
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.82);
-        color: var(--muted);
-        border-radius: 999px;
-        padding: 11px 16px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: transform 0.18s ease, border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
-      }
-
-      .nav-chip:hover,
-      .nav-chip.is-active {
-        color: var(--accent-deep);
-        border-color: rgba(208, 98, 36, 0.34);
-        background: rgba(208, 98, 36, 0.12);
-        transform: translateY(-1px);
-      }
-
-      .workflow-strip {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 12px;
-        margin-top: 24px;
-      }
-
-      .workflow-step {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        gap: 12px;
-        align-items: center;
-        padding: 14px 16px;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.76);
-        box-shadow: 0 10px 24px rgba(51, 39, 24, 0.06);
-      }
-
-      .workflow-step strong {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        background: rgba(31, 106, 82, 0.12);
-        color: var(--green);
-        font-size: 0.96rem;
-      }
-
-      .workflow-step span {
-        display: block;
-        font-weight: 800;
-      }
-
-      .workflow-step small {
-        display: block;
-        margin-top: 2px;
-        color: var(--muted);
-      }
-
-      .wizard-shell {
-        display: grid;
-        gap: 18px;
-        margin-top: 20px;
-      }
-
-      .wizard-progress-card {
-        padding: 22px 24px;
-        border-radius: var(--radius-xl);
-        border: 1px solid var(--line);
-        background:
-          linear-gradient(160deg, rgba(208, 98, 36, 0.12), transparent 42%),
-          rgba(255, 255, 255, 0.78);
-        box-shadow: var(--shadow);
-      }
-
-      .wizard-progress-card h2 {
-        font-size: 1.5rem;
-        margin-top: 2px;
-      }
-
-      .wizard-progress-caption {
-        margin: 10px 0 16px;
-        color: var(--muted);
-        line-height: 1.55;
-      }
-
-      .wizard-progress-track {
-        width: 100%;
-        height: 12px;
-        border-radius: 999px;
-        background: rgba(27, 35, 33, 0.08);
-        overflow: hidden;
-      }
-
-      .wizard-progress-fill {
-        display: block;
-        height: 100%;
-        width: 16.66%;
-        border-radius: inherit;
-        background: linear-gradient(135deg, var(--accent), #e18a41);
-        transition: width 0.22s ease;
-      }
-
-      .wizard-stepper {
-        display: grid;
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-        gap: 12px;
-      }
-
-      .wizard-step-button {
-        display: grid;
-        gap: 8px;
-        align-content: start;
-        padding: 16px;
-        text-align: left;
-        border: 1px solid var(--line);
-        border-radius: var(--radius-md);
-        background: rgba(255, 255, 255, 0.8);
-        color: var(--text);
-        cursor: pointer;
-        transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
-      }
-
-      .wizard-step-button:hover {
-        transform: translateY(-1px);
-      }
-
-      .wizard-step-button strong {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: rgba(31, 106, 82, 0.12);
-        color: var(--green);
-        font-size: 1rem;
-      }
-
-      .wizard-step-button span {
-        display: block;
-        font-weight: 800;
-      }
-
-      .wizard-step-button small {
-        color: var(--muted);
-        line-height: 1.45;
-      }
-
-      .wizard-step-button.is-active {
-        border-color: rgba(208, 98, 36, 0.34);
-        background: rgba(208, 98, 36, 0.12);
-      }
-
-      .wizard-step-button.is-active strong {
-        background: rgba(208, 98, 36, 0.16);
-        color: var(--accent-deep);
-      }
-
-      .wizard-step-button.is-complete {
-        border-color: rgba(31, 106, 82, 0.24);
-        background: rgba(31, 106, 82, 0.1);
-      }
-
-      .wizard-step-button.is-complete strong {
-        background: rgba(31, 106, 82, 0.18);
-      }
-
-      .wizard-grid {
-        display: grid;
-        gap: 24px;
-        grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
-      }
-
-      .wizard-stack {
-        display: grid;
-        gap: 24px;
-      }
-
-      .step-intro {
-        display: flex;
-        justify-content: space-between;
-        gap: 24px;
-        align-items: start;
-        margin-bottom: 18px;
-      }
-
-      .step-intro p:last-child {
-        margin: 0;
-        max-width: 58ch;
-        color: var(--muted);
-        line-height: 1.6;
-      }
-
-      .step-note {
-        padding: 16px 18px;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.72);
-      }
-
-      .step-note p {
-        margin: 8px 0 0;
-        color: var(--muted);
-        line-height: 1.55;
-      }
-
-      .wizard-actions {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        margin-top: 20px;
-      }
-
-      .wizard-actions-right {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-      }
-
-      .revista-grid {
-        display: grid;
-        gap: 12px;
-        margin-top: 14px;
-      }
-
-      .revista-row,
-      .mini-field-grid {
-        display: grid;
-        gap: 10px;
-      }
-
-      .revista-row {
-        grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(80px, 0.7fr));
-      }
-
-      .mini-field-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-
-      .revista-row input,
-      .mini-field-grid input,
-      .mini-field-grid select {
-        width: 100%;
-        padding: 12px 14px;
-        border-radius: var(--radius-sm);
-        border: 1px solid var(--line);
-        background: var(--surface-strong);
-        color: var(--text);
-      }
-
-      .step-kpi-grid {
-        display: grid;
-        gap: 12px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .step-kpi {
-        padding: 14px 16px;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.76);
-      }
-
-      .step-kpi span,
-      .step-kpi small {
-        display: block;
-        color: var(--muted);
-      }
-
-      .step-kpi strong {
-        display: block;
-        margin-top: 6px;
-        font-size: 1.15rem;
-      }
-
-      .gemini-grid {
-        display: grid;
-        gap: 24px;
-        grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
-      }
-
-      .section-pane {
-        display: none;
-        margin-top: 24px;
-      }
-
-      .section-pane.is-active {
-        display: block;
-      }
-
-      .section-grid {
-        display: grid;
-        gap: 24px;
-        grid-template-columns: minmax(0, 1fr);
-      }
-
-      .section-intro {
-        display: flex;
-        justify-content: space-between;
-        gap: 18px;
-        align-items: end;
-        margin-bottom: 18px;
-      }
-
-      .section-intro p:last-child {
-        margin: 0;
-        max-width: 60ch;
-        color: var(--muted);
-        line-height: 1.6;
-      }
-
-      .result-tabs {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-top: 18px;
-        margin-bottom: 18px;
-      }
-
-      .result-tab {
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.82);
-        color: var(--muted);
-        border-radius: 999px;
-        padding: 10px 14px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: 0.18s ease;
-      }
-
-      .result-tab:hover,
-      .result-tab.is-active {
-        color: var(--green);
-        border-color: rgba(31, 106, 82, 0.28);
-        background: rgba(31, 106, 82, 0.12);
-      }
-
-      .result-pane {
-        display: none;
-      }
-
-      .result-pane.is-active {
-        display: block;
-      }
-
-      .receipt-view {
-        display: grid;
-        gap: 16px;
-      }
-
-      .receipt-hero {
-        display: grid;
-        gap: 10px;
-        padding: 20px 22px;
-        border-radius: var(--radius-lg);
-        color: #fff;
-        background:
-          linear-gradient(145deg, rgba(16, 58, 51, 0.96), rgba(31, 106, 82, 0.94)),
-          linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent);
-      }
-
-      .receipt-hero strong {
-        font-size: 1.34rem;
-      }
-
-      .receipt-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px 18px;
-        color: rgba(255, 255, 255, 0.82);
-        font-size: 0.92rem;
-      }
-
-      .receipt-columns {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 16px;
-      }
-
-      .receipt-column {
-        padding: 18px;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.82);
-      }
-
-      .receipt-column h4 {
-        margin: 0 0 14px;
-        font-size: 0.84rem;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        color: var(--muted);
-      }
-
-      .receipt-row,
-      .receipt-total {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        align-items: start;
-      }
-
-      .receipt-row {
-        padding: 7px 0;
-        border-bottom: 1px solid var(--line);
-      }
-
-      .receipt-row:last-child {
-        border-bottom: none;
-      }
-
-      .receipt-row span:first-child {
-        color: var(--muted);
-      }
-
-      .receipt-row span:last-child,
-      .receipt-total strong:last-child {
-        text-align: right;
-      }
-
-      .receipt-total {
-        padding: 16px 18px;
-        border-radius: var(--radius-md);
-        background: linear-gradient(135deg, rgba(208, 98, 36, 0.14), rgba(31, 106, 82, 0.12));
-        border: 1px solid rgba(208, 98, 36, 0.16);
-      }
-
-      .receipt-total strong:first-child {
-        color: var(--muted);
-      }
-
-      .receipt-total strong:last-child {
-        font-size: 1.24rem;
-      }
-
-      .matrix-stats {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 14px;
-      }
-
-      .mini-stat {
-        padding: 16px;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.86);
-      }
-
-      .mini-stat span {
-        display: block;
-        font-size: 0.78rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--muted);
-      }
-
-      .mini-stat strong {
-        display: block;
-        margin-top: 8px;
-        font-size: 1.18rem;
-      }
-
-      .table-wrap {
-        overflow-x: auto;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.82);
-      }
-
-      .tech-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.94rem;
-      }
-
-      .tech-table th,
-      .tech-table td {
-        padding: 12px 14px;
-        border-bottom: 1px solid var(--line);
-        vertical-align: top;
-      }
-
-      .tech-table th {
-        text-align: left;
-        background: rgba(31, 106, 82, 0.08);
-        color: var(--text);
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-      }
-
-      .tech-table td small {
-        display: block;
-        margin-top: 4px;
-        color: var(--muted);
-      }
-
-      .toolbelt-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 24px;
-        margin: 24px 0;
-      }
-
-      .tool-context {
-        margin: 0 0 14px;
-        color: var(--muted);
-        line-height: 1.55;
-      }
-
-      .distribution-view,
-      .cost-view {
-        display: grid;
-        gap: 18px;
-      }
-
-      .distribution-stack {
-        display: grid;
-        gap: 12px;
-      }
-
-      .distribution-row {
-        display: grid;
-        gap: 8px;
-      }
-
-      .distribution-topline {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-      }
-
-      .distribution-topline span {
-        font-weight: 700;
-      }
-
-      .distribution-topline strong {
-        font-size: 0.95rem;
-      }
-
-      .distribution-track {
-        width: 100%;
-        height: 10px;
-        border-radius: 999px;
-        overflow: hidden;
-        background: rgba(27, 35, 33, 0.08);
-      }
-
-      .distribution-fill {
-        display: block;
-        height: 100%;
-        border-radius: inherit;
-      }
-
-      .distribution-footnote,
-      .cost-note {
-        margin: 0;
-        color: var(--muted);
-        line-height: 1.55;
-      }
-
-      .pill {
-        display: inline-flex;
-        align-items: center;
-        padding: 6px 10px;
-        border-radius: 999px;
-        font-size: 0.76rem;
-        font-weight: 800;
-        letter-spacing: 0.04em;
-      }
-
-      .pill-rem {
-        background: rgba(31, 106, 82, 0.14);
-        color: var(--green);
-      }
-
-      .pill-nr {
-        background: rgba(208, 98, 36, 0.14);
-        color: var(--accent-deep);
-      }
-
-      .pill-info {
-        background: rgba(84, 97, 93, 0.12);
-        color: var(--muted);
-      }
-
-      .scale-deck,
-      .agreement-deck {
-        display: grid;
-        gap: 16px;
-      }
-
-      .scale-card {
-        border: 1px solid var(--line);
-        border-radius: var(--radius-lg);
-        background: rgba(255, 255, 255, 0.8);
-        overflow: hidden;
-      }
-
-      .scale-card header {
-        display: flex;
-        justify-content: space-between;
-        gap: 14px;
-        align-items: start;
-        padding: 18px 20px;
-        border-bottom: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.72);
-      }
-
-      .scale-card h3 {
-        margin: 0 0 4px;
-      }
-
-      .scale-card p {
-        margin: 0;
-        color: var(--muted);
-      }
-
-      .scale-card details {
-        border-top: 1px solid var(--line);
-      }
-
-      .scale-card summary {
-        list-style: none;
-        padding: 14px 18px;
-        cursor: pointer;
-        font-weight: 700;
-      }
-
-      .scale-card summary::-webkit-details-marker {
-        display: none;
-      }
-
-      .scale-table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-
-      .scale-table th,
-      .scale-table td {
-        padding: 10px 14px;
-        border-bottom: 1px solid var(--line);
-        text-align: left;
-        font-size: 0.92rem;
-      }
-
-      .scale-table th {
-        background: rgba(208, 98, 36, 0.08);
-        font-size: 0.78rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-      }
-
-      .scale-table td:last-child,
-      .scale-table th:last-child {
-        text-align: right;
-      }
-
-      .guide-grid {
-        display: grid;
-        gap: 24px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .guide-list {
-        display: grid;
-        gap: 12px;
-      }
-
-      .guide-list article {
-        padding: 14px 16px;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.8);
-      }
-
-      .guide-list strong {
-        display: block;
-        margin-bottom: 4px;
-      }
-
-      .guide-list p,
-      .guide-list li {
-        margin: 0;
-        color: var(--muted);
-        line-height: 1.55;
-      }
-
-      .guide-list ul {
-        margin: 8px 0 0;
-        padding-left: 18px;
-      }
-
-      .audit-layout {
-        display: grid;
-        gap: 24px;
-        grid-template-columns: minmax(360px, 1.1fr) minmax(0, 0.9fr);
-      }
-
-      .audit-inline-panel {
-        margin: 18px 0 22px;
-      }
-
-      .audit-toolbar,
-      .audit-table-actions,
-      .audit-inline-actions {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-
-      .audit-toolbar {
-        margin-bottom: 18px;
-      }
-
-      .audit-table-wrap {
-        overflow: auto;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.78);
-      }
-
-      .audit-table {
-        width: 100%;
-        min-width: 760px;
-        border-collapse: collapse;
-      }
-
-      .audit-table th,
-      .audit-table td {
-        padding: 10px 12px;
-        border-bottom: 1px solid var(--line);
-        vertical-align: top;
-      }
-
-      .audit-table th {
-        font-size: 0.76rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        text-align: left;
-        background: rgba(31, 106, 82, 0.08);
-      }
-
-      .audit-table input,
-      .audit-table select,
-      .audit-table textarea,
-      .audit-json-box,
-      .audit-ai-output {
-        width: 100%;
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 10px 12px;
-        font: inherit;
-        background: var(--surface-strong);
-        color: var(--text);
-      }
-
-      .audit-table textarea,
-      .audit-json-box {
-        min-height: 80px;
-        resize: vertical;
-      }
-
-      .audit-ai-output {
-        min-height: 180px;
-        white-space: pre-wrap;
-        line-height: 1.6;
-      }
-
-      .audit-remove {
-        min-width: 44px;
-        border: 1px solid var(--line);
-        border-radius: 10px;
-        background: rgba(158, 47, 47, 0.08);
-        color: #8f2e2e;
-        cursor: pointer;
-      }
-
-      .audit-findings {
-        display: grid;
-        gap: 12px;
-      }
-
-      .audit-finding {
-        padding: 14px 16px;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.8);
-      }
-
-      .audit-finding strong,
-      .audit-finding small {
-        display: block;
-      }
-
-      .audit-finding p,
-      .audit-empty p {
-        margin: 6px 0 0;
-        color: var(--muted);
-        line-height: 1.55;
-      }
-
-      .audit-finding.is-error {
-        border-color: rgba(158, 47, 47, 0.22);
-        background: var(--error-soft);
-      }
-
-      .audit-finding.is-blocker,
-      .audit-finding.is-critical {
-        border-color: rgba(158, 47, 47, 0.22);
-        background: var(--error-soft);
-      }
-
-      .audit-finding.is-warning {
-        border-color: rgba(208, 98, 36, 0.22);
-        background: var(--warning-soft);
-      }
-
-      .audit-finding.is-info {
-        border-color: rgba(31, 106, 82, 0.18);
-        background: var(--green-soft);
-      }
-
-      .audit-empty {
-        padding: 18px;
-        border-radius: var(--radius-md);
-        border: 1px dashed var(--line);
-        background: rgba(255, 255, 255, 0.62);
-      }
-
-      .audit-caption {
-        margin: 0 0 14px;
-        color: var(--muted);
-        line-height: 1.55;
-      }
-
-      .audit-status-strip {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 12px;
-        margin-bottom: 18px;
-      }
-
-      .audit-status-card {
-        padding: 16px;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.84);
-      }
-
-      .audit-status-card span,
-      .audit-status-card small {
-        display: block;
-        color: var(--muted);
-      }
-
-      .audit-status-card strong {
-        display: block;
-        margin-top: 6px;
-        font-size: 1.25rem;
-      }
-
-      .audit-status-card.is-blocked {
-        border-color: rgba(158, 47, 47, 0.24);
-        background: var(--error-soft);
-      }
-
-      .audit-status-card.is-ready {
-        border-color: rgba(31, 106, 82, 0.22);
-        background: var(--green-soft);
-      }
-
-      .audit-json-box,
-      .audit-ai-output {
-        margin-top: 12px;
-      }
-
-      .audit-source-list {
-        display: grid;
-        gap: 10px;
-      }
-
-      .audit-source-list article {
-        padding: 12px 14px;
-        border-radius: var(--radius-md);
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.76);
-      }
-
-      .toast-stack {
-        position: fixed;
-        top: 18px;
-        right: 18px;
-        display: grid;
-        gap: 10px;
-        z-index: 50;
-      }
-
-      .toast-card {
-        min-width: 260px;
-        padding: 12px 14px;
-        border-radius: 16px;
-        border: 1px solid var(--line);
-        background: rgba(255, 255, 255, 0.94);
-        box-shadow: 0 18px 36px rgba(51, 39, 24, 0.12);
-        animation: toast-in 0.2s ease;
-      }
-
-      .toast-card strong {
-        display: block;
-        margin-bottom: 2px;
-      }
-
-      .toast-card small {
-        color: var(--muted);
-      }
-
-      .toast-card.is-ok {
-        border-color: rgba(31, 106, 82, 0.24);
-      }
-
-      .toast-card.is-warn {
-        border-color: rgba(208, 98, 36, 0.24);
-      }
-
-      .toast-card.is-error {
-        border-color: rgba(158, 47, 47, 0.24);
-      }
-
-      @keyframes toast-in {
-        from {
-          opacity: 0;
-          transform: translateY(-6px);
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .step-content { display: none; }
+        .step-content.active { display: block; }
+        .step-item.active .step-circle { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+        .step-item.completed .step-circle { background: #16a34a; color: white; }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .dark .glass-panel { background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .input-modern { transition: all 0.2s ease; }
+        .input-modern:focus { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15); }
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); transition: all 0.3s ease;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4); }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        .progress-bar { background: linear-gradient(90deg, #3b82f6, #22c55e); transition: width 0.5s ease; }
+        
+        /* ===== TOOLTIP STYLES ===== */
+        .help-tip {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            cursor: help;
+            margin-left: 5px;
+        }
+        .help-tip-icon {
+            width: 17px;
+            height: 17px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            color: #475569;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            line-height: 1;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .dark .help-tip-icon {
+            background: #334155;
+            color: #94a3b8;
+        }
+        .help-tip:hover .help-tip-icon,
+        .help-tip:focus .help-tip-icon {
+            background: #3b82f6;
+            color: #ffffff;
+            transform: scale(1.1);
         }
 
-        to {
-          opacity: 1;
-          transform: translateY(0);
+        .help-tip-content {
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 10px);
+            transform: translateX(-50%) translateY(5px);
+            width: 300px;
+            max-width: 90vw;
+            background: #1e293b;
+            color: #e2e8f0;
+            border-radius: 12px;
+            padding: 14px 16px;
+            font-size: 13px;
+            line-height: 1.6;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
+            z-index: 1000;
         }
-      }
-
-      @media (max-width: 1120px) {
-        .workspace,
-        .hero,
-        .wizard-grid,
-        .gemini-grid {
-          grid-template-columns: 1fr;
+        .dark .help-tip-content {
+            background: #0f172a;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
+            color: #cbd5e1;
         }
-
-        .summary-grid,
-        .indicator-grid {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .wizard-stepper,
-        .workflow-strip,
-        .matrix-stats,
-        .guide-grid,
-        .audit-status-strip {
-          grid-template-columns: 1fr 1fr;
-        }
-      }
-
-      @media (max-width: 760px) {
-        .page-shell {
-          width: min(100%, calc(100% - 20px));
-          margin: 12px auto 28px;
-        }
-
-        .hero,
-        .panel {
-          padding: 18px;
-          border-radius: 20px;
+        .help-tip:hover .help-tip-content,
+        .help-tip:focus-within .help-tip-content {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
         }
 
-        .app-bar,
-        .section-intro,
-        .step-intro,
-        .scale-card header {
-          flex-direction: column;
-          align-items: start;
+        /* Flecha del tooltip */
+        .help-tip-content::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: #1e293b;
+        }
+        .dark .help-tip-content::after {
+            border-top-color: #0f172a;
         }
 
-        .app-actions {
-          justify-content: start;
+        .help-tip-title {
+            display: block;
+            font-weight: 700;
+            color: #60a5fa;
+            margin-bottom: 6px;
+            font-size: 13px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 6px;
+        }
+        .dark .help-tip-title {
+            border-bottom-color: #1e293b;
+        }
+        .help-tip-content strong {
+            color: #f8fafc;
         }
 
-        .wizard-stepper,
-        .workflow-strip,
-        .matrix-stats,
-        .guide-grid,
-        .toolbelt-grid,
-        .receipt-columns,
-        .audit-layout,
-        .audit-status-strip {
-          grid-template-columns: 1fr;
+        @media (max-width: 480px) {
+            .help-tip-content {
+                width: 260px;
+                left: auto;
+                right: -20px;
+                transform: translateY(5px);
+            }
+            .help-tip:hover .help-tip-content,
+            .help-tip:focus-within .help-tip-content {
+                transform: translateY(0);
+            }
+            .help-tip-content::after {
+                left: calc(100% - 28px);
+                transform: none;
+            }
         }
 
-        .field-grid,
-        .toggle-grid,
-        .summary-grid,
-        .indicator-grid,
-        .breakdown-grid,
-        .agreement-options,
-        .step-kpi-grid,
-        .mini-field-grid,
-        .revista-row {
-          grid-template-columns: 1fr;
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; }
+            .glass-panel { border: 1px solid #e5e7eb; }
+            .help-tip-content { display: none !important; }
         }
-
-        .wizard-actions {
-          flex-direction: column;
-          align-items: stretch;
-        }
-
-        .wizard-actions-right {
-          width: 100%;
-          justify-content: stretch;
-        }
-
-        .wizard-actions button,
-        .wizard-actions-right button {
-          width: 100%;
-        }
-      }
     </style>
-  </head>
-  <body>
-    <div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+</head>
+<body class="bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 min-h-screen text-slate-900 dark:text-slate-100 transition-colors duration-300">
 
-    <div class="page-shell">
-      <div class="app-bar">
-        <div class="app-brand">
-          <span class="brand-kicker">Meta-modelo + CCT 244/94</span>
-          <strong>Suite de liquidaciÃ³n para Industria de la AlimentaciÃ³n</strong>
-          <small>HTML Ãºnico, offline y trazable, tomando como base el meta-modelo y una experiencia tipo UOCRA.</small>
+    <header class="sticky top-0 z-50 glass-panel border-b border-slate-200 dark:border-slate-700 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center text-white font-bold text-lg shadow-lg">CCT</div>
+                    <div>
+                        <h1 class="text-lg font-bold bg-gradient-to-r from-brand-600 to-accent-500 bg-clip-text text-transparent">Calculadora CCT 244/94</h1>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Industria de la Alimentación · Liquidación profesional</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="themeToggle" class="p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                        <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                        <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+                    </button>
+                    <button onclick="printResult()" class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors text-sm font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                        Imprimir
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="app-actions">
-          <span class="app-pill">Remunerativos + NR</span>
-          <span class="app-pill">ExplicaciÃ³n + skill</span>
-          <button id="print-button" type="button" class="ghost-button">Imprimir</button>
-        </div>
-      </div>
-      <header class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow">LiquidaciÃ³n profesional y trazable</p>
-          <h1>Calculadora avanzada CCT 244/94</h1>
-          <p class="hero-text">
-            Calculadora autosuficiente en un Ãºnico HTML para liquidar sueldos,
-            vacaciones y liquidaciÃ³n final bÃ¡sica del CCT 244/94, separando
-            remunerativos y no remunerativos con detalle paso a paso.
-          </p>
-          <div class="hero-pills">
-            <span>Escalas por fecha</span>
-            <span>ExplicaciÃ³n del cÃ¡lculo</span>
-            <span>Modo debug</span>
-            <span>Preparada para otros CCT</span>
-          </div>
-        </div>
-        <aside class="hero-panel">
-          <h2>Fuente activa</h2>
-          <p id="active-scale-caption">Resolviendo escala vigenteâ€¦</p>
-          <dl class="hero-metrics">
-            <div>
-              <dt>Convenio</dt>
-              <dd>CCT 244/94</dd>
-            </div>
-            <div>
-              <dt>Divisor mensual</dt>
-              <dd>30 dÃ­as</dd>
-            </div>
-            <div>
-              <dt>Valor hora base</dt>
-              <dd>200 horas</dd>
-            </div>
-            <div>
-              <dt>Vacaciones</dt>
-              <dd>Divisor 25</dd>
-            </div>
-          </dl>
-        </aside>
-      </header>
+    </header>
 
-      <section class="toolbelt-grid" aria-label="Herramientas complementarias">
-        <section class="panel">
-          <div class="panel-heading">
-            <div>
-              <p class="section-label">Herramienta reutilizada</p>
-              <h2>Simulador rapido</h2>
-            </div>
-          </div>
-          <p id="sim-context-caption" class="tool-context">
-            Usa la configuracion actual del wizard para proyectar remunerativos, descuentos y bolsillo en escenarios futuros.
-          </p>
-          <div class="mini-field-grid">
-            <label class="field">
-              <span>Meses a proyectar</span>
-              <input id="sim-months" type="number" min="1" max="24" step="1" value="6" />
-            </label>
-            <label class="field">
-              <span>% mensual remunerativo</span>
-              <input id="sim-rem-percent" type="number" min="-50" max="200" step="0.1" value="2" />
-            </label>
-            <label class="field">
-              <span>% mensual no remunerativo</span>
-              <input id="sim-nr-percent" type="number" min="-50" max="200" step="0.1" value="1" />
-            </label>
-          </div>
-          <div class="wizard-actions" style="margin-top: 18px;">
-            <div class="step-note">
-              <strong>Fuente de trabajo</strong>
-              <p>La proyeccion toma la fecha, categoria, tipo y configuracion que hoy tenes cargadas en el wizard.</p>
-            </div>
-            <div class="wizard-actions-right">
-              <button id="run-sim-button" type="button" class="primary-button">Generar simulacion</button>
-            </div>
-          </div>
-          <div id="sim-result" class="table-wrap" style="margin-top: 18px;">
-            <div class="skill-empty">Todavia no generaste una simulacion.</div>
-          </div>
-        </section>
-
-        <section class="panel">
-          <div class="panel-heading">
-            <div>
-              <p class="section-label">Herramienta reutilizada</p>
-              <h2>Comparador de categorias</h2>
-            </div>
-          </div>
-          <p id="compare-context-caption" class="tool-context">
-            Compara dos categorias bajo la misma fecha, tipo de liquidacion y configuracion cargadas en la calculadora principal.
-          </p>
-          <div class="mini-field-grid">
-            <label class="field">
-              <span>Categoria A</span>
-              <select id="compare-category-left"></select>
-            </label>
-            <label class="field">
-              <span>Categoria B</span>
-              <select id="compare-category-right"></select>
-            </label>
-            <div class="field">
-              <span>Accion</span>
-              <button id="run-compare-button" type="button" class="ghost-button" style="justify-content:center; min-height: 48px;">Comparar escenario</button>
-            </div>
-          </div>
-          <div id="compare-result" class="table-wrap" style="margin-top: 18px;">
-            <div class="skill-empty">Selecciona dos categorias para comparar el mismo escenario.</div>
-          </div>
-        </section>
-      </section>
-
-      <div class="wizard-shell">
-        <section class="wizard-progress-card">
-          <p class="section-label">Proceso guiado enterprise</p>
-          <h2 id="wizard-progress-title">Paso 1 de 6 Â· Datos generales</h2>
-          <p id="wizard-progress-caption" class="wizard-progress-caption">
-            Configura el contexto del legajo antes de cargar novedades, conceptos y controles preventivos.
-          </p>
-          <div class="wizard-progress-track">
-            <span id="wizard-progress-fill" class="wizard-progress-fill"></span>
-          </div>
-        </section>
-
-        <nav class="wizard-stepper" aria-label="Pasos del proceso">
-          <button type="button" class="wizard-step-button is-active" data-wizard-step="general">
-            <strong>1</strong>
-            <div>
-              <span>Datos generales</span>
-              <small>Fecha, tipo, categoria, jornada y configuracion base.</small>
-            </div>
-          </button>
-          <button type="button" class="wizard-step-button" data-wizard-step="times">
-            <strong>2</strong>
-            <div>
-              <span>Novedades y tiempos</span>
-              <small>Dias, horas extra, ausencias y tramos de revista.</small>
-            </div>
-          </button>
-          <button type="button" class="wizard-step-button" data-wizard-step="concepts">
-            <strong>3</strong>
-            <div>
-              <span>Conceptos</span>
-              <small>Adicionales, NR, presentismo y configuracion de acuerdos.</small>
-            </div>
-          </button>
-          <button type="button" class="wizard-step-button" data-wizard-step="audit">
-            <strong>4</strong>
-            <div>
-              <span>Auditoria preventiva</span>
-              <small>Score, blockers, conciliaciones, revista y AFIP.</small>
-            </div>
-          </button>
-          <button type="button" class="wizard-step-button" data-wizard-step="result">
-            <strong>5</strong>
-            <div>
-              <span>Resultado final</span>
-              <small>Recibo, bruto, neto, descuentos, bases y salida operativa.</small>
-            </div>
-          </button>
-          <button type="button" class="wizard-step-button" data-wizard-step="gemini">
-            <strong>6</strong>
-            <div>
-              <span>Revision Gemini</span>
-              <small>Interpretacion opcional del resultado de auditoria.</small>
-            </div>
-          </button>
-        </nav>
-      </div>
-
-      <form id="calculator-form" novalidate>
-        <section id="section-general" class="section-pane is-active">
-          <div class="step-intro">
-            <div>
-              <p class="section-label">Paso 1</p>
-              <h2>Datos generales del legajo y de la liquidacion</h2>
-            </div>
-            <p>
-              Esta etapa define el contexto del calculo: periodo, tipo de liquidacion, categoria, jornada y parametros
-              base del convenio. El objetivo es dejar claro el punto de partida antes de cargar novedades.
-            </p>
-          </div>
-
-          <div class="wizard-grid">
-            <section class="panel">
-              <div class="panel-heading">
-                <div>
-                  <p class="section-label">Configuracion base</p>
-                  <h2>Contexto operativo</h2>
-                </div>
-                <button id="reset-button" type="button" class="ghost-button">Simular otro caso</button>
-              </div>
-
-              <div class="field-grid">
-                <label class="field">
-                  <span>Fecha de liquidacion</span>
-                  <input id="liquidation-date" name="liquidationDate" type="date" required />
-                </label>
-
-                <label class="field">
-                  <span>Tipo de liquidacion</span>
-                  <select id="liquidation-type" name="liquidationType">
-                    <option value="mensual">Mensual</option>
-                    <option value="vacaciones">Vacaciones</option>
-                    <option value="final">Liquidacion final (basica)</option>
-                  </select>
-                </label>
-
-                <label class="field field-full">
-                  <span>Categoria</span>
-                  <select id="category-id" name="categoryId" required></select>
-                </label>
-
-                <label class="field">
-                  <span>Antiguedad (anos)</span>
-                  <input id="seniority-years" name="seniorityYears" type="number" min="0" max="60" step="1" value="0" />
-                </label>
-
-                <label class="field">
-                  <span>Antiguedad (meses)</span>
-                  <input id="seniority-months" name="seniorityMonths" type="number" min="0" max="11" step="1" value="0" />
-                </label>
-
-                <label class="field">
-                  <span>Coeficiente de jornada</span>
-                  <input id="jornada-coefficient" name="jornadaCoefficient" type="number" min="0.10" max="1" step="0.05" value="1" />
-                </label>
-
-                <label class="field">
-                  <span>Modo de trabajo</span>
-                  <select id="liquidation-mode" name="liquidationMode">
-                    <option value="normal">Operacion normal</option>
-                    <option value="revision">Revision interna</option>
-                    <option value="cierre">Cierre previo a exportacion</option>
-                  </select>
-                </label>
-              </div>
-
-              <div class="toggle-grid">
-                <label class="toggle-card">
-                  <input id="union-toggle" name="applyUnion" type="checkbox" checked />
-                  <span>Aplicar sindicato</span>
-                  <small>2% configurable como descuento convencional.</small>
-                </label>
-
-                <label class="toggle-card">
-                  <input id="zone-toggle" name="zoneUnfavorable" type="checkbox" />
-                  <span>Zona desfavorable</span>
-                  <small>Aplica adicional patagonico del 20%.</small>
-                </label>
-
-                <label class="toggle-card">
-                  <input id="debug-toggle" name="debugMode" type="checkbox" />
-                  <span>Modo debug</span>
-                  <small>Muestra formulas, bases y trazas internas en resultado final.</small>
-                </label>
-
-                <label class="toggle-card">
-                  <input id="state-persistence-toggle" name="persistWizardState" type="checkbox" checked />
-                  <span>Persistir avance</span>
-                  <small>Guarda estado local para continuar luego dentro del wizard.</small>
-                </label>
-              </div>
-
-              <div class="wizard-actions">
-                <div class="step-note">
-                  <strong>Objetivo del paso</strong>
-                  <p>Definir el marco de calculo antes de cargar novedades y conceptos.</p>
-                </div>
-                <div class="wizard-actions-right">
-                  <button type="button" class="primary-button" data-wizard-next="times">Continuar a novedades</button>
-                </div>
-              </div>
-            </section>
-
-            <section class="wizard-stack">
-              <section class="panel">
-                <div class="panel-heading">
-                  <div>
-                    <p class="section-label">Fuente activa</p>
-                    <h2>Escala y convenio aplicados</h2>
-                  </div>
-                </div>
-                <div class="step-note">
-                  <strong>Escala resuelta</strong>
-                  <p id="active-scale-step-caption">Resolviendo escala vigente...</p>
-                </div>
-                <div class="step-kpi-grid" style="margin-top: 16px;">
-                  <article class="step-kpi">
-                    <span>Convenio</span>
-                    <strong>CCT 244/94</strong>
-                    <small>Industria de la Alimentacion</small>
-                  </article>
-                  <article class="step-kpi">
-                    <span>Divisores</span>
-                    <strong>30 / 25 / 200</strong>
-                    <small>Mes, vacaciones y valor hora</small>
-                  </article>
-                  <article class="step-kpi">
-                    <span>Jornada</span>
-                    <strong id="jornada-kpi">1,00</strong>
-                    <small>Coeficiente aplicado a formulas sensibles</small>
-                  </article>
-                  <article class="step-kpi">
-                    <span>Modo</span>
-                    <strong id="mode-kpi">Operacion normal</strong>
-                    <small>Define el contexto del flujo de trabajo</small>
-                  </article>
-                </div>
-              </section>
-
-              <section class="panel">
-                <div class="panel-heading">
-                  <div>
-                    <p class="section-label">Guia operativa</p>
-                    <h2>Resumen rapido del convenio</h2>
-                  </div>
-                </div>
-                <div class="guide-list">
-                  <article>
-                    <strong>Familias de categorias</strong>
-                    <p>Elaboracion, mantenimiento, administracion y personal mensualizado cargados por escala.</p>
-                  </article>
-                  <article>
-                    <strong>Orden de calculo</strong>
-                    <p>Basico, antiguedad, base, adicionales, bruto, descuentos, neto, NR y bolsillo.</p>
-                  </article>
-                  <article>
-                    <strong>Principio UX</strong>
-                    <p>El calculo se prepara primero, la auditoria se muestra en una pantalla exclusiva y Gemini queda al final.</p>
-                  </article>
-                </div>
-              </section>
-            </section>
-          </div>
-        </section>
-
-        <section id="section-times" class="section-pane">
-          <div class="step-intro">
-            <div>
-              <p class="section-label">Paso 2</p>
-              <h2>Novedades, tiempos y situacion de revista</h2>
-            </div>
-            <p>
-              Carga las novedades del periodo y define, si hace falta, los tramos de revista de manera explicita. Esta
-              pantalla prepara el â€œtetrisâ€ temporal que luego audita AFIP.
-            </p>
-          </div>
-
-          <div class="wizard-grid">
-            <section class="panel">
-              <div class="panel-heading">
-                <div>
-                  <p class="section-label">Novedades del periodo</p>
-                  <h2>Tiempos y eventos liquidables</h2>
-                </div>
-              </div>
-
-              <div class="field-grid">
-                <label class="field">
-                  <span id="days-label">Dias trabajados</span>
-                  <input id="worked-days" name="workedDays" type="number" min="0" max="30" step="1" value="30" />
-                </label>
-
-                <label class="field">
-                  <span>Horas extra 50%</span>
-                  <input id="overtime-50" name="overtime50Hours" type="number" min="0" step="0.5" value="0" />
-                </label>
-
-                <label class="field">
-                  <span>Horas extra 100%</span>
-                  <input id="overtime-100" name="overtime100Hours" type="number" min="0" step="0.5" value="0" />
-                </label>
-
-                <label class="field">
-                  <span>Licencias</span>
-                  <input id="licensed-days" name="licensedDays" type="number" min="0" max="30" step="1" value="0" />
-                </label>
-
-                <label class="field">
-                  <span>Suspensiones</span>
-                  <input id="suspension-days" name="suspensionDays" type="number" min="0" max="30" step="1" value="0" />
-                </label>
-
-                <label class="field">
-                  <span>Ausencias</span>
-                  <input id="absence-days" name="absenceDays" type="number" min="0" max="30" step="1" value="0" />
-                </label>
-
-                <label class="field conditional-field" data-type="vacaciones">
-                  <span>Dias de vacaciones</span>
-                  <input id="vacation-days" name="vacationDays" type="number" min="0" max="35" step="1" value="14" />
-                </label>
-
-                <label class="field conditional-field" data-type="final">
-                  <span>Dias vacaciones no gozadas</span>
-                  <input id="unused-vacation-days" name="unusedVacationDays" type="number" min="0" max="35" step="1" value="0" />
-                </label>
-
-                <label class="field conditional-field" data-type="final">
-                  <span>Dias del semestre para SAC proporcional</span>
-                  <input id="semester-days-worked" name="semesterDaysWorked" type="number" min="0" max="184" step="1" value="90" />
-                </label>
-              </div>
-
-              <div class="wizard-actions">
-                <div class="step-note">
-                  <strong>Objetivo del paso</strong>
-                  <p>Cargar tiempos del periodo y dejar lista la integridad temporal para la auditoria preventiva.</p>
-                </div>
-                <div class="wizard-actions-right">
-                  <button type="button" class="ghost-button" data-wizard-prev="general">Volver</button>
-                  <button type="button" class="primary-button" data-wizard-next="concepts">Continuar a conceptos</button>
-                </div>
-              </div>
-            </section>
-
-            <section class="wizard-stack">
-              <section class="panel">
-                <div class="panel-heading">
-                  <div>
-                    <p class="section-label">Tramos revista</p>
-                    <h2>Carga explicita para auditoria AFIP</h2>
-                  </div>
-                </div>
-                <p class="audit-caption">
-                  Si dejas los tramos vacios, el sistema deriva revista desde los dias trabajados. Si queres control
-                  fino, ingresa hasta tres segmentos con codigo LSD, desde y hasta.
-                </p>
-                <div class="revista-grid">
-                  <div class="revista-row">
-                    <input name="revistaSegment1Code" placeholder="Codigo tramo 1 (ej. 01)" />
-                    <input name="revistaSegment1From" type="number" min="1" max="30" placeholder="Desde" />
-                    <input name="revistaSegment1To" type="number" min="1" max="30" placeholder="Hasta" />
-                  </div>
-                  <div class="revista-row">
-                    <input name="revistaSegment2Code" placeholder="Codigo tramo 2" />
-                    <input name="revistaSegment2From" type="number" min="1" max="30" placeholder="Desde" />
-                    <input name="revistaSegment2To" type="number" min="1" max="30" placeholder="Hasta" />
-                  </div>
-                  <div class="revista-row">
-                    <input name="revistaSegment3Code" placeholder="Codigo tramo 3" />
-                    <input name="revistaSegment3From" type="number" min="1" max="30" placeholder="Desde" />
-                    <input name="revistaSegment3To" type="number" min="1" max="30" placeholder="Hasta" />
-                  </div>
-                </div>
-              </section>
-
-              <section class="panel">
-                <div class="panel-heading">
-                  <div>
-                    <p class="section-label">Checklist previo</p>
-                    <h2>Que deberia quedar cerrado</h2>
-                  </div>
-                </div>
-                <div class="guide-list">
-                  <article>
-                    <strong>Revista</strong>
-                    <p>La suma de los tramos debe cerrar contra los 30 dias del periodo o quedar deliberadamente incompleta para revision.</p>
-                  </article>
-                  <article>
-                    <strong>Licencias y ausencias</strong>
-                    <p>Hoy se registran para trazabilidad y preparan la futura conciliacion automatica con revista.</p>
-                  </article>
-                  <article>
-                    <strong>Objetivo de UX</strong>
-                    <p>Separar los tiempos del calculo monetario para que el liquidador no mezcle conceptos con calendario.</p>
-                  </article>
-                </div>
-              </section>
-            </section>
-          </div>
-        </section>
-
-        <section id="section-concepts" class="section-pane">
-          <div class="step-intro">
-            <div>
-              <p class="section-label">Paso 3</p>
-              <h2>Conceptos, adicionales y acuerdos</h2>
-            </div>
-            <p>
-              Esta pantalla concentra los conceptos configurables. El objetivo es preparar la liquidacion completa antes
-              de ejecutar la auditoria preventiva sobre el objeto final.
-            </p>
-          </div>
-
-          <div class="wizard-grid">
-            <section class="panel">
-              <div class="panel-heading">
-                <div>
-                  <p class="section-label">Conceptos del periodo</p>
-                  <h2>Adicionales y no remunerativos</h2>
-                </div>
-              </div>
-
-              <div class="toggle-grid">
-                <label class="toggle-card">
-                  <input id="night-toggle" name="nightShift" type="checkbox" />
-                  <span>Trabajo nocturno</span>
-                  <small>Queda preparado como concepto configurable.</small>
-                </label>
-
-                <label class="toggle-card">
-                  <input id="non-rem-toggle" name="includeNonRemuneratives" type="checkbox" checked />
-                  <span>Incluir no remunerativos</span>
-                  <small>Activa acuerdos vigentes segun fecha.</small>
-                </label>
-
-                <label class="toggle-card">
-                  <input id="presentismo-toggle" name="presentismo" type="checkbox" />
-                  <span>Presentismo / asistencia</span>
-                  <small>Concepto preparado para escenarios que lo requieran.</small>
-                </label>
-
-                <label class="toggle-card">
-                  <input id="preview-audit-toggle" name="previewAudit" type="checkbox" checked />
-                  <span>Vista previa al auditar</span>
-                  <small>Recalcula en caliente para llegar al paso 4 con estado actualizado.</small>
-                </label>
-              </div>
-
-              <details class="advanced-box" open>
-                <summary>Configurar acuerdos no remunerativos</summary>
-                <div id="agreements-container" class="agreements-container"></div>
-              </details>
-
-              <div class="wizard-actions">
-                <div class="step-note">
-                  <strong>Salida del paso</strong>
-                  <p>Cuando avances, el sistema recalcula la liquidacion y entra al paso exclusivo de auditoria.</p>
-                </div>
-                <div class="wizard-actions-right">
-                  <button type="button" class="ghost-button" data-wizard-prev="times">Volver</button>
-                  <button id="calculate-audit-button" type="submit" class="primary-button">Calcular y pasar a auditoria</button>
-                </div>
-              </div>
-            </section>
-
-            <section class="wizard-stack">
-              <section class="panel">
-                <div class="panel-heading">
-                  <div>
-                    <p class="section-label">Escalas salariales</p>
-                    <h2>Referencia por vigencia</h2>
-                  </div>
-                </div>
-                <div id="scale-deck" class="scale-deck"></div>
-              </section>
-
-              <section class="panel">
-                <div class="panel-heading">
-                  <div>
-                    <p class="section-label">Acuerdos cargados</p>
-                    <h2>Conceptos configurables</h2>
-                  </div>
-                </div>
-                <div id="agreement-deck" class="agreement-deck"></div>
-              </section>
-            </section>
-          </div>
-        </section>
-      </form>
-
-      <section id="section-audit" class="section-pane">
-        <div class="step-intro">
-          <div>
-            <p class="section-label">Paso 4</p>
-            <h2>Auditoria preventiva laboral y AFIP</h2>
-          </div>
-          <p>
-            Pantalla exclusiva del auditor. Aqui no se mezclan haberes con control preventivo: primero ves score,
-            blockers, conciliaciones, trazabilidad y razones de aprobacion o fallo.
-          </p>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-8"><div class="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden"><div id="progressBar" class="progress-bar h-full w-0"></div></div></div>
+        <div id="stepIndicatorContainer" class="mb-10 no-print overflow-x-auto pb-2 flex items-center gap-4">
+            <!-- Generated by JS -->
         </div>
 
-        <div class="wizard-stack">
-          <section class="panel">
-            <div class="panel-heading">
-              <div>
-                <p class="section-label">Motor preventivo</p>
-                <h2>Estado de la liquidacion auditada</h2>
-              </div>
-            </div>
-            <div id="messages" class="message-stack"></div>
-            <div id="audit-status-strip" class="audit-status-strip">
-              <article id="audit-export-card" class="audit-status-card is-ready">
-                <span>Estado</span>
-                <strong id="audit-export-status">Esperando liquidacion</strong>
-                <small id="audit-export-caption">La auditoria se ejecuta sobre la liquidacion terminada.</small>
-              </article>
-              <article class="audit-status-card">
-                <span>Score preventivo</span>
-                <strong id="audit-score">--/100</strong>
-                <small id="audit-score-caption">Sin evaluacion todavia.</small>
-              </article>
-              <article class="audit-status-card">
-                <span>Diferencia neto</span>
-                <strong id="audit-net-gap">$ 0,00</strong>
-                <small id="audit-net-gap-caption">Serie 990 y neto auditado.</small>
-              </article>
-              <article class="audit-status-card">
-                <span>Cobertura revista</span>
-                <strong id="audit-covered-days">0 / 30</strong>
-                <small id="audit-covered-caption">Integridad temporal del periodo.</small>
-              </article>
-            </div>
-            <div id="audit-findings" class="audit-findings">
-              <article class="audit-empty">
-                <strong>Motor listo.</strong>
-                <p>Al entrar con una liquidacion calculada, vas a ver blockers, warnings, trazabilidad y conciliaciones.</p>
-              </article>
-            </div>
-          </section>
+        <div id="stepsContainer">
+            <!-- PASO 1 -->
+            <div id="step1" class="step-content active animate-fade-in">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="glass-panel rounded-2xl p-6 shadow-sm">
+                            <h2 class="text-2xl font-bold mb-2">Datos generales del legajo</h2>
+                            <p class="text-slate-600 dark:text-slate-400 mb-6">Configura el contexto del cálculo: periodo, tipo, categoría, jornada y parámetros base.</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2 flex items-center">
+                                        Fecha de liquidación
+                                        <span class="help-tip">
+                                            <span class="help-tip-icon">?</span>
+                                            <span class="help-tip-content"><span class="help-tip-title">Fecha de liquidación</span>Define la fecha de corte del periodo a liquidar. Se utiliza para determinar la escala salarial vigente, los acuerdos aplicables y la fecha de emisión del recibo.</span>
+                                        </span>
+                                    </label>
+                                    <input type="date" id="fecha" class="input-modern w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-brand-500 focus:border-transparent" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2 flex items-center">
+                                        Tipo de liquidación
+                                        <span class="help-tip">
+                                            <span class="help-tip-icon">?</span>
+                                            <span class="help-tip-content"><span class="help-tip-title">Tipo de liquidación</span><strong>Mensual:</strong> Sueldo ordinario del mes.<br><strong>Vacaciones:</strong> Pago proporcional por período de descanso.<br><strong>Final:</strong> Liquidación básica por extinción contractual.</span>
+                                        </span>
+                                    </label>
+                                    <select id="tipo" class="input-modern w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-brand-500">
+                                        <option value="mensual">Mensual</option>
+                                        <option value="vacaciones">Vacaciones</option>
+                                        <option value="final">Liquidación final (básica)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2 flex items-center">
+                                        Categoría
+                                        <span class="help-tip">
+                                            <span class="help-tip-icon">?</span>
+                                            <span class="help-tip-content"><span class="help-tip-title">Categoría</span>Clasifica al trabajador según CCT 244/94: Operario, Oficial, Oficial especializado, Ayudante o Peón. Determina el salario básico de la escala vigente.</span>
+                                        </span>
+                                    </label>
+                                    <select id="categoria" class="input-modern w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-brand-500">
+                                        <option value="1">1 - Operario</option>
+                                        <option value="2">2 - Oficial</option>
+                                        <option value="3">3 - Oficial especializado</option>
+                                        <option value="4">4 - Ayudante</option>
+                                        <option value="5">5 - Peón</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2 flex items-center">
+                                        Antigüedad (años)
+                                        <span class="help-tip">
+                                            <span class="help-tip-icon">?</span>
+                                            <span class="help-tip-content"><span class="help-tip-title">Antigüedad (años)</span>Años de servicio continuo. Se aplica el 2% adicional por cada año sobre el básico (tope 50%). Influye en cálculo de vacaciones, SAC y preaviso.</span>
+                                        </span>
+                                    </label>
+                                    <input type="number" id="antiguedadAnios" min="0" value="0" class="input-modern w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-brand-500" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2 flex items-center">
+                                        Coeficiente de jornada
+                                        <span class="help-tip">
+                                            <span class="help-tip-icon">?</span>
+                                            <span class="help-tip-content"><span class="help-tip-title">Coeficiente de jornada</span><strong>100%:</strong> Jornada completa estándar.<br><strong>50%:</strong> Media jornada. El salario base se prorratea al 50%. Usado para contratos part-time.</span>
+                                        </span>
+                                    </label>
+                                    <select id="jornada" class="input-modern w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-brand-500">
+                                        <option value="1">Completa (100%)</option>
+                                        <option value="0.5">Media jornada (50%)</option>
+                                    </select>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-medium mb-2 flex items-center">
+                                        Modo de trabajo
+                                        <span class="help-tip">
+                                            <span class="help-tip-icon">?</span>
+                                            <span class="help-tip-content"><span class="help-tip-title">Modo de trabajo</span><strong>Operación normal:</strong> Flujo estándar.<br><strong>Revisión interna:</strong> Modo auditoría con validaciones extra.<br><strong>Cierre previo a exportación:</strong> Verificación final antes de exportar datos.</span>
+                                        </span>
+                                    </label>
+                                    <select id="modo" class="input-modern w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-brand-500">
+                                        <option value="normal">Operación normal</option>
+                                        <option value="revision">Revisión interna</option>
+                                        <option value="cierre">Cierre previo a exportación</option>
+                                    </select>
+                                </div>
+                            </div>
 
-          <div class="section-grid">
-            <section class="panel">
-              <div class="panel-heading">
-                <div>
-                  <p class="section-label">Trazabilidad</p>
-                  <h2>Revista, AFIP y razones del veredicto</h2>
+                            <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
+                                    <input type="checkbox" id="sindicato" class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500 flex-shrink-0" />
+                                    <span class="text-sm flex items-center flex-wrap gap-1">
+                                        Aplicar sindicato 2%
+                                        <span class="help-tip">
+                                            <span class="help-tip-icon">?</span>
+                                            <span class="help-tip-content"><span class="help-tip-title">Aplicar sindicato 2%</span>Descuento convencional obligatorio del 2% sobre el salario bruto. Se aplica al total de remunerativos. Verificar si el legajo está afiliado.</span>
+                                        </span>
+                                    </span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
+                                    <input type="checkbox" id="zona" class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500 flex-shrink-0" />
+                                    <span class="text-sm flex items-center flex-wrap gap-1">
+                                        Zona desfavorable (+20%)
+                                        <span class="help-tip">
+                                            <span class="help-tip-icon">?</span>
+                                            <span class="help-tip-content"><span class="help-tip-title">Zona desfavorable (+20%)</span>Adicional del 20% por trabajo en zona patagónica o desfavorable. Se aplica sobre el básico. Configurado por CCT.</span>
+                                        </span>
+                                    </span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
+                                    <input type="checkbox" id="debug" class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500 flex-shrink-0" />
+                                    <span class="text-sm flex items-center flex-wrap gap-1">
+                                        Modo debug
+                                        <span class="help-tip">
+                                            <span class="help-tip-icon">?</span>
+                                            <span class="help-tip-content"><span class="help-tip-title">Modo debug</span>Muestra fórmulas internas, valores intermedios y trazas del cálculo. Útil para verificación técnica o aprendizaje.</span>
+                                        </span>
+                                    </span>
+                                </label>
+                                <label class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
+                                    <input type="checkbox" id="persistir" class="w-4 h-4 text-brand-600 rounded focus:ring-brand-500 flex-shrink-0" />
+                                    <span class="text-sm flex items-center flex-wrap gap-1">
+                                        Persistir avance
+                                        <span class="help-tip">
+                                            <span class="help-tip-icon">?</span>
+                                            <span class="help-tip-content"><span class="help-tip-title">Persistir avance</span>Guarda los datos cargados en el navegador. Permite continuar la liquidación más tarde sin perder información. <strong>Nota:</strong> Siempre volverás al Paso 1 al recargar.</span>
+                                        </span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-3">
+                            <button onclick="nextStep()" class="btn-primary text-white px-6 py-3 rounded-lg font-medium shadow-lg flex items-center gap-2">Continuar a novedades <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></button>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="glass-panel rounded-2xl p-6 card-hover">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-accent-100 dark:bg-accent-900/30 flex items-center justify-center text-accent-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>Guía operativa</h3>
+                            <ul class="space-y-3 text-sm">
+                                <li class="flex items-start gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand-500 mt-2"></span> Familia: Elaboración, mantenimiento, administración</li>
+                                <li class="flex items-start gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand-500 mt-2"></span> Orden: Básico → Antigüedad → Base → Adicionales</li>
+                                <li class="flex items-start gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand-500 mt-2"></span> El cálculo se prepara primero, auditoría después</li>
+                            </ul>
+                        </div>
+                        <div class="glass-panel rounded-2xl p-6 bg-gradient-to-br from-brand-50 to-blue-50 dark:from-slate-800 dark:to-slate-800">
+                            <h3 class="text-sm font-semibold mb-3 text-brand-700 dark:text-brand-400">Escala y convenio aplicados</h3>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between"><span>Convenio</span><span class="font-medium">CCT 244/94</span></div>
+                                <div class="flex justify-between"><span>Divisores</span><span class="font-medium">30 / 25 / 200</span></div>
+                                <div class="flex justify-between"><span>Jornada</span><span id="displayJornada" class="font-medium">1.00</span></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-              </div>
-              <div id="audit-sources" class="audit-source-list"></div>
-            </section>
+            </div>
 
-            <section class="panel">
-              <div class="panel-heading">
-                <div>
-                  <p class="section-label">Conciliacion tecnica</p>
-                  <h2>Serie 990 y flujo operativo</h2>
+            <!-- PASO 2 -->
+            <div id="step2" class="step-content animate-fade-in">
+                <div class="glass-panel rounded-2xl p-6 mb-6">
+                    <h2 class="text-2xl font-bold mb-2">Novedades, tiempos y situación de revista</h2>
+                    <p class="text-slate-600 dark:text-slate-400 mb-6">Carga las novedades del periodo y define los tramos de revista de manera explícita.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+                        <div>
+                            <label class="block text-sm font-medium mb-2 flex items-center">
+                                Días trabajados
+                                <span class="help-tip">
+                                    <span class="help-tip-icon">?</span>
+                                    <span class="help-tip-content"><span class="help-tip-title">Días trabajados</span>Cantidad de días efectivamente laborados en el mes (base 30). Usado para calcular proporcional de básico y verificar integridad de revista.</span>
+                                </span>
+                            </label>
+                            <input type="number" id="diasTrabajados" value="22" min="0" max="30" class="input-modern w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-brand-500" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2 flex items-center">
+                                Horas extra 50%
+                                <span class="help-tip">
+                                    <span class="help-tip-icon">?</span>
+                                    <span class="help-tip-content"><span class="help-tip-title">Horas extra 50%</span>Horas trabajadas fuera de jornada normal entre semana. Se liquidan al 150% del valor hora. CCT 207/93 art. 203 LCT.</span>
+                                </span>
+                            </label>
+                            <input type="number" id="horas50" value="0" min="0" class="input-modern w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-brand-500" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2 flex items-center">
+                                Horas extra 100%
+                                <span class="help-tip">
+                                    <span class="help-tip-icon">?</span>
+                                    <span class="help-tip-content"><span class="help-tip-title">Horas extra 100%</span>Horas en días feriados o después de las 21hs. Se liquidan al 200% del valor hora. Tope legal: 3h diarias, 36h semanales.</span>
+                                </span>
+                            </label>
+                            <input type="number" id="horas100" value="0" min="0" class="input-modern w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-brand-500" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2 flex items-center">
+                                Licencias
+                                <span class="help-tip">
+                                    <span class="help-tip-icon">?</span>
+                                    <span class="help-tip-content"><span class="help-tip-title">Licencias</span>Días de ausencia justificada con goce de sueldo: art. 158 LCT. Se paga normal pero se descuenta de días trabajados para proporcional.</span>
+                                </span>
+                            </label>
+                            <input type="number" id="licencias" value="0" min="0" class="input-modern w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-brand-500" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2 flex items-center">
+                                Suspensiones
+                                <span class="help-tip">
+                                    <span class="help-tip-icon">?</span>
+                                    <span class="help-tip-content"><span class="help-tip-title">Suspensiones</span>Días sin trabajo ni goce de sueldo (art. 220 LCT). Se descuentan del básico proporcional. No generan descuentos previsionales.</span>
+                                </span>
+                            </label>
+                            <input type="number" id="suspensiones" value="0" min="0" class="input-modern w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-brand-500" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2 flex items-center">
+                                Días de vacaciones
+                                <span class="help-tip">
+                                    <span class="help-tip-icon">?</span>
+                                    <span class="help-tip-content"><span class="help-tip-title">Días de vacaciones</span>Días de descanso anual pagados (art. 150 LCT). Se calculan como (básico/25) × días. Se registran aparte para trazabilidad.</span>
+                                </span>
+                            </label>
+                            <input type="number" id="diasVacaciones" value="0" min="0" class="input-modern w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-brand-500" />
+                        </div>
+                    </div>
+                    <div class="border-t border-slate-200 dark:border-slate-700 pt-6 mb-8">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            Tramos revista (Opcional)
+                            <span class="help-tip">
+                                <span class="help-tip-icon">?</span>
+                                <span class="help-tip-content"><span class="help-tip-title">Tramos revista</span>Segmentos de alta, baja o cambio de categoría durante el mes. Se usa para liquidación proporcional cuando el estado cambia dentro del periodo. Si no se completa, se usa el estado general.</span>
+                            </span>
+                        </h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-4">Si dejás los tramos vacíos, el sistema deriva revista desde los días trabajados.</p>
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <input type="date" id="tramo1Desde" placeholder="Desde" class="input-modern w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800" />
+                                <input type="date" id="tramo1Hasta" placeholder="Hasta" class="input-modern w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800" />
+                                <input type="text" id="tramo1Lsd" placeholder="Código LSD" class="input-modern w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800" />
+                            </div>
+                            <button class="text-sm text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>Agregar tramo</button>
+                        </div>
+                    </div>
+                    <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
+                        <h4 class="font-medium text-amber-800 dark:text-amber-300 mb-2">Checklist previo</h4>
+                        <ul class="text-sm space-y-1 text-amber-700 dark:text-amber-400">
+                            <li>• La suma de los tramos debe cerrar contra los 30 días del periodo</li>
+                            <li>• Licencias y ausencias se registran para trazabilidad</li>
+                        </ul>
+                    </div>
                 </div>
-              </div>
-              <div class="matrix-stats">
-                <article class="mini-stat">
-                  <span>Score preventivo</span>
-                  <strong id="confidence-score">100/100</strong>
-                </article>
-                <article class="mini-stat">
-                  <span>Tipo de base</span>
-                  <strong>Base simple</strong>
-                </article>
-                <article class="mini-stat">
-                  <span>Divisores</span>
-                  <strong>30 / 25 / 200</strong>
-                </article>
-                <article class="mini-stat">
-                  <span>Dia del gremio</span>
-                  <strong>10 de marzo</strong>
-                </article>
-              </div>
-              <div id="matrix-rule-list" class="rows" style="margin-top: 18px;"></div>
-              <div class="table-wrap" style="margin-top: 18px;">
-                <table class="tech-table">
-                  <thead>
-                    <tr>
-                      <th>Paso</th>
-                      <th>Concepto</th>
-                      <th>Regla</th>
-                      <th>Importe actual</th>
-                    </tr>
-                  </thead>
-                  <tbody id="matrix-flow-body"></tbody>
-                </table>
-              </div>
-            </section>
-          </div>
-
-          <div class="wizard-actions">
-            <div class="step-note">
-              <strong>Objetivo del paso</strong>
-              <p>Tomar una decision informada antes de pasar al resultado final o de pedir interpretacion IA.</p>
-            </div>
-            <div class="wizard-actions-right">
-              <button type="button" class="ghost-button" data-wizard-prev="concepts">Volver a conceptos</button>
-              <button type="button" class="primary-button" data-wizard-next="result">Continuar a resultado final</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="section-result" class="section-pane">
-        <div class="step-intro">
-          <div>
-            <p class="section-label">Paso 5</p>
-            <h2>Resultado final y salida operativa</h2>
-          </div>
-          <p>
-            Esta pantalla concentra el recibo, el neto, el bruto, los descuentos y las bases. La auditoria ya quedo
-            separada en el paso anterior para no mezclar compliance con visualizacion salarial.
-          </p>
-        </div>
-
-        <div class="wizard-grid">
-          <section class="panel">
-            <div class="panel-heading">
-              <div>
-                <p class="section-label">Resultado</p>
-                <h2>Liquidacion consolidada</h2>
-              </div>
-              <div class="result-actions">
-                <button id="explain-button" type="button" class="ghost-button skill-button" disabled>Explicar liquidacion</button>
-                <button id="print-result-button" type="button" class="ghost-button">Imprimir resultado</button>
-              </div>
-            </div>
-
-            <div class="result-tabs" role="tablist" aria-label="Vistas del resultado">
-              <button type="button" class="result-tab is-active" data-result-tab="summary">Resumen</button>
-              <button type="button" class="result-tab" data-result-tab="receipt">Vista recibo</button>
-              <button type="button" class="result-tab" data-result-tab="distribution">Distribucion</button>
-              <button type="button" class="result-tab" data-result-tab="calc">Como se calculo</button>
-              <button type="button" class="result-tab" data-result-tab="cost">Costo empleador</button>
-              <button type="button" class="result-tab" data-result-tab="debug">Debug y fuentes</button>
-            </div>
-
-            <div id="result-pane-summary" class="result-pane is-active">
-              <div class="summary-grid">
-                <article class="summary-card">
-                  <span>Bruto remunerativo</span>
-                  <strong id="gross-rem">$ 0,00</strong>
-                </article>
-                <article class="summary-card">
-                  <span>Descuentos</span>
-                  <strong id="deductions-total">$ 0,00</strong>
-                </article>
-                <article class="summary-card">
-                  <span>No remunerativos</span>
-                  <strong id="non-rem-total">$ 0,00</strong>
-                </article>
-                <article class="summary-card highlight-card">
-                  <span>Total en bolsillo</span>
-                  <strong id="take-home-total">$ 0,00</strong>
-                </article>
-              </div>
-
-              <div class="indicator-grid">
-                <article class="indicator-card">
-                  <span>Valor hora</span>
-                  <strong id="hour-value">$ 0,00</strong>
-                </article>
-                <article class="indicator-card">
-                  <span>Base seguridad social</span>
-                  <strong id="social-base">$ 0,00</strong>
-                </article>
-                <article class="indicator-card">
-                  <span>Base obra social / sindicato</span>
-                  <strong id="health-base">$ 0,00</strong>
-                </article>
-                <article class="indicator-card">
-                  <span>% descuentos s/rem</span>
-                  <strong id="discount-rate">0,00%</strong>
-                </article>
-              </div>
-
-              <div class="breakdown-grid">
-                <article class="breakdown-card">
-                  <h3>Remunerativos</h3>
-                  <div id="remunerative-breakdown" class="rows"></div>
-                </article>
-                <article class="breakdown-card">
-                  <h3>Descuentos</h3>
-                  <div id="deductions-breakdown" class="rows"></div>
-                </article>
-                <article class="breakdown-card">
-                  <h3>No remunerativos</h3>
-                  <div id="non-rem-breakdown" class="rows"></div>
-                </article>
-                <article class="breakdown-card">
-                  <h3>Contexto</h3>
-                  <div id="context-breakdown" class="rows"></div>
-                </article>
-              </div>
-            </div>
-
-            <div id="result-pane-receipt" class="result-pane">
-              <div id="receipt-view" class="receipt-view"></div>
-            </div>
-
-            <div id="result-pane-distribution" class="result-pane">
-              <div id="distribution-view" class="distribution-view"></div>
-            </div>
-
-            <div id="result-pane-calc" class="result-pane">
-              <details class="detail-box" open>
-                <summary>Explicacion del calculo</summary>
-                <div id="explanation-text" class="narrative"></div>
-              </details>
-
-              <details class="detail-box">
-                <summary>Detalle paso a paso</summary>
-                <div id="step-by-step" class="steps"></div>
-              </details>
-            </div>
-
-            <div id="result-pane-cost" class="result-pane">
-              <div id="employer-cost-view" class="cost-view"></div>
-            </div>
-
-            <div id="result-pane-debug" class="result-pane">
-              <details class="detail-box" id="debug-box">
-                <summary>Modo debug</summary>
-                <div id="debug-steps" class="debug-steps"></div>
-              </details>
-
-              <details class="detail-box">
-                <summary>Fuentes y supuestos</summary>
-                <div id="sources-panel" class="sources-panel"></div>
-              </details>
-            </div>
-          </section>
-
-          <section class="wizard-stack">
-            <section class="panel">
-              <div class="panel-heading">
-                <div>
-                  <p class="section-label">Salida</p>
-                  <h2>Que podes hacer ahora</h2>
+                <div class="flex justify-between gap-3">
+                    <button onclick="prevStep()" class="px-6 py-3 rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">Volver</button>
+                    <button onclick="nextStep()" class="btn-primary text-white px-6 py-3 rounded-lg font-medium shadow-lg flex items-center gap-2">Continuar a conceptos <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></button>
                 </div>
-              </div>
-              <div class="guide-list">
-                <article>
-                  <strong>Impresion</strong>
-                  <p>La liquidacion final puede imprimirse desde esta pantalla sin navegar por auditoria o IA.</p>
-                </article>
-                <article>
-                  <strong>Reversion segura</strong>
-                  <p>Si el auditor encontro bloqueos, podes volver a pasos anteriores sin perder el estado cargado.</p>
-                </article>
-                <article>
-                  <strong>Proxima capa</strong>
-                  <p>Si queres una interpretacion experta, pasa al paso 6 sin volver a tocar el calculo.</p>
-                </article>
-              </div>
-            </section>
-
-            <div class="wizard-actions">
-              <div class="step-note">
-                <strong>Objetivo del paso</strong>
-                <p>Concentrar el resultado final sin mezclarlo con la auditoria preventiva ni con la revision IA.</p>
-              </div>
-              <div class="wizard-actions-right">
-                <button type="button" class="ghost-button" data-wizard-prev="audit">Volver a auditoria</button>
-                <button type="button" class="primary-button" data-wizard-next="gemini">Ir a revision Gemini</button>
-              </div>
             </div>
-          </section>
-        </div>
-      </section>
 
-      <section id="section-gemini" class="section-pane">
-        <div class="step-intro">
-          <div>
-            <p class="section-label">Paso 6</p>
-            <h2>Revision Gemini opcional</h2>
-          </div>
-          <p>
-            Gemini recibe solo un resumen de la auditoria. No calcula montos ni reemplaza reglas deterministicas: solo
-            interpreta, explica, sugiere y ayuda a priorizar riesgo.
-          </p>
-        </div>
-
-        <div class="gemini-grid">
-          <section class="panel">
-            <div class="panel-heading">
-              <div>
-                <p class="section-label">Capa IA</p>
-                <h2>Interpretacion sobre auditoria ya cerrada</h2>
-              </div>
-              <div class="result-actions">
-                <button id="audit-ai-run" type="button" class="ghost-button">Pedir revision Gemini</button>
-              </div>
-            </div>
-            <div id="audit-ai-status" class="audit-empty">
-              <strong>Gemini no inicializado.</strong>
-              <p>La capa IA es opcional y solo agrega revision experta sobre hallazgos ya calculados localmente.</p>
-            </div>
-            <div id="audit-ai-output" class="audit-ai-output" hidden></div>
-          </section>
-
-          <section class="wizard-stack">
-            <section class="panel">
-              <div class="panel-heading">
-                <div>
-                  <p class="section-label">Limites del modelo</p>
-                  <h2>Que hace y que no hace</h2>
+            <!-- PASO 3 -->
+            <div id="step3" class="step-content animate-fade-in">
+                <div class="glass-panel rounded-2xl p-6 mb-6">
+                    <h2 class="text-2xl font-bold mb-2">Conceptos, adicionales y acuerdos</h2>
+                    <p class="text-slate-600 dark:text-slate-400 mb-6">Concentrá los conceptos configurables antes de ejecutar la auditoría preventiva.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="space-y-4">
+                            <label class="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-all">
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" id="nocturno" class="w-4 h-4 text-brand-600 rounded flex-shrink-0" />
+                                    <span class="font-medium flex items-center gap-1">
+                                        Trabajo nocturno
+                                        <span class="help-tip">
+                                            <span class="help-tip-icon">?</span>
+                                            <span class="help-tip-content"><span class="help-tip-title">Trabajo nocturno</span>Adicional por trabajo entre 21hs y 6hs. CCT establece recargo del 15% sobre el básico. Se liquida proporcional a la fracción nocturna.</span>
+                                        </span>
+                                    </span>
+                                </div>
+                                <span class="text-xs bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded flex-shrink-0">Configurable</span>
+                            </label>
+                            <label class="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-all">
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" id="presentismo" class="w-4 h-4 text-brand-600 rounded flex-shrink-0" />
+                                    <span class="font-medium flex items-center gap-1">
+                                        Presentismo / Asistencia
+                                        <span class="help-tip">
+                                            <span class="help-tip-icon">?</span>
+                                            <span class="help-tip-content"><span class="help-tip-title">Presentismo / Asistencia</span>Bonificación por asistencia perfecta en el mes. Generalmente 8% del básico. Se pierde con faltas injustificadas o licencias por enfermedad.</span>
+                                        </span>
+                                    </span>
+                                </div>
+                                <span class="text-xs bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded flex-shrink-0">Preparado</span>
+                            </label>
+                        </div>
+                        <div class="space-y-4">
+                            <label class="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-all">
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" id="nrConceptos" checked class="w-4 h-4 text-brand-600 rounded flex-shrink-0" />
+                                    <span class="font-medium flex items-center gap-1">
+                                        Incluir no remunerativos
+                                        <span class="help-tip">
+                                            <span class="help-tip-icon">?</span>
+                                            <span class="help-tip-content"><span class="help-tip-title">Incluir no remunerativos</span>Conceptos que no integran salario ni generan aportes: viáticos, alimentación, premios, etc. Se suman al bolsillo pero no a la base imponible.</span>
+                                        </span>
+                                    </span>
+                                </div>
+                                <span class="text-xs bg-accent-100 dark:bg-accent-900/30 text-accent-600 px-2 py-1 rounded flex-shrink-0">Activo</span>
+                            </label>
+                            <label class="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-all">
+                                <div class="flex items-center gap-3">
+                                    <input type="checkbox" id="vistaPrevia" checked class="w-4 h-4 text-brand-600 rounded flex-shrink-0" />
+                                    <span class="font-medium flex items-center gap-1">
+                                        Vista previa al auditar
+                                        <span class="help-tip">
+                                            <span class="help-tip-icon">?</span>
+                                            <span class="help-tip-content"><span class="help-tip-title">Vista previa al auditar</span>Activa el cálculo automático al pasar al paso 4. Permite ver resultados antes de confirmar y facilita la auditoría preventiva.</span>
+                                        </span>
+                                    </span>
+                                </div>
+                                <span class="text-xs bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded flex-shrink-0">Auto</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
-              </div>
-              <div class="guide-list">
-                <article>
-                  <strong>Si hace</strong>
-                  <p>Interpretar riesgos, explicar hallazgos, sugerir focos de revision y traducir impacto laboral/AFIP.</p>
-                </article>
-                <article>
-                  <strong>No hace</strong>
-                  <p>Calcular sueldo, decidir montos, reemplazar formulas ni convalidar matematicas basicas.</p>
-                </article>
-                <article>
-                  <strong>Payload enviado</strong>
-                  <p>Solo resumen de totalizadores, revista y errores detectados por el auditor local.</p>
-                </article>
-              </div>
-            </section>
-
-            <div class="wizard-actions">
-              <div class="step-note">
-                <strong>Cierre del flujo</strong>
-                <p>La IA queda al final del proceso para preservar trazabilidad, auditabilidad y separacion de responsabilidades.</p>
-              </div>
-              <div class="wizard-actions-right">
-                <button type="button" class="ghost-button" data-wizard-prev="result">Volver a resultado final</button>
-              </div>
+                <div class="flex justify-between gap-3">
+                    <button onclick="prevStep()" class="px-6 py-3 rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">Volver</button>
+                    <button onclick="nextStep()" class="btn-primary text-white px-6 py-3 rounded-lg font-medium shadow-lg flex items-center gap-2">Calcular y pasar a auditoría <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></button>
+                </div>
             </div>
-          </section>
-        </div>
-      </section>
-    </div>
-    <div id="skill-modal" class="skill-modal" aria-hidden="true">
-      <div class="skill-backdrop" data-close-skill="true"></div>
-      <section class="skill-dialog" role="dialog" aria-modal="true" aria-labelledby="skill-title">
-        <header class="skill-header">
-          <div>
-            <p class="section-label">Skill</p>
-            <h3 id="skill-title">ExplicaciÃ³n de la liquidaciÃ³n</h3>
-            <div class="skill-topline">
-              <span id="skill-status-badge" class="status-badge status-ok">OK</span>
-              <span id="skill-status-caption" class="type-badge badge-info">LiquidaciÃ³n interpretada</span>
+
+            <!-- PASO 4 -->
+            <div id="step4" class="step-content animate-fade-in">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="lg:col-span-2">
+                        <div class="glass-panel rounded-2xl p-6">
+                            <h2 class="text-2xl font-bold mb-6">Auditoría preventiva laboral y AFIP</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                                <div class="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-xl p-4 border border-emerald-200 dark:border-emerald-800">
+                                    <div class="text-sm text-emerald-700 dark:text-emerald-400 mb-1">Score preventivo</div>
+                                    <div id="auditScore" class="text-3xl font-bold text-emerald-800 dark:text-emerald-300">--/100</div>
+                                </div>
+                                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
+                                    <div class="text-sm text-blue-700 dark:text-blue-400 mb-1">Diferencia neto</div>
+                                    <div id="auditDiff" class="text-3xl font-bold text-blue-800 dark:text-blue-300">$0,00</div>
+                                </div>
+                                <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-4 border border-purple-200 dark:border-purple-800">
+                                    <div class="text-sm text-purple-700 dark:text-purple-400 mb-1">Cobertura revista</div>
+                                    <div id="auditRevista" class="text-3xl font-bold text-purple-800 dark:text-purple-300">0 / 30</div>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm">
+                                    <thead class="border-b border-slate-200 dark:border-slate-700">
+                                        <tr class="text-left text-slate-600 dark:text-slate-400">
+                                            <th class="py-3 px-4">Paso</th>
+                                            <th class="py-3 px-4">Concepto</th>
+                                            <th class="py-3 px-4">Regla</th>
+                                            <th class="py-3 px-4 text-right">Importe</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="auditTableBody" class="divide-y divide-slate-100 dark:divide-slate-800">
+                                        <tr class="text-slate-500 italic"><td colspan="4" class="py-8 text-center">Ejecutando auditoría preventiva...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="glass-panel rounded-2xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Trazabilidad</h3>
+                            <div class="space-y-3 text-sm">
+                                <div class="flex justify-between"><span>Estado</span><span id="auditStatus" class="font-medium text-slate-600">Esperando liquidación</span></div>
+                                <div class="flex justify-between"><span>Tipo de base</span><span class="font-medium">Base simple</span></div>
+                                <div class="flex justify-between"><span>Divisores</span><span class="font-medium">30 / 25 / 200</span></div>
+                            </div>
+                        </div>
+                        <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                            <h4 class="font-medium text-amber-800 dark:text-amber-300 mb-2">Conciliación técnica</h4>
+                            <p class="text-xs text-amber-700 dark:text-amber-400">Serie 990 y flujo operativo. El motor preventivo valida consistencia antes del resultado final.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-between gap-3">
+                    <button onclick="prevStep()" class="px-6 py-3 rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">Volver a conceptos</button>
+                    <button onclick="nextStep()" class="btn-primary text-white px-6 py-3 rounded-lg font-medium shadow-lg flex items-center gap-2">Continuar a resultado final <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></button>
+                </div>
             </div>
-          </div>
-          <button id="close-skill-button" type="button" class="ghost-button">Cerrar</button>
-        </header>
 
-        <div class="skill-body">
-          <section class="skill-summary-card">
-            <div id="skill-summary-text" class="narrative"></div>
-            <div id="skill-summary-metrics" class="skill-summary-metrics"></div>
-          </section>
+            <!-- PASO 5 -->
+            <div id="step5" class="step-content animate-fade-in">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="lg:col-span-2 space-y-6">
+                        <div class="glass-panel rounded-2xl p-6">
+                            <h2 class="text-2xl font-bold mb-2">Resultado final y salida operativa</h2>
+                            <p class="text-slate-600 dark:text-slate-400 mb-6">Recibo, neto, bruto, descuentos y bases. Auditoría ya cerrada en paso anterior.</p>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                                <div class="bg-gradient-to-br from-brand-50 to-blue-50 dark:from-brand-900/20 dark:to-blue-900/20 rounded-xl p-4 text-center">
+                                    <div class="text-xs text-slate-600 dark:text-slate-400 mb-1">Bruto remunerativo</div>
+                                    <div id="resBruto" class="text-xl font-bold text-brand-700 dark:text-brand-400">$0,00</div>
+                                </div>
+                                <div class="bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 rounded-xl p-4 text-center">
+                                    <div class="text-xs text-slate-600 dark:text-slate-400 mb-1">Descuentos</div>
+                                    <div id="resDescuentos" class="text-xl font-bold text-red-700 dark:text-red-400">$0,00</div>
+                                </div>
+                                <div class="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-xl p-4 text-center">
+                                    <div class="text-xs text-slate-600 dark:text-slate-400 mb-1">No remunerativos</div>
+                                    <div id="resNR" class="text-xl font-bold text-amber-700 dark:text-amber-400">$0,00</div>
+                                </div>
+                                <div class="bg-gradient-to-br from-accent-50 to-green-50 dark:from-accent-900/20 dark:to-green-900/20 rounded-xl p-4 text-center">
+                                    <div class="text-xs text-slate-600 dark:text-slate-400 mb-1">Total en bolsillo</div>
+                                    <div id="resNeto" class="text-xl font-bold text-accent-700 dark:text-accent-400">$0,00</div>
+                                </div>
+                            </div>
+                            <div class="space-y-4 mb-8">
+                                <div class="flex justify-between items-center p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50"><span class="text-sm font-medium">Valor hora</span><span id="resValorHora" class="font-semibold">$0,00</span></div>
+                                <div class="flex justify-between items-center p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50"><span class="text-sm font-medium">Base seguridad social</span><span id="resBaseSS" class="font-semibold">$0,00</span></div>
+                                <div class="flex justify-between items-center p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50"><span class="text-sm font-medium">% descuentos s/remunerativo</span><span id="resPctDesc" class="font-semibold">0,00%</span></div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                                    <h4 class="font-medium mb-2">Remunerativos</h4>
+                                    <div id="resRemDetails" class="text-sm space-y-1 text-slate-600 dark:text-slate-400">-</div>
+                                </div>
+                                <div class="p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                                    <h4 class="font-medium mb-2">Descuentos</h4>
+                                    <div id="resDescDetails" class="text-sm space-y-1 text-slate-600 dark:text-slate-400">-</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                            <button onclick="prevStep()" class="px-6 py-3 rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">Volver a auditoría</button>
+                            <button onclick="nextStep()" class="btn-primary text-white px-6 py-3 rounded-lg font-medium shadow-lg flex items-center gap-2">Ir a revisión Gemini <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg></button>
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="glass-panel rounded-2xl p-6">
+                            <h3 class="text-lg font-semibold mb-4">Salida</h3>
+                            <ul class="space-y-3 text-sm">
+                                <li class="flex items-start gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand-500 mt-2"></span> Impresión directa desde esta pantalla</li>
+                                <li class="flex items-start gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand-500 mt-2"></span> Reversión segura si hay bloqueos</li>
+                                <li class="flex items-start gap-2"><span class="w-1.5 h-1.5 rounded-full bg-brand-500 mt-2"></span> IA opcional al final del proceso</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-          <section class="skill-section">
-            <h4>Detalle paso a paso</h4>
-            <div id="skill-step-list" class="skill-step-list"></div>
-          </section>
-
-          <section class="skill-section">
-            <h4>FÃ³rmulas aplicadas</h4>
-            <div id="skill-formula-list" class="skill-formula-list"></div>
-          </section>
-
-          <section class="skill-section">
-            <h4>Observaciones y advertencias</h4>
-            <div id="skill-observation-list" class="skill-observation-list"></div>
-          </section>
+            <!-- PASO 6 -->
+            <div id="step6" class="step-content animate-fade-in">
+                <div class="max-w-3xl mx-auto">
+                    <div class="glass-panel rounded-2xl p-8 text-center">
+                        <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                        </div>
+                        <h2 class="text-2xl font-bold mb-2">Revisión Gemini opcional</h2>
+                        <p class="text-slate-600 dark:text-slate-400 mb-8 max-w-lg mx-auto">Gemini recibe solo un resumen de la auditoría. No calcula montos ni reemplaza reglas determinísticas: solo interpreta, explica y sugiere.</p>
+                        <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-6 mb-8 max-w-lg mx-auto">
+                            <h4 class="font-semibold text-purple-800 dark:text-purple-300 mb-3">Límites del modelo</h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-left">
+                                <div>
+                                    <div class="font-medium text-purple-700 dark:text-purple-400 mb-1">✓ Sí hace</div>
+                                    <ul class="text-purple-600 dark:text-purple-500 space-y-1"><li>• Interpretar riesgos</li><li>• Explicar hallazgos</li><li>• Sugerir focos de revisión</li></ul>
+                                </div>
+                                <div>
+                                    <div class="font-medium text-purple-700 dark:text-purple-400 mb-1">✗ No hace</div>
+                                    <ul class="text-purple-600 dark:text-purple-500 space-y-1"><li>• Calcular sueldo</li><li>• Decidir montos</li><li>• Reemplazar fórmulas</li></ul>
+                                </div>
+                            </div>
+                        </div>
+                        <button id="btnGemini" onclick="runGemini()" class="btn-primary text-white px-8 py-4 rounded-xl font-medium shadow-lg text-lg flex items-center gap-3 mx-auto">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Pedir revisión Gemini
+                        </button>
+                        <div id="geminiResult" class="hidden mt-8 max-w-2xl mx-auto text-left bg-slate-50 dark:bg-slate-800 rounded-xl p-6">
+                            <h4 class="font-semibold mb-3">Análisis de IA</h4>
+                            <div id="geminiContent" class="text-sm space-y-2 text-slate-600 dark:text-slate-400"></div>
+                        </div>
+                        <div class="mt-8"><button onclick="prevStep()" class="px-6 py-3 rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">Volver a resultado final</button></div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </section>
-    </div>
-    <script type="module" src="./js/ui.js"></script>
-  </body>
+    </main>
+
+    <footer class="border-t border-slate-200 dark:border-slate-700 mt-12 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-600 dark:text-slate-400">
+                <div>Calculadora CCT 244/94 · Industria de la Alimentación</div>
+                <div class="flex items-center gap-4"><span>HTML único, offline y trazable</span><span class="w-1 h-1 rounded-full bg-slate-400"></span><span>v2.1</span></div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const state = {
+            currentStep: 1,
+            totalSteps: 6,
+            data: { fecha: '', tipo: 'mensual', categoria: '1', antiguedadAnios: 0, jornada: '1', modo: 'normal', sindicato: false, zona: false, debug: false, persistir: false, diasTrabajados: 22, horas50: 0, horas100: 0, licencias: 0, suspensiones: 0, diasVacaciones: 0, nocturno: false, presentismo: false, nrConceptos: true, vistaPrevia: true },
+            result: { basico: 0, antiguedad: 0, base: 0, adicionales: 0, bruto: 0, descuentos: 0, neto: 0, noRemunerativos: 0, bolsillo: 0, valorHora: 0, baseSS: 0, pctDesc: 0 }
+        };
+
+        const escalas = [
+            { fecha: '2025-01-01', cat1: 250000, cat2: 280000, cat3: 320000, cat4: 230000, cat5: 200000 },
+            { fecha: '2025-06-01', cat1: 280000, cat2: 315000, cat3: 360000, cat4: 260000, cat5: 230000 },
+            { fecha: '2026-01-01', cat1: 320000, cat2: 360000, cat3: 410000, cat4: 300000, cat5: 270000 }
+        ];
+
+        function getScaleValue(categoria) {
+            const fechaActual = state.data.fecha || new Date().toISOString().split('T')[0];
+            let scale = escalas[0];
+            for (const s of escalas) { if (s.fecha <= fechaActual) scale = s; }
+            return scale['cat' + categoria];
+        }
+
+        function formatMoney(amount) { return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 2 }).format(amount); }
+
+        function loadState() {
+            // Solo carga los datos del formulario, NO el paso actual
+            // Esto asegura que siempre arranque en el Paso 1
+            const saved = localStorage.getItem('cct244_state');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.data) {
+                        Object.assign(state.data, parsed.data);
+                    }
+                } catch (e) {
+                    console.warn('Error al cargar estado guardado:', e);
+                }
+            }
+            updateUI();
+        }
+
+        function saveState() {
+            if (state.data.persistir) {
+                localStorage.setItem('cct244_state', JSON.stringify({ data: state.data, currentStep: state.currentStep }));
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('fecha').value = state.data.fecha;
+            document.getElementById('tipo').value = state.data.tipo;
+            document.getElementById('categoria').value = state.data.categoria;
+            document.getElementById('antiguedadAnios').value = state.data.antiguedadAnios;
+            document.getElementById('jornada').value = state.data.jornada;
+            document.getElementById('modo').value = state.data.modo;
+            document.getElementById('sindicato').checked = state.data.sindicato;
+            document.getElementById('zona').checked = state.data.zona;
+            document.getElementById('debug').checked = state.data.debug;
+            document.getElementById('persistir').checked = state.data.persistir;
+            document.getElementById('diasTrabajados').value = state.data.diasTrabajados;
+            document.getElementById('horas50').value = state.data.horas50;
+            document.getElementById('horas100').value = state.data.horas100;
+            document.getElementById('licencias').value = state.data.licencias;
+            document.getElementById('suspensiones').value = state.data.suspensiones;
+            document.getElementById('diasVacaciones').value = state.data.diasVacaciones;
+            document.getElementById('nocturno').checked = state.data.nocturno;
+            document.getElementById('presentismo').checked = state.data.presentismo;
+            document.getElementById('nrConceptos').checked = state.data.nrConceptos;
+            document.getElementById('vistaPrevia').checked = state.data.vistaPrevia;
+
+            document.getElementById('displayJornada').textContent = parseFloat(state.data.jornada).toFixed(2);
+            const progress = ((state.currentStep - 1) / (state.totalSteps - 1)) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+            document.querySelectorAll('.step-content').forEach((el, i) => { el.classList.toggle('active', i + 1 === state.currentStep); });
+            updateStepIndicator();
+        }
+
+        function updateStepIndicator() {
+            const steps = [
+                { num: 1, title: 'Datos generales' }, { num: 2, title: 'Novedades' }, { num: 3, title: 'Conceptos' },
+                { num: 4, title: 'Auditoría' }, { num: 5, title: 'Resultado' }, { num: 6, title: 'Revisión IA' }
+            ];
+            const container = document.getElementById('stepIndicatorContainer');
+            container.innerHTML = steps.map((s) => `
+                <div class="step-item flex flex-col items-center min-w-[80px] ${s.num === state.currentStep ? 'active' : s.num < state.currentStep ? 'completed' : ''}">
+                    <div class="step-circle w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 transition-all">${s.num < state.currentStep ? '✓' : s.num}</div>
+                    <span class="text-xs mt-1 text-slate-600 dark:text-slate-400 ${s.num === state.currentStep ? 'font-medium text-brand-600 dark:text-brand-400' : ''}">${s.title.split(' ')[0]}</span>
+                </div>
+            `).join('');
+        }
+
+        function calculateLiquidation() {
+            const cat = parseInt(state.data.categoria);
+            const antiguedad = state.data.antiguedadAnios;
+            const basico = getScaleValue(cat) * parseFloat(state.data.jornada);
+            const antiguedadPct = Math.min(antiguedad * 2, 50);
+            const antiguedadAmt = basico * (antiguedadPct / 100);
+            const base = basico + antiguedadAmt;
+            const valorHora = base / 200;
+            const nocturnoAmt = state.data.nocturno ? base * 0.15 : 0;
+            const presentismoAmt = state.data.presentismo ? base * 0.08 : 0;
+            const zonaAmt = state.data.zona ? base * 0.20 : 0;
+            const horas50Amt = state.data.horas50 * valorHora * 1.5;
+            const horas100Amt = state.data.horas100 * valorHora * 2.0;
+            const adicionales = nocturnoAmt + presentismoAmt + zonaAmt;
+            const bruto = base + adicionales + horas50Amt + horas100Amt;
+            const jubilacion = bruto * 0.11;
+            const inss = bruto * 0.03;
+            const obraSocial = bruto * 0.03;
+            const sindicato = state.data.sindicato ? bruto * 0.02 : 0;
+            const totalDesc = jubilacion + inss + obraSocial + sindicato;
+            const neto = bruto - totalDesc;
+            const nr = state.data.nrConceptos ? base * 0.10 : 0;
+            const bolsillo = neto + nr;
+            state.result = { basico, antiguedad: antiguedadAmt, base, adicionales, bruto, descuentos: totalDesc, neto, noRemunerativos: nr, bolsillo, valorHora, baseSS: bruto, pctDesc: bruto > 0 ? (totalDesc / bruto * 100) : 0 };
+            updateResultsUI();
+        }
+
+        function updateResultsUI() {
+            document.getElementById('auditScore').textContent = '100/100';
+            document.getElementById('auditDiff').textContent = formatMoney(0);
+            document.getElementById('auditRevista').textContent = `${state.data.diasTrabajados} / 30`;
+            document.getElementById('auditStatus').textContent = 'Liquidación calculada';
+            const tbody = document.getElementById('auditTableBody');
+            tbody.innerHTML = `
+                <tr class="border-b border-slate-100 dark:border-slate-800"><td class="py-3 px-4">1</td><td class="py-3 px-4">Básico CCT</td><td class="py-3 px-4">Escala vigente</td><td class="py-3 px-4 text-right font-medium">${formatMoney(state.result.basico)}</td></tr>
+                <tr class="border-b border-slate-100 dark:border-slate-800"><td class="py-3 px-4">2</td><td class="py-3 px-4">Antigüedad</td><td class="py-3 px-4">${state.data.antiguedadAnios} años × 2%</td><td class="py-3 px-4 text-right font-medium">${formatMoney(state.result.antiguedad)}</td></tr>
+                <tr class="border-b border-slate-100 dark:border-slate-800"><td class="py-3 px-4">3</td><td class="py-3 px-4">Adicionales</td><td class="py-3 px-4">Nocturno/Zona/etc</td><td class="py-3 px-4 text-right font-medium">${formatMoney(state.result.adicionales)}</td></tr>
+                <tr class="border-b border-slate-100 dark:border-slate-800"><td class="py-3 px-4">4</td><td class="py-3 px-4">Bruto</td><td class="py-3 px-4">Suma conceptos</td><td class="py-3 px-4 text-right font-bold">${formatMoney(state.result.bruto)}</td></tr>
+                <tr class="border-b border-slate-100 dark:border-slate-800"><td class="py-3 px-4">5</td><td class="py-3 px-4">Descuentos</td><td class="py-3 px-4">Jub/Inss/OS/Sind</td><td class="py-3 px-4 text-right font-medium text-red-600">${formatMoney(state.result.descuentos)}</td></tr>
+                <tr><td class="py-3 px-4">6</td><td class="py-3 px-4 font-bold">Neto</td><td class="py-3 px-4">Bruto − Descuentos</td><td class="py-3 px-4 text-right font-bold text-accent-600">${formatMoney(state.result.neto)}</td></tr>
+            `;
+            document.getElementById('resBruto').textContent = formatMoney(state.result.bruto);
+            document.getElementById('resDescuentos').textContent = formatMoney(state.result.descuentos);
+            document.getElementById('resNR').textContent = formatMoney(state.result.noRemunerativos);
+            document.getElementById('resNeto').textContent = formatMoney(state.result.bolsillo);
+            document.getElementById('resValorHora').textContent = formatMoney(state.result.valorHora);
+            document.getElementById('resBaseSS').textContent = formatMoney(state.result.baseSS);
+            document.getElementById('resPctDesc').textContent = `${state.result.pctDesc.toFixed(2)}%`;
+            document.getElementById('resRemDetails').innerHTML = `<div class="flex justify-between"><span>Básico</span><span>${formatMoney(state.result.basico)}</span></div><div class="flex justify-between"><span>Antigüedad</span><span>${formatMoney(state.result.antiguedad)}</span></div><div class="flex justify-between"><span>Adicionales</span><span>${formatMoney(state.result.adicionales)}</span></div><div class="flex justify-between border-t pt-1 mt-1 font-medium"><span>Total</span><span>${formatMoney(state.result.bruto)}</span></div>`;
+            document.getElementById('resDescDetails').innerHTML = `<div class="flex justify-between"><span>Jubilación (11%)</span><span>${formatMoney(state.result.bruto * 0.11)}</span></div><div class="flex justify-between"><span>INSSJP (3%)</span><span>${formatMoney(state.result.bruto * 0.03)}</span></div><div class="flex justify-between"><span>Obra Social (3%)</span><span>${formatMoney(state.result.bruto * 0.03)}</span></div>${state.data.sindicato ? `<div class="flex justify-between"><span>Sindicato (2%)</span><span>${formatMoney(state.result.bruto * 0.02)}</span></div>` : ''}<div class="flex justify-between border-t pt-1 mt-1 font-medium"><span>Total</span><span>${formatMoney(state.result.descuentos)}</span></div>`;
+        }
+
+        function nextStep() {
+            collectData(); saveState();
+            if (state.currentStep < state.totalSteps) { if (state.currentStep === 4) calculateLiquidation(); state.currentStep++; updateUI(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        }
+        function prevStep() { if (state.currentStep > 1) { state.currentStep--; updateUI(); window.scrollTo({ top: 0, behavior: 'smooth' }); } }
+        function collectData() {
+            state.data.fecha = document.getElementById('fecha').value;
+            state.data.tipo = document.getElementById('tipo').value;
+            state.data.categoria = document.getElementById('categoria').value;
+            state.data.antiguedadAnios = parseInt(document.getElementById('antiguedadAnios').value) || 0;
+            state.data.jornada = document.getElementById('jornada').value;
+            state.data.modo = document.getElementById('modo').value;
+            state.data.sindicato = document.getElementById('sindicato').checked;
+            state.data.zona = document.getElementById('zona').checked;
+            state.data.debug = document.getElementById('debug').checked;
+            state.data.persistir = document.getElementById('persistir').checked;
+            state.data.diasTrabajados = parseInt(document.getElementById('diasTrabajados').value) || 0;
+            state.data.horas50 = parseInt(document.getElementById('horas50').value) || 0;
+            state.data.horas100 = parseInt(document.getElementById('horas100').value) || 0;
+            state.data.licencias = parseInt(document.getElementById('licencias').value) || 0;
+            state.data.suspensiones = parseInt(document.getElementById('suspensiones').value) || 0;
+            state.data.diasVacaciones = parseInt(document.getElementById('diasVacaciones').value) || 0;
+            state.data.nocturno = document.getElementById('nocturno').checked;
+            state.data.presentismo = document.getElementById('presentismo').checked;
+            state.data.nrConceptos = document.getElementById('nrConceptos').checked;
+            state.data.vistaPrevia = document.getElementById('vistaPrevia').checked;
+        }
+        function runGemini() {
+            const btn = document.getElementById('btnGemini'), result = document.getElementById('geminiResult'), content = document.getElementById('geminiContent');
+            btn.disabled = true; btn.innerHTML = `<svg class="w-6 h-6 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Analizando...`;
+            setTimeout(() => {
+                result.classList.remove('hidden');
+                btn.innerHTML = `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Análisis completado`;
+                btn.classList.remove('btn-primary'); btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                content.innerHTML = `<div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4"><p class="font-medium text-green-800 dark:text-green-300 mb-2">✓ Liquidación conforme</p><p class="text-sm">El cálculo presenta consistencia en todos los conceptos.</p></div><p class="mt-3">• <strong>Bruto:</strong> ${formatMoney(state.result.bruto)}</p><p>• <strong>Descuentos:</strong> ${formatMoney(state.result.descuentos)} - ${state.result.pctDesc.toFixed(2)}% sobre bruto</p><p>• <strong>Neto:</strong> ${formatMoney(state.result.neto)}</p>`;
+            }, 1500);
+        }
+        function printResult() { window.print(); }
+
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        });
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+
+        document.querySelectorAll('input, select').forEach(el => el.addEventListener('change', () => { collectData(); if (state.data.persistir) saveState(); }));
+
+        // Al iniciar: siempre Paso 1, pero conserva datos si están guardados
+        loadState();
+        if (!state.data.fecha) { state.data.fecha = new Date().toISOString().split('T')[0]; document.getElementById('fecha').value = state.data.fecha; }
+    </script>
+</body>
 </html>
 

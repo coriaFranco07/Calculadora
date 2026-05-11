@@ -157,7 +157,7 @@ def _valid_business_label(label: Any) -> bool:
 
 def _clean_categories(categories: list[Any]) -> list[dict[str, Any]]:
     result: list[dict[str, Any]] = []
-    seen: set[str] = set()
+    seen: set[tuple[str, str]] = set()
     for item in categories:
         if not isinstance(item, dict):
             continue
@@ -166,8 +166,6 @@ def _clean_categories(categories: list[Any]) -> list[dict[str, Any]]:
             continue
         basico = _money_value(item.get("basico_mensual") or item.get("sueldo_mensual") or item.get("basico") or item.get("valor"))
         valor_hora = _money_value(item.get("valor_hora"))
-        if basico is None and valor_hora is None:
-            continue
         cleaned = deepcopy(item)
         cleaned["nombre"] = name
         if basico is not None:
@@ -176,7 +174,7 @@ def _clean_categories(categories: list[Any]) -> list[dict[str, Any]]:
             cleaned["valor"] = cleaned.get("valor") or basico
         if valor_hora is not None:
             cleaned["valor_hora"] = valor_hora
-        key = name.lower()
+        key = (str(cleaned.get("rama") or cleaned.get("grupo") or "").strip().lower(), name.lower())
         if key in seen:
             continue
         seen.add(key)
@@ -192,7 +190,10 @@ def _compute_payload_metrics(payload: dict[str, Any], diagnostics: dict[str, Any
         for scale in scales
         if isinstance(scale, dict)
         and _valid_business_label(scale.get("categoria") or scale.get("nombre"))
-        and (_money_value(scale.get("basico")) is not None or _money_value(scale.get("valor_hora")) is not None)
+        and (
+            _money_value(scale.get("basico") or scale.get("basico_mensual") or scale.get("sueldo_mensual") or scale.get("valor")) is not None
+            or _money_value(scale.get("valor_hora")) is not None
+        )
     ]
     return {
         "categorias_detectadas": len(categories),
@@ -370,7 +371,7 @@ def build_document_payload(
     merged.setdefault("alertas", []).extend(extraction.alerts if extraction else [])
     if diagnostics["errores"]:
         merged.setdefault("alertas", []).append(
-            f"Gemini no pudo procesar {len(diagnostics['errores'])} chunk(s); el JSON conserva los datos recuperados y fallback local."
+            f"Gemini no pudo procesar {len(diagnostics['errores'])} chunk(s); se utilizÃ³ parser local para recuperar datos."
         )
         merged.setdefault("pendientes_revision", []).append("Revisar fragmentos con error Gemini antes de publicar la calculadora.")
     return merged
