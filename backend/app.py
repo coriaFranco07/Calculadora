@@ -18,7 +18,8 @@ from pypdf import PdfReader
 from backend.gemini_proxy import (
     DEFAULT_MODEL,
     GeminiProxyError,
-    build_cct_extraction_prompt,
+    build_cct_text_extraction_prompt,
+    build_codex_json_structuring_prompt,
     build_prompt,
     call_gemini,
 )
@@ -693,11 +694,18 @@ def extract_text_from_pdf_bytes(content: bytes) -> str:
 
 def extract_cct_from_text(file_name: str, text: str) -> dict[str, Any]:
     local_fallback = build_local_cct_fallback(file_name, text)
-    prompt = build_cct_extraction_prompt({"file_name": file_name, "text": text})
-
+    
     try:
-        gemini_text = call_gemini(prompt, os.getenv("GEMINI_MODEL", DEFAULT_MODEL))
+        gemini_prompt = build_cct_text_extraction_prompt({"file_name": file_name, "text": text})
+        gemini_text = call_gemini(gemini_prompt, os.getenv("GEMINI_MODEL", DEFAULT_MODEL))
+
+        codex_prompt = build_codex_json_structuring_prompt({
+            "file_name": file_name,
+            "extracted_text": gemini_text,
+        })
+        codex_text = call_gemini(codex_prompt, os.getenv("CODEX_MODEL", os.getenv("GEMINI_MODEL", DEFAULT_MODEL)))
     except GeminiProxyError as exc:
+
         fallback = enrich_calculator_payload(local_fallback)
         fallback["estado"] = "fallback_local_sin_ia"
         fallback["alertas"] = dedupe_strings(
@@ -720,9 +728,9 @@ def extract_cct_from_text(file_name: str, text: str) -> dict[str, Any]:
             "result": fallback,
         }
 
-    parsed_payload = parse_gemini_json(gemini_text)
+    parsed_payload = parse_gemini_json(codex_text)
     if isinstance(parsed_payload, dict) and parsed_payload.get("estado") == "respuesta_no_json":
-        recovered = recover_partial_gemini_payload(gemini_text, file_name) or {}
+        recovered = recover_partial_gemini_payload(codex_text, file_name) or {}
         merged = merge_payload(recovered, local_fallback)
         merged["estado"] = "json_recuperado_parcialmente"
         merged["alertas"] = dedupe_strings(
@@ -758,10 +766,14 @@ def extract_cct_from_text(file_name: str, text: str) -> dict[str, Any]:
         merged["alertas"] = dedupe_strings([*merged.get("alertas", []), *completion_alerts])
 
     return {
-        "mode": "gemini-cct",
-        "model": os.getenv("GEMINI_MODEL", DEFAULT_MODEL),
+        "mode": "gemini-codex-cct",
+        "pipeline": {
+            "lector": os.getenv("GEMINI_MODEL", DEFAULT_MODEL),
+            "estructurador": os.getenv("CODEX_MODEL", os.getenv("GEMINI_MODEL", DEFAULT_MODEL)),
+        },
         "text_length": len(text),
-        "result": enrich_calculator_payload(merged),
+        "intermediate_text_length": len(gemini_text),
+        "result": enriched,
     }
 
 
