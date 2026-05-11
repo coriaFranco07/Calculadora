@@ -8,7 +8,7 @@ import unicodedata
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
-
+from fastapi.responses import FileResponse
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -27,6 +27,8 @@ from backend.gemini_proxy import (
 ROOT_DIR = Path(__file__).resolve().parents[1]
 BACKEND_DIR = Path(__file__).resolve().parent
 ENV_FILE = BACKEND_DIR / ".env"
+
+TEMPLATES_DIR = ROOT_DIR / "templates"
 
 
 def load_env_file(path: Path) -> None:
@@ -815,5 +817,19 @@ async def extract_cct_pdf(file: UploadFile = File(...)) -> dict[str, Any]:
     text = extract_text_from_pdf_bytes(content)
     return extract_cct_from_text(file.filename, text)
 
+@app.get("/portal-cct.html", include_in_schema=False)
+def portal_cct_page():
+    path = TEMPLATES_DIR / "portal-cct.html"
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="portal-cct.html no encontrado en templates")
+    return FileResponse(path)
+
+
+@app.get("/crear_calculadora.html", include_in_schema=False)
+def crear_calculadora_page():
+    path = TEMPLATES_DIR / "crear_calculadora.html"
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="crear_calculadora.html no encontrado en templates")
+    return FileResponse(path)
 
 app.mount("/", StaticFiles(directory=str(ROOT_DIR), html=True), name="static")
