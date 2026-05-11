@@ -3,12 +3,15 @@ from __future__ import annotations
 import html
 import json
 import re
+import unicodedata
 from pathlib import Path
 from typing import Any
 
 
 def slugify(value: Any) -> str:
-    text = str(value or "calculadora-cct").lower()
+    text = unicodedata.normalize("NFD", str(value or "calculadora-cct"))
+    text = text.encode("ascii", "ignore").decode("ascii").lower()
+    text = re.sub(r"\.pdf\b", " ", text)
     text = re.sub(r"[^a-z0-9]+", "-", text)
     return text.strip("-")[:80] or "calculadora-cct"
 
@@ -28,14 +31,25 @@ def text(value: Any, fallback: str = "-") -> str:
     return html.escape(raw)
 
 
+def pick_base_name(payload: dict[str, Any]) -> str:
+    convenio = payload.get("convenio") or {}
+    cct_number = convenio.get("cct_numero")
+    activity = convenio.get("actividad") or convenio.get("nombre")
+    if cct_number and activity:
+        return f"cct-{cct_number}-{activity}"
+    if cct_number:
+        return f"cct-{cct_number}"
+    if convenio.get("nombre"):
+        return str(convenio["nombre"])
+    return str(payload.get("archivo_fuente") or "calculadora-cct")
+
+
 def build_generated_calculator_html(payload: dict[str, Any]) -> str:
     convenio = payload.get("convenio") or {}
     categorias = payload.get("categorias") or []
     adicionales = payload.get("adicionales") or []
     parametros = payload.get("parametros") or {}
-    reglas = payload.get("reglas_liquidacion") or {}
     conceptos = payload.get("conceptos") or []
-    matriz = payload.get("matriz_tecnica") or []
     pendientes = payload.get("pendientes_revision") or []
     alertas = payload.get("alertas") or []
 
@@ -94,7 +108,7 @@ def build_generated_calculator_html(payload: dict[str, Any]) -> str:
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{text(title)}</title>
   <style>
-    :root {{ --bg:#f4f6f3; --surface:#fff; --ink:#17221c; --muted:#66736c; --line:#d9e1db; --brand:#155a43; --brand2:#b6502b; --ok:#23704e; --warn:#936500; --shadow:0 18px 45px rgba(23,34,28,.12); }}
+    :root {{ --bg:#f4f6f3; --surface:#fff; --ink:#17221c; --muted:#66736c; --line:#d9e1db; --brand:#155a43; --ok:#23704e; --warn:#936500; --shadow:0 18px 45px rgba(23,34,28,.12); }}
     * {{ box-sizing:border-box; }}
     body {{ margin:0; font-family:Aptos,"Segoe UI",sans-serif; color:var(--ink); background:linear-gradient(135deg,rgba(21,90,67,.1),transparent 35%),var(--bg); }}
     .shell {{ width:min(1180px,calc(100% - 32px)); margin:0 auto; padding:28px 0 48px; }}
@@ -116,12 +130,10 @@ def build_generated_calculator_html(payload: dict[str, Any]) -> str:
     table {{ width:100%; border-collapse:collapse; font-size:13px; }}
     th,td {{ border-bottom:1px solid var(--line); text-align:left; padding:9px; vertical-align:top; }}
     th {{ background:#eef3ee; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }}
-    .num {{ text-align:right; font-variant-numeric:tabular-nums; }}
     .result {{ border-radius:12px; background:linear-gradient(135deg,var(--brand),#00392f); color:#fff; padding:18px; margin-top:14px; }}
     .result p,.result small {{ color:rgba(255,255,255,.8); }}
     .result strong {{ font-size:26px; display:block; }}
     .badge {{ display:inline-flex; border-radius:999px; padding:5px 10px; background:#e6f3ed; color:var(--ok); font-size:12px; font-weight:900; }}
-    .warn {{ background:#fff5d7; color:var(--warn); }}
     .mono {{ white-space:pre-wrap; background:#101916; color:#e6f3ed; border-radius:10px; padding:12px; overflow:auto; max-height:360px; font-family:Consolas,monospace; font-size:12px; }}
     @media(max-width:860px) {{ header,.grid,.stats {{ display:block; }} .stat {{ margin-bottom:10px; }} }}
   </style>
@@ -136,14 +148,12 @@ def build_generated_calculator_html(payload: dict[str, Any]) -> str:
       </div>
       <button class="button primary" onclick="window.print()">Imprimir</button>
     </header>
-
     <section class="stats">
       <div class="stat"><small>CCT / Norma</small><strong>{text(convenio.get('cct_numero') or convenio.get('nombre'))}</strong></div>
       <div class="stat"><small>Vigencia</small><strong>{text(convenio.get('vigencia_detectada'))}</strong></div>
       <div class="stat"><small>Horas mensuales</small><strong>{text(parametros.get('horas_mensuales'))}</strong></div>
       <div class="stat"><small>Confianza</small><strong>{text(payload.get('nivel_confianza'))}</strong></div>
     </section>
-
     <div class="grid">
       <section>
         <div class="card">
@@ -157,65 +167,23 @@ def build_generated_calculator_html(payload: dict[str, Any]) -> str:
           <button class="button primary" onclick="calcular()" style="margin-top:14px">Calcular</button>
           <div class="result" id="resultado"><small>Neto estimado</small><strong>$ 0,00</strong><p>Completá los datos y presioná Calcular.</p></div>
         </div>
-
-        <div class="card">
-          <h2>Categorías y escalas</h2>
-          <table><thead><tr><th>Categoría</th><th>Tipo</th><th class="num">Mensual</th><th class="num">Hora</th><th>Fuente</th></tr></thead><tbody>{category_rows}</tbody></table>
-        </div>
+        <div class="card"><h2>Categorías y escalas</h2><table><thead><tr><th>Categoría</th><th>Tipo</th><th>Mensual</th><th>Hora</th><th>Fuente</th></tr></thead><tbody>{category_rows}</tbody></table></div>
       </section>
-
       <aside>
-        <div class="card">
-          <h2>Convenio</h2>
-          <p><strong>Ámbito:</strong> {text(convenio.get('ambito'))}</p>
-          <p><strong>Archivo:</strong> {text(payload.get('archivo_fuente'))}</p>
-          <p><strong>Estado:</strong> <span class="badge">{text(payload.get('estado'))}</span></p>
-        </div>
-
-        <div class="card">
-          <h2>Adicionales detectados</h2>
-          <table><thead><tr><th>Nombre</th><th>Tipo</th><th>Valor</th><th>Base</th><th>Condición</th></tr></thead><tbody>{additional_rows}</tbody></table>
-        </div>
+        <div class="card"><h2>Convenio</h2><p><strong>Ámbito:</strong> {text(convenio.get('ambito'))}</p><p><strong>Archivo:</strong> {text(payload.get('archivo_fuente'))}</p><p><strong>Estado:</strong> <span class="badge">{text(payload.get('estado'))}</span></p></div>
+        <div class="card"><h2>Adicionales detectados</h2><table><thead><tr><th>Nombre</th><th>Tipo</th><th>Valor</th><th>Base</th><th>Condición</th></tr></thead><tbody>{additional_rows}</tbody></table></div>
       </aside>
     </div>
-
-    <section class="card">
-      <h2>Conceptos técnicos</h2>
-      <table><thead><tr><th>Código</th><th>Concepto</th><th>Tipo</th><th>Fórmula</th></tr></thead><tbody>{concept_rows}</tbody></table>
-    </section>
-
-    <section class="grid">
-      <div class="card"><h2>Pendientes de revisión</h2><ul>{pending_items}</ul></div>
-      <div class="card"><h2>Alertas</h2><ul>{alert_items}</ul></div>
-    </section>
-
-    <section class="card">
-      <h2>JSON técnico</h2>
-      <div class="mono" id="jsonbox"></div>
-    </section>
+    <section class="card"><h2>Conceptos técnicos</h2><table><thead><tr><th>Código</th><th>Concepto</th><th>Tipo</th><th>Fórmula</th></tr></thead><tbody>{concept_rows}</tbody></table></section>
+    <section class="grid"><div class="card"><h2>Pendientes de revisión</h2><ul>{pending_items}</ul></div><div class="card"><h2>Alertas</h2><ul>{alert_items}</ul></div></section>
+    <section class="card"><h2>JSON técnico</h2><div class="mono" id="jsonbox"></div></section>
   </div>
-
   <script>
     const DATA = {safe_payload};
     const money = (n) => new Intl.NumberFormat('es-AR', {{ style:'currency', currency:'ARS' }}).format(Number(n || 0));
-    function currentCategory() {{
-      const index = Number(document.querySelector('#categoria').value || 0);
-      return DATA.categorias?.[index] || {{}};
-    }}
+    function currentCategory() {{ const index = Number(document.querySelector('#categoria').value || 0); return DATA.categorias?.[index] || {{}}; }}
     function calcular() {{
-      const cat = currentCategory();
-      const dias = Number(document.querySelector('#dias').value || 0);
-      const horas = Number(document.querySelector('#horas').value || 0);
-      const antPct = Number(document.querySelector('#antiguedad').value || 0);
-      const adicional = Number(document.querySelector('#adicional').value || 0);
-      const descuentos = Number(document.querySelector('#descuentos').value || 0);
-      const divisor = Number(DATA.parametros?.divisor_mensual || 30);
-      const mensual = Number(cat.sueldo_mensual || 0);
-      const hora = Number(cat.valor_hora || 0);
-      const base = mensual > 0 ? mensual * dias / divisor : hora * horas;
-      const antiguedad = base * antPct / 100;
-      const bruto = base + antiguedad + adicional;
-      const neto = bruto - descuentos;
+      const cat = currentCategory(); const dias = Number(document.querySelector('#dias').value || 0); const horas = Number(document.querySelector('#horas').value || 0); const antPct = Number(document.querySelector('#antiguedad').value || 0); const adicional = Number(document.querySelector('#adicional').value || 0); const descuentos = Number(document.querySelector('#descuentos').value || 0); const divisor = Number(DATA.parametros?.divisor_mensual || 30); const mensual = Number(cat.sueldo_mensual || 0); const hora = Number(cat.valor_hora || 0); const base = mensual > 0 ? mensual * dias / divisor : hora * horas; const antiguedad = base * antPct / 100; const bruto = base + antiguedad + adicional; const neto = bruto - descuentos;
       document.querySelector('#resultado').innerHTML = `<small>Neto estimado</small><strong>${{money(neto)}}</strong><p>Bruto: ${{money(bruto)}} · Base: ${{money(base)}} · Antigüedad: ${{money(antiguedad)}} · Descuentos: ${{money(descuentos)}}</p>`;
     }}
     document.querySelector('#jsonbox').textContent = JSON.stringify(DATA, null, 2);
@@ -225,15 +193,10 @@ def build_generated_calculator_html(payload: dict[str, Any]) -> str:
 
 
 def write_generated_calculator(payload: dict[str, Any], templates_dir: Path) -> dict[str, str]:
-    convenio = payload.get("convenio") or {}
-    base_name = convenio.get("cct_numero") or convenio.get("nombre") or payload.get("archivo_fuente") or "calculadora-cct"
-    slug = slugify(base_name)
+    slug = slugify(pick_base_name(payload))
     generated_dir = templates_dir / "generated"
     generated_dir.mkdir(parents=True, exist_ok=True)
     file_name = f"{slug}.html"
     output_path = generated_dir / file_name
     output_path.write_text(build_generated_calculator_html(payload), encoding="utf-8")
-    return {
-        "html_file": str(output_path),
-        "html_url": f"/generated/{file_name}",
-    }
+    return {"html_file": str(output_path), "html_url": f"/generated/{file_name}"}
