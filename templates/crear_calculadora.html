@@ -3,9 +3,140 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Template Crear Calculadora</title>
+    <title>Crear Calculadora CCT</title>
+    <style>
+      :root { --bg:#f4f6f3; --surface:#fff; --ink:#17221c; --muted:#66736c; --line:#d9e1db; --brand:#155a43; --ok:#23704e; --warn:#936500; --shadow:0 18px 45px rgba(23,34,28,.12); }
+      * { box-sizing: border-box; }
+      body { margin:0; min-height:100vh; font-family:Aptos,"Segoe UI",sans-serif; color:var(--ink); background:linear-gradient(135deg,rgba(21,90,67,.1),transparent 38%),linear-gradient(180deg,#fbfcfa 0%,var(--bg) 100%); }
+      .shell { width:min(980px,calc(100% - 32px)); margin:0 auto; padding:32px 0 48px; }
+      .panel { border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.92); box-shadow:var(--shadow); padding:24px; }
+      .topbar { display:flex; justify-content:space-between; align-items:center; gap:18px; margin-bottom:20px; }
+      h1 { margin:0; font-size:clamp(30px,4vw,48px); }
+      p { color:var(--muted); line-height:1.6; }
+      .button { display:inline-flex; align-items:center; justify-content:center; min-height:44px; border-radius:10px; border:1px solid var(--line); background:#fff; color:var(--ink); padding:0 16px; text-decoration:none; font-weight:800; cursor:pointer; }
+      .button.primary { background:var(--brand); border-color:var(--brand); color:#fff; }
+      .button:disabled { opacity:.6; cursor:not-allowed; }
+      .upload-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:18px; }
+      .upload-box { border:1px dashed rgba(21,90,67,.35); border-radius:12px; padding:18px; background:rgba(255,255,255,.7); }
+      label { display:grid; gap:8px; }
+      label span { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+      input[type="file"] { width:100%; min-height:46px; border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:#fff; }
+      .hint { margin:10px 0 0; font-size:.92rem; }
+      .actions { margin-top:18px; display:flex; gap:12px; flex-wrap:wrap; }
+      .status-box { display:none; margin-top:18px; border-radius:10px; padding:14px; border:1px solid var(--line); white-space:pre-wrap; }
+      .status-box.visible { display:block; }
+      .status-box.ok { background:#e6f3ed; border-color:#b8dfcb; color:var(--ok); }
+      .status-box.warn { background:#fff5d7; border-color:#ead28b; color:var(--warn); }
+      @media (max-width:760px){ .topbar,.upload-grid{display:block;} .upload-box+.upload-box{margin-top:14px;} }
+    </style>
   </head>
   <body>
-    <p>Template espejo de crear_calculadora.html. Usar el archivo raíz para la versión navegable actual.</p>
+    <div class="shell">
+      <div class="topbar">
+        <div>
+          <h1>Crear Calculadora</h1>
+          <p>Subí el convenio y, si corresponde, la escala salarial para generar el JSON base de una nueva calculadora laboral.</p>
+        </div>
+        <a class="button" href="./portal-cct.html">Volver al portal</a>
+      </div>
+
+      <section class="panel">
+        <h2>Generador Gemini + Codex</h2>
+        <p>El sistema analiza los PDFs, detecta categorías, escalas, adicionales y reglas de liquidación, y descarga un borrador JSON listo para revisar.</p>
+
+        <div class="upload-grid">
+          <div class="upload-box">
+            <label>
+              <span>Archivo del Convenio</span>
+              <input id="convenio-pdf" type="file" accept="application/pdf,.pdf" />
+            </label>
+            <p class="hint">PDF principal del CCT, ley, acuerdo o norma.</p>
+          </div>
+
+          <div class="upload-box">
+            <label>
+              <span>Escalas Salariales</span>
+              <input id="escala-pdf" type="file" accept="application/pdf,.pdf" />
+            </label>
+            <p class="hint">PDF con escalas, anexos, paritarias o tabla salarial.</p>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="create-calculator" class="button primary" type="button">Crear Calculadora</button>
+        </div>
+
+        <div id="upload-status" class="status-box"></div>
+      </section>
+    </div>
+
+    <script>
+      const refs = {
+        convenioPdf: document.querySelector("#convenio-pdf"),
+        escalaPdf: document.querySelector("#escala-pdf"),
+        createCalculator: document.querySelector("#create-calculator"),
+        uploadStatus: document.querySelector("#upload-status")
+      };
+
+      function setUploadStatus(message, type = "") {
+        refs.uploadStatus.textContent = message;
+        refs.uploadStatus.className = `status-box visible ${type}`.trim();
+      }
+
+      function downloadJson(payload, filename = "calculadora-cct.json") {
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      function safeBaseName(file) {
+        return (file?.name || "calculadora-cct")
+          .replace(/\.pdf$/i, "")
+          .replace(/[^a-z0-9_-]+/gi, "-")
+          .replace(/^-+|-+$/g, "") || "calculadora-cct";
+      }
+
+      async function createCalculatorFromPdf() {
+        const convenioFile = refs.convenioPdf.files?.[0];
+        const escalaFile = refs.escalaPdf.files?.[0];
+
+        if (!convenioFile && !escalaFile) {
+          setUploadStatus("Seleccioná al menos un PDF: Archivo del Convenio o Escalas Salariales.", "warn");
+          return;
+        }
+
+        const formData = new FormData();
+        if (convenioFile) formData.append("file", convenioFile);
+        if (escalaFile) formData.append("salary_file", escalaFile);
+
+        refs.createCalculator.disabled = true;
+        setUploadStatus("Procesando PDF(s) con Gemini/Codex...");
+
+        try {
+          const response = await fetch("/extract-cct-pdf", { method: "POST", body: formData });
+          const payload = await response.json();
+
+          if (!response.ok) throw new Error(payload?.detail || "No se pudo generar la calculadora.");
+
+          const result = payload.result || payload;
+          const baseName = safeBaseName(convenioFile || escalaFile);
+          downloadJson(result, `${baseName}.json`);
+
+          setUploadStatus(`Calculadora generada correctamente.\nModo: ${payload.mode || "gemini-codex-cct"}`, "ok");
+        } catch (error) {
+          setUploadStatus(error?.message || "Error inesperado.", "warn");
+        } finally {
+          refs.createCalculator.disabled = false;
+        }
+      }
+
+      refs.createCalculator.addEventListener("click", createCalculatorFromPdf);
+    </script>
   </body>
 </html>
