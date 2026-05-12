@@ -72,5 +72,33 @@
       function render() { const term = normalize(refs.search.value); const status = refs.status.value; let visible = 0; refs.cards.innerHTML = conventions.map((item) => { const haystack = normalize([item.title, item.cct, item.summary, item.features.join(" ")].join(" ")); const matches = (!term || haystack.includes(term)) && (status === "all" || item.status === status); if (matches) visible += 1; const ready = item.status === "ready"; return `<article class="cct-card" ${matches ? "" : "hidden"}><div><div class="badges"><span class="badge ${ready ? "ok" : "warn"}">${ready ? "Listo" : "En preparación"}</span><span class="badge type">${item.cct}</span></div><h3>${item.title}</h3><p>${item.summary}</p><ul class="features">${item.features.map((feature) => `<li>${feature}</li>`).join("")}</ul><div class="meta"><div><small>Motor</small><strong>${item.engine}</strong></div><div><small>Alcance</small><strong>${item.scope}</strong></div><div><small>Vigencia</small><strong>${item.validity}</strong></div></div></div><div class="card-actions">${item.href ? `<a class="button primary" href="${item.href}">Abrir calculadora</a>` : `<button class="button" disabled>Próximamente</button>`}${item.href ? `<a class="button" href="${item.href}" target="_blank" rel="noopener">Abrir en pestaña</a>` : ""}</div></article>`; }).join(""); refs.readyCount.textContent = conventions.filter((item) => item.status === "ready").length; refs.totalCount.textContent = conventions.length; refs.empty.classList.toggle("is-visible", visible === 0); }
       refs.search.addEventListener("input", render); refs.status.addEventListener("change", render); render();
     </script>
+    <script>
+      async function cargarCalculadorasGeneradas() {
+        try {
+          const response = await fetch("/generated-calculators", { cache: "no-store" });
+          if (!response.ok) return;
+          const payload = await response.json();
+          const existentes = new Set(conventions.map((item) => item.href).filter(Boolean));
+          const generadas = (payload.items || [])
+            .filter((item) => item && item.href && !existentes.has(item.href))
+            .map((item) => ({
+              title: item.title || "Calculadora generada",
+              cct: item.cct || "CCT generado",
+              status: item.status || "ready",
+              href: item.href,
+              engine: item.engine || "Generada desde PDF",
+              scope: item.scope || "Escalas detectadas",
+              validity: item.validity || "Generada",
+              summary: item.summary || "Calculadora generada desde la carpeta generated.",
+              features: Array.isArray(item.features) && item.features.length ? item.features : ["Generada", "PDF", "JSON"],
+            }));
+          conventions.unshift(...generadas);
+          render();
+        } catch (error) {
+          console.warn("No se pudieron cargar calculadoras generadas", error);
+        }
+      }
+      cargarCalculadorasGeneradas();
+    </script>
   </body>
 </html>
