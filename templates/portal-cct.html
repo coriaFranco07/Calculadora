@@ -447,17 +447,9 @@
         <div class="hero-grid">
           <div>
             <p class="eyebrow">Biblioteca laboral inteligente</p>
-            <h1>Calculadoras CCT listas para liquidar.</h1>
-            <p class="hero-copy">
-              Elegí una calculadora verificada o abrí las que generás desde PDF. El portal reúne escalas,
-              reglas convencionales y borradores automáticos en un solo lugar.
-            </p>
+            <h3>Calculadoras CCT listas para liquidar.</h3>
           </div>
-          <div class="hero-panel">
-            <strong id="hero-total">0</strong>
-            <span>calculadoras disponibles</span>
-            <p>Las nuevas calculadoras de la carpeta <b>generated</b> aparecen automáticamente cuando el backend está activo.</p>
-          </div>
+
         </div>
       </section>
 
@@ -513,11 +505,8 @@
           cct: "CCT 244/94",
           status: "ready",
           href: "./Calculadora_CCT_244_94_Alimentacion.html",
-          engine: "Motor universal + JSON",
-          scope: "Mensual, vacaciones, final básica",
-          validity: "Abril 2026",
-          summary: "Liquidación avanzada con escalas, acuerdos no remunerativos, auditoría, simulador, F.931 y costo empresa.",
-          features: ["F.931", "Auditoría", "Simulador", "Export JSON/CSV"],
+          
+         
           source: "static",
         },
         {
@@ -525,35 +514,8 @@
           cct: "Ley 26.844",
           status: "ready",
           href: "./ley-26844-empleadas-domesticas-mayo-2026.html",
-          engine: "HTML autónomo",
-          scope: "Horas, extras, antigüedad, ARCA",
-          validity: "Mayo 2026",
-          summary: "Liquidador para personal de casas particulares con modalidad con retiro o sin retiro, recibo y comparador.",
-          features: ["Ley 26.844", "ARCA", "Horas", "Comparador"],
-          source: "static",
-        },
-        {
-          title: "Construcción UOCRA",
-          cct: "CCT 76/75",
-          status: "draft",
-          href: "",
-          engine: "Pendiente HTML",
-          scope: "Jornal, quincena, adicionales",
-          validity: "Pendiente",
-          summary: "Espacio reservado para sumar el liquidador UOCRA cuando el HTML esté disponible en el proyecto.",
-          features: ["Quincena", "Costo empleador", "Adicionales"],
-          source: "static",
-        },
-        {
-          title: "Empleados de Comercio",
-          cct: "CCT 130/75",
-          status: "draft",
-          href: "",
-          engine: "Pendiente JSON",
-          scope: "Pendiente",
-          validity: "Pendiente",
-          summary: "Espacio preparado para sumar escalas, acuerdos y reglas de Comercio.",
-          features: ["Multi-CCT", "Escalas JSON", "Reglas configurables"],
+         
+          
           source: "static",
         },
       ];
@@ -597,7 +559,7 @@
         const features = (item.features || []).map((feature) => `<li>${escapeHtml(feature)}</li>`).join("");
         const openButton = item.href ? `<a class="button primary" href="${escapeHtml(item.href)}">Abrir calculadora</a>` : `<button class="button" disabled>Próximamente</button>`;
         const tabButton = item.href ? `<a class="button" href="${escapeHtml(item.href)}" target="_blank" rel="noopener">Abrir en pestaña</a>` : "";
-        return `<article class="cct-card fade-in" style="animation-delay:${Math.min(index * 35, 280)}ms" ${matches ? "" : "hidden"}><div><div class="badges"><span class="badge ${ready ? "ok" : "warn"}">${ready ? "Listo" : "En preparación"}</span>${generatedBadge}<span class="badge type">${escapeHtml(item.cct)}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.summary)}</p><ul class="features">${features}</ul><div class="meta"><div><small>Motor</small><strong>${escapeHtml(item.engine)}</strong></div><div><small>Alcance</small><strong>${escapeHtml(item.scope)}</strong></div><div><small>Vigencia</small><strong>${escapeHtml(item.validity)}</strong></div></div></div><div class="card-actions">${openButton}${tabButton}</div></article>`;
+        return `<article class="cct-card fade-in" style="animation-delay:${Math.min(index * 35, 280)}ms" ${matches ? "" : "hidden"}><div><div class="badges"><span class="badge ${ready ? "ok" : "warn"}">${ready ? "Listo" : "En preparación"}</span>${generatedBadge}<span class="badge type">${escapeHtml(item.cct)}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.summary)}</p><ul class="features">${features}</ul><div class="meta"></div></div><div class="card-actions">${openButton}${tabButton}</div></article>`;
       }
 
       function render() {
