@@ -162,6 +162,9 @@ MONEY_TOKEN_RE = re.compile(
     r"\$?\s*-?(?:\d{1,3}(?:[.,]\d{3})+|\d+)(?:[.,]\d{1,2})?"
 )
 
+MAX_REASONABLE_SALARY_AMOUNT = 50_000_000
+MIN_REASONABLE_SALARY_AMOUNT = 1
+
 
 def money_matches(line: str) -> list[re.Match[str]]:
     matches: list[re.Match[str]] = []
@@ -174,6 +177,10 @@ def money_matches(line: str) -> list[re.Match[str]]:
         has_separator = "." in compact or "," in compact
 
         if next_char == "%" and not has_money_marker:
+            continue
+        if not has_money_marker and re.fullmatch(r"\d{1,2}\.\d{1,2}", compact):
+            continue
+        if not has_money_marker and not has_separator and 1900 <= int(digits or "0") <= 2099:
             continue
         if not has_money_marker and not has_separator and len(digits) < 4:
             continue
@@ -211,6 +218,7 @@ def is_money_only_line(line: str) -> bool:
     if not extract_money_values(line):
         return False
     rest = strip_money_tokens(line)
+    rest = re.sub(r"\bA\b", "", rest)
     rest = re.sub(r"[$.,:\-()\[\]\s]", "", rest)
     return not re.search(r"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]", rest)
 
@@ -578,13 +586,27 @@ def is_salary_noise_line(line: str) -> bool:
 
 def is_salary_heading_line(line: str) -> bool:
     normalized = normalize_text(line)
-    if normalized.startswith(("escala salarial", "escalas salariales", "salarios basicos")):
+    if "formara parte integrante" in normalized or "a todos sus efectos" in normalized:
+        return False
+    if normalized.startswith(("escala salarial", "escalas salariales")):
+        return True
+    if normalized.startswith("salarios basicos") and (
+        len(normalized) < 90 or "correspondientes" in normalized or "mes de" in normalized
+    ):
         return True
     if re.match(r"^\d+[.)]\s*salarios basicos", normalized):
         return True
-    if normalized in {"rama y categoria", "categoria basico mensual articulo 11 multifuncionalidad"}:
+    if normalized in {
+        "rama y categoria",
+        "categoria basico mensual articulo 11 multifuncionalidad",
+        "por dia por mes",
+        "remuneracion basica",
+        "total remuneracion basica",
+    }:
         return True
     if normalized.startswith("categoria basico mensual"):
+        return True
+    if "remuneracion basica" in normalized and len(normalized) < 120:
         return True
     if normalized.startswith("basico 1"):
         return True
@@ -603,6 +625,10 @@ def is_salary_stop_line(line: str) -> bool:
         "asignacion vacacional",
         "coeficiente zonal",
         "articulo 7)",
+        "homologacion",
+        "retenciones",
+        "obra social",
+        "organismo de aplicacion",
     )
     return any(term in normalized for term in stop_terms)
 
@@ -629,8 +655,72 @@ def is_known_salary_branch(line: str) -> bool:
         "choferes",
         "serenos",
         "operario multiple",
+        "conductores",
+        "personal operativo",
+        "personal administrativo",
+        "taller",
+        "mantenimiento",
+        "servicios auxiliares",
+        "grupo \"i\"",
+        "grupo \"ii\"",
+        "grupo \"iii\"",
+        "grupo \"iv\"",
+        "grupo \"v\"",
     )
     return any(term in normalized for term in branch_terms)
+
+
+def is_non_salary_scale_document(text: str) -> bool:
+    normalized = normalize_text(text[:5000])
+    if "tope indemnizatorio" not in normalized:
+        return False
+    salary_terms = ("escala salarial", "escalas salariales", "salarios basicos", "remuneracion basica")
+    return not any(term in normalized for term in salary_terms)
+
+
+def salary_values_are_reasonable(values: list[float | int]) -> bool:
+    if not values:
+        return False
+    for value in values:
+        numeric = parse_numeric_token(value)
+        if numeric is None:
+            return False
+        if abs(float(numeric)) > MAX_REASONABLE_SALARY_AMOUNT:
+            return False
+    return any(abs(float(parse_numeric_token(value) or 0)) >= MIN_REASONABLE_SALARY_AMOUNT for value in values)
+
+
+def looks_like_legal_prose(label: str) -> bool:
+    normalized = normalize_text(label)
+    prose_terms = (
+        "debera",
+        "deberan",
+        "cuando",
+        "asimismo",
+        "conforme",
+        "equivalente",
+        "establecido",
+        "previsto",
+        "corresponda",
+        "partir del",
+        "durante el",
+        "se abonara",
+        "se aplicara",
+        "podra",
+        "cuenta",
+        "banco",
+        "ministerio",
+        "homologacion",
+        "trabajadores percibiran",
+        "los trabajadores",
+        "las empresas",
+    )
+    if any(term in normalized for term in prose_terms):
+        return True
+    words = re.findall(r"[a-záéíóúüñ]+", normalized)
+    if len(words) > 11 and not has_category_term(label):
+        return True
+    return False
 
 
 def is_probable_salary_label(label: str) -> bool:
@@ -686,8 +776,16 @@ def is_probable_salary_label(label: str) -> bool:
         "septiembre",
         "horas del dia",
         "dia siguiente",
+        "elementos de proteccion",
+        "relacion laboral",
+        "lugar de trabajo",
+        "concepto de viatico",
+        "por mes",
+        "por dia",
     )
     if any(term in normalized for term in rejected_terms):
+        return False
+    if looks_like_legal_prose(label):
         return False
     if re.match(r"^\d+\s*°", label):
         return False
@@ -709,10 +807,27 @@ def has_category_term(label: str) -> bool:
         "unica",
         "aprendiz",
         "operario",
+        "operador",
         "chofer",
+        "conductor",
         "sereno",
         "mecanico",
         "mec",
+        "capataz",
+        "analista",
+        "auxiliar",
+        "peon",
+        "recibidor",
+        "clasificador",
+        "embalador",
+        "recolector",
+        "distribuidor",
+        "ayudante",
+        "encargado",
+        "cajero",
+        "jefe",
+        "supervisor",
+        "vendedor",
     )
     return any(term in normalized for term in terms)
 
@@ -782,7 +897,7 @@ def build_salary_records(
     columns: list[str] | None = None,
     source_rank: int = 50,
 ) -> tuple[dict[str, Any], dict[str, Any]] | None:
-    if not values:
+    if not salary_values_are_reasonable(values):
         return None
 
     label = strip_money_tokens(label)
@@ -795,8 +910,28 @@ def build_salary_records(
 
     column_names = normalize_salary_columns(columns, len(values))
     is_period_scale = has_period_salary_columns(column_names) and len(column_names) == len(values)
-    basico_mensual = values[0]
-    sueldo_mensual = values[-1] if is_period_scale else values[0]
+    monthly_index = next(
+        (
+            idx
+            for idx, column_name in enumerate(column_names)
+            if any(term in normalize_text(column_name) for term in ("mensual", "mes", "basico_mensual", "sueldo"))
+        ),
+        None,
+    )
+    hourly_index = next(
+        (idx for idx, column_name in enumerate(column_names) if "hora" in normalize_text(column_name)),
+        None,
+    )
+    daily_index = next(
+        (idx for idx, column_name in enumerate(column_names) if "dia" in normalize_text(column_name) or "jornal" in normalize_text(column_name)),
+        None,
+    )
+    basico_mensual = values[monthly_index] if monthly_index is not None and monthly_index < len(values) else values[0]
+    sueldo_mensual = values[-1] if is_period_scale else basico_mensual
+    valor_hora = values[hourly_index] if hourly_index is not None and hourly_index < len(values) else None
+    valor_diario = values[daily_index] if daily_index is not None and daily_index < len(values) else None
+    non_additional_indexes = {idx for idx in (monthly_index, hourly_index, daily_index) if idx is not None}
+    additional_values = [value for idx, value in enumerate(values) if idx not in non_additional_indexes]
     display_name = f"{rama} - {categoria}" if rama and normalize_text(rama) not in normalize_text(categoria) else categoria
     record_id = slugify(f"{rama or ''} {categoria}")
 
@@ -808,10 +943,11 @@ def build_salary_records(
         "basico_mensual": basico_mensual,
         "sueldo_mensual": sueldo_mensual,
         "valor": sueldo_mensual,
-        "valor_hora": None,
-        "adicional_1": values[1] if len(values) > 1 else None,
-        "adicional_2": values[2] if len(values) > 2 else None,
-        "adicional_3": values[3] if len(values) > 3 else None,
+        "valor_hora": valor_hora,
+        "valor_diario": valor_diario,
+        "adicional_1": additional_values[0] if len(additional_values) > 0 else None,
+        "adicional_2": additional_values[1] if len(additional_values) > 1 else None,
+        "adicional_3": additional_values[2] if len(additional_values) > 2 else None,
         "columnas_detectadas": column_names,
         "tipo_valor": "mensual",
         "fuente_textual": compact_text(source_line, 180),
@@ -846,7 +982,8 @@ def build_salary_records(
         "nombre": display_name,
         "tipo": guess_category_type(f"{rama or ''} {categoria}"),
         "descripcion": categoria,
-        "valor_hora": None,
+        "valor_hora": valor_hora,
+        "valor_diario": valor_diario,
         "basico_mensual": basico_mensual,
         "sueldo_mensual": sueldo_mensual,
         "basico": sueldo_mensual,
@@ -865,7 +1002,182 @@ def build_salary_records(
     return categoria_payload, escala
 
 
+def detect_salary_columns_from_line(line: str) -> list[str] | None:
+    normalized = normalize_text(line)
+    if "por dia" in normalized and "por mes" in normalized:
+        return ["valor_diario", "basico_mensual"]
+    if "valor hora" in normalized or (re.search(r"\bpor\s+hora\b", normalized) and len(normalized) < 80):
+        return ["valor_hora", "basico_mensual"] if "mensual" in normalized else ["valor_hora"]
+    if "basico mensual" in normalized and "articulo 11" in normalized:
+        return ["basico_mensual", "articulo_11", "multifuncionalidad"]
+    if "remuneracion basica" in normalized and len(normalized) < 120:
+        return ["basico_mensual", "adicional_1", "sueldo_mensual"]
+    return None
+
+
+def is_salary_table_context_line(line: str) -> bool:
+    normalized = normalize_text(line)
+    terms = (
+        "anexo",
+        "valores vigentes",
+        "remuneracion basica",
+        "salarios basicos",
+        "escala salarial",
+        "escalas salariales",
+        "por dia por mes",
+    )
+    return any(term in normalized for term in terms)
+
+
+def is_probable_stacked_category_line(line: str) -> bool:
+    if extract_money_values(line) or is_salary_noise_line(line):
+        return False
+    cleaned = compact_text(line.strip(" -:\t"), 140)
+    normalized = normalize_text(cleaned)
+    if not cleaned or len(cleaned) > 95:
+        return False
+    if is_salary_heading_line(cleaned) or is_salary_stop_line(cleaned):
+        return False
+    if normalized in {"valores", "vigentes", "hasta el", "total", "basica", "adicional", "por trabajo", "en zona"}:
+        return False
+    if re.match(r"^[a-zñ]{1,2}\)\s+\S", normalized):
+        return True
+    if re.search(r"\b\d+(?:ra|da|ta|a)?\.?\s*categoria\b", normalized):
+        return True
+    if has_category_term(cleaned) and not looks_like_legal_prose(cleaned):
+        return True
+    return False
+
+
+def compact_stacked_label(parts: list[str]) -> str:
+    filtered: list[str] = []
+    for part in parts[-7:]:
+        cleaned = compact_text(part.strip(" -:\t"), 90)
+        normalized = normalize_text(cleaned)
+        if not cleaned:
+            continue
+        if is_salary_heading_line(cleaned):
+            continue
+        if normalized in {"percibiran", "por dia por mes", "valores", "vigentes", "hasta el"}:
+            continue
+        if looks_like_legal_prose(cleaned) and not re.match(r"^[a-zñ]{1,2}\)", normalized):
+            continue
+        filtered.append(cleaned)
+
+    if not filtered:
+        return ""
+
+    anchor_index = 0
+    for idx, part in enumerate(filtered):
+        normalized = normalize_text(part)
+        if re.match(r"^[a-zñ]{1,2}\)", normalized) or re.search(r"\bcategoria\b", normalized):
+            anchor_index = idx
+    label = " ".join(filtered[anchor_index:])
+    label = re.sub(r"^[a-zñ]{1,2}\)\s*", "", label, flags=re.I)
+    label = re.sub(r"\s{2,}", " ", label)
+    return compact_text(label.strip(" -:\t"), 140)
+
+
+def extract_stacked_salary_blocks(lines: list[str]) -> dict[str, list[dict[str, Any]]]:
+    categorias: list[dict[str, Any]] = []
+    escalas: list[dict[str, Any]] = []
+    context_budget = 0
+    current_rama: str | None = None
+    current_columns: list[str] | None = None
+    label_parts: list[str] = []
+
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        normalized = normalize_text(line)
+
+        detected_columns = detect_salary_columns_from_line(line)
+        if detected_columns:
+            current_columns = detected_columns
+            context_budget = max(context_budget, 35)
+            index += 1
+            continue
+
+        if is_salary_table_context_line(line):
+            context_budget = max(context_budget, 50)
+            if is_known_salary_branch(line):
+                current_rama = line
+            index += 1
+            continue
+
+        if is_salary_stop_line(line):
+            context_budget = 0
+            label_parts = []
+            index += 1
+            continue
+
+        if is_known_salary_branch(line) and not extract_money_values(line):
+            current_rama = line
+            context_budget = max(context_budget, 25)
+            label_parts = []
+            index += 1
+            continue
+
+        values = extract_money_values(line)
+        if values and is_money_only_line(line) and context_budget > 0:
+            block_values = list(values)
+            source_parts = list(label_parts) + [line]
+            index += 1
+            while index < len(lines) and is_money_only_line(lines[index]) and len(block_values) < 4:
+                next_values = extract_money_values(lines[index])
+                if not salary_values_are_reasonable(next_values):
+                    break
+                block_values.extend(next_values)
+                source_parts.append(lines[index])
+                index += 1
+
+            label = compact_stacked_label(label_parts)
+            if label and salary_values_are_reasonable(block_values):
+                columns = current_columns if current_columns and len(current_columns) <= len(block_values) else current_columns
+                built = build_salary_records(label, block_values[:4], current_rama, " ".join(source_parts), columns, source_rank=35)
+                if built:
+                    category, scale = built
+                    categorias.append(category)
+                    escalas.append(scale)
+                    context_budget = max(context_budget, 35)
+            label_parts = []
+            continue
+
+        if context_budget > 0 and is_probable_stacked_category_line(line):
+            if is_known_salary_branch(line) and not has_category_term(line):
+                current_rama = line
+                label_parts = []
+            else:
+                label_parts.append(line)
+                label_parts = label_parts[-7:]
+        elif context_budget > 0 and label_parts and not values:
+            fragment = compact_text(line.strip(" -:\t"), 80)
+            fragment_norm = normalize_text(fragment)
+            if (
+                fragment
+                and len(fragment) <= 45
+                and not is_salary_heading_line(fragment)
+                and not is_salary_stop_line(fragment)
+                and not looks_like_legal_prose(fragment)
+                and fragment_norm not in {"percibiran", "por dia por mes", "valores", "vigentes", "hasta el"}
+            ):
+                label_parts.append(fragment)
+                label_parts = label_parts[-7:]
+
+        if context_budget > 0:
+            context_budget -= 1
+        index += 1
+
+    return {
+        "categorias": categorias,
+        "escalas_salariales": escalas,
+    }
+
+
 def extract_generic_salary_lines(text: str) -> dict[str, Any]:
+    if is_non_salary_scale_document(text):
+        return {"categorias": [], "escalas_salariales": []}
+
     lines = preprocess_salary_lines(text)
     categorias: list[dict[str, Any]] = []
     escalas: list[dict[str, Any]] = []
@@ -874,15 +1186,18 @@ def extract_generic_salary_lines(text: str) -> dict[str, Any]:
     current_columns: list[str] | None = None
     period_columns: list[str] = []
     in_salary_context = False
+    salary_context_budget = 0
 
     index = 0
     while index < len(lines):
         line = lines[index]
         normalized = normalize_text(line)
 
-        if "categoria" in normalized and "basico mensual" in normalized and "articulo 11" in normalized:
-            current_columns = ["basico_mensual", "articulo_11", "multifuncionalidad"]
+        detected_columns = detect_salary_columns_from_line(line)
+        if detected_columns:
+            current_columns = detected_columns
             in_salary_context = True
+            salary_context_budget = max(salary_context_budget, 60)
             pending_label = None
             index += 1
             continue
@@ -893,6 +1208,7 @@ def extract_generic_salary_lines(text: str) -> dict[str, Any]:
                 period_columns.append(compact_text(period, 40))
                 current_columns = period_columns[-4:]
                 in_salary_context = True
+                salary_context_budget = max(salary_context_budget, 60)
             pending_label = None
             index += 1
             continue
@@ -900,6 +1216,7 @@ def extract_generic_salary_lines(text: str) -> dict[str, Any]:
         if is_salary_heading_line(line):
             if any(term in normalized for term in ("escala", "salarios basicos", "rama y categoria")):
                 in_salary_context = True
+                salary_context_budget = max(salary_context_budget, 80)
             current_rama = None
             pending_label = None
             index += 1
@@ -907,6 +1224,7 @@ def extract_generic_salary_lines(text: str) -> dict[str, Any]:
 
         if is_salary_stop_line(line):
             in_salary_context = False
+            salary_context_budget = 0
             current_rama = None
             pending_label = None
             index += 1
@@ -914,19 +1232,22 @@ def extract_generic_salary_lines(text: str) -> dict[str, Any]:
 
         values = extract_money_values(line)
         if values and is_money_only_line(line):
-            if pending_label and in_salary_context:
+            if pending_label and in_salary_context and salary_values_are_reasonable(values):
                 block_values = list(values)
                 source_parts = [pending_label, line]
                 index += 1
-                while index < len(lines) and is_money_only_line(lines[index]):
-                    block_values.extend(extract_money_values(lines[index]))
+                while index < len(lines) and is_money_only_line(lines[index]) and len(block_values) < 4:
+                    next_values = extract_money_values(lines[index])
+                    if not salary_values_are_reasonable(next_values):
+                        break
+                    block_values.extend(next_values)
                     source_parts.append(lines[index])
                     index += 1
 
-                columns = current_columns if current_columns and len(current_columns) == len(block_values) else None
+                columns = current_columns if current_columns and len(current_columns) <= len(block_values) else None
                 built = build_salary_records(
                     pending_label,
-                    block_values,
+                    block_values[:4],
                     current_rama,
                     " ".join(source_parts),
                     columns,
@@ -936,12 +1257,17 @@ def extract_generic_salary_lines(text: str) -> dict[str, Any]:
                     category, scale = built
                     categorias.append(category)
                     escalas.append(scale)
+                    salary_context_budget = max(salary_context_budget, 45)
                 pending_label = None
                 continue
             index += 1
             continue
 
         if values:
+            if not salary_values_are_reasonable(values):
+                pending_label = None
+                index += 1
+                continue
             if not in_salary_context and "$" not in line:
                 label_preview = strip_money_tokens(line)
                 first_value = parse_numeric_token(values[0]) or 0
@@ -961,6 +1287,7 @@ def extract_generic_salary_lines(text: str) -> dict[str, Any]:
                 category, scale = built
                 categorias.append(category)
                 escalas.append(scale)
+                salary_context_budget = max(salary_context_budget, 45)
             pending_label = None
             index += 1
             continue
@@ -971,11 +1298,19 @@ def extract_generic_salary_lines(text: str) -> dict[str, Any]:
             if is_known_salary_branch(line) and not is_money_only_line(next_line):
                 current_rama = line
 
+        if in_salary_context:
+            salary_context_budget -= 1
+            if salary_context_budget <= 0:
+                in_salary_context = False
+                current_rama = None
+                pending_label = None
+
         index += 1
 
+    stacked = extract_stacked_salary_blocks(lines)
     return {
-        "categorias": dedupe_salary_categories(categorias),
-        "escalas_salariales": dedupe_salary_scales(escalas),
+        "categorias": dedupe_salary_categories([*categorias, *(stacked.get("categorias") or [])]),
+        "escalas_salariales": dedupe_salary_scales([*escalas, *(stacked.get("escalas_salariales") or [])]),
     }
 
 
@@ -1515,8 +1850,39 @@ def recover_partial_gemini_payload(raw_text: str, file_name: str) -> dict[str, A
 def salary_record_has_amount(item: dict[str, Any]) -> bool:
     return any(
         (parse_numeric_token(item.get(field)) or 0) > 0
-        for field in ("sueldo_mensual", "basico_mensual", "valor_hora", "valor", "basico")
+        for field in ("sueldo_mensual", "basico_mensual", "valor_hora", "valor_diario", "valor", "basico")
     )
+
+
+def salary_output_record_is_valid(item: dict[str, Any]) -> bool:
+    label = compact_text(item.get("categoria") or item.get("nombre") or item.get("id"), 160)
+    if not label:
+        return False
+    normalized = normalize_text(label)
+    if normalized in {"por mes", "por dia", "por dia por mes", "a a"}:
+        return False
+    if any(noise in normalized for noise in ("https", "bol.oficial", "jurisdiccion", "organismo")):
+        return False
+    rama = compact_text(item.get("rama"), 160)
+    if rama and looks_like_legal_prose(rama):
+        return False
+    if rama and len(rama) > 60 and re.match(r"^[a-zñ0-9]{1,2}\)", normalize_text(rama)):
+        return False
+    amount_values = [
+        parse_numeric_token(item.get(field))
+        for field in ("sueldo_mensual", "basico_mensual", "valor_hora", "valor_diario", "valor", "basico")
+    ]
+    amount_values = [value for value in amount_values if value is not None]
+    if amount_values and not salary_values_are_reasonable(amount_values):
+        return False
+    if amount_values and looks_like_legal_prose(label):
+        return False
+    words = re.findall(r"[a-záéíóúüñ]+", normalized)
+    if amount_values and len(words) <= 2 and not has_category_term(label):
+        return False
+    if amount_values and not (has_category_term(label) or is_probable_salary_label(label)):
+        return False
+    return True
 
 
 def rule_percentage(rule: Any) -> float:
@@ -1564,12 +1930,14 @@ def merge_payload(primary: dict[str, Any], fallback: dict[str, Any]) -> dict[str
         key=lambda item: 0 if isinstance(item, dict) and salary_record_has_amount(item) else 1,
     )
     merged["categorias"] = dedupe_salary_categories([item for item in category_candidates if isinstance(item, dict)])[:120]
+    merged["categorias"] = [item for item in merged["categorias"] if salary_output_record_is_valid(item)]
 
     primary_scales = primary.get("escalas_salariales") or []
     fallback_scales = fallback.get("escalas_salariales") or []
     merged["escalas_salariales"] = dedupe_salary_scales(
         [item for item in [*primary_scales, *fallback_scales] if isinstance(item, dict)]
     )[:120]
+    merged["escalas_salariales"] = [item for item in merged["escalas_salariales"] if salary_output_record_is_valid(item)]
 
     primary_additionals = primary.get("adicionales") or []
     fallback_additionals = fallback.get("adicionales") or []
@@ -1695,6 +2063,7 @@ def enrich_calculator_payload(payload: dict[str, Any]) -> dict[str, Any]:
             "tipo": compact_text(item.get("tipo") or guess_category_type(item.get("nombre")), 40) or "otro",
             "descripcion": compact_text(item.get("descripcion"), 180),
             "valor_hora": parse_numeric_token(item.get("valor_hora")),
+            "valor_diario": parse_numeric_token(item.get("valor_diario")),
             "basico_mensual": parse_numeric_token(item.get("basico_mensual") or item.get("base_salary") or item.get("basico")),
             "sueldo_mensual": parse_numeric_token(
                 item.get("sueldo_mensual")
@@ -1749,6 +2118,7 @@ def enrich_calculator_payload(payload: dict[str, Any]) -> dict[str, Any]:
             "sueldo_mensual": parse_numeric_token(item.get("sueldo_mensual") or item.get("valor") or item.get("basico_mensual")),
             "valor": parse_numeric_token(item.get("valor") or item.get("sueldo_mensual") or item.get("basico_mensual")),
             "valor_hora": parse_numeric_token(item.get("valor_hora")),
+            "valor_diario": parse_numeric_token(item.get("valor_diario")),
             "adicional_1": parse_numeric_token(item.get("adicional_1")),
             "adicional_2": parse_numeric_token(item.get("adicional_2")),
             "adicional_3": parse_numeric_token(item.get("adicional_3")),
@@ -1777,10 +2147,17 @@ def clean_final_payload(payload: dict[str, Any]) -> dict[str, Any]:
     payload.setdefault("pendientes_revision", [])
     payload.setdefault("alertas", [])
 
-    payload["categorias"] = dedupe_salary_categories([item for item in payload.get("categorias", []) if isinstance(item, dict)])
+    payload["categorias"] = [
+        item
+        for item in dedupe_salary_categories([item for item in payload.get("categorias", []) if isinstance(item, dict)])
+        if salary_output_record_is_valid(item)
+    ]
     payload["escalas_salariales"] = dedupe_salary_scales(
         [item for item in payload.get("escalas_salariales", []) if isinstance(item, dict)]
     )
+    payload["escalas_salariales"] = [
+        item for item in payload["escalas_salariales"] if salary_output_record_is_valid(item)
+    ]
     payload["subsidios"] = dedupe_records(
         [
             item
@@ -1848,14 +2225,13 @@ def clean_final_payload(payload: dict[str, Any]) -> dict[str, Any]:
     categorias_validas = [
         item
         for item in payload["categorias"]
-        if has_meaningful_value(item.get("nombre")) and not any(
-            noise in normalize_text(item.get("nombre")) for noise in ("https", "bol.oficial", "jurisdiccion", "organismo")
-        )
+        if salary_output_record_is_valid(item)
     ]
     escalas_validas = [
         item
         for item in payload["escalas_salariales"]
-        if (parse_numeric_token(item.get("basico_mensual")) or parse_numeric_token(item.get("valor_hora")) or 0) > 0
+        if salary_output_record_is_valid(item)
+        and (parse_numeric_token(item.get("basico_mensual")) or parse_numeric_token(item.get("valor_hora")) or 0) > 0
     ]
     payload["diagnostico_ia"] = {
         **(payload.get("diagnostico_ia") if isinstance(payload.get("diagnostico_ia"), dict) else {}),

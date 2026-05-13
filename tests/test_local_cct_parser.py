@@ -74,3 +74,73 @@ def test_antiguedad_rule_builds_1_to_30_scale():
     assert len(rule["escala"]) == 30
     assert rule["escala"][0] == {"anio": 1, "porcentaje": 1}
     assert rule["escala"][-1] == {"anio": 30, "porcentaje": 30}
+
+
+def test_generic_salary_lines_ignores_legal_prose_amounts():
+    text = """
+Art. 33.6 - Independientemente del adicional por trabajo en zona desfavorable establecido.
+2) De 501 a 1.000 km desde el lugar de concertacion de la relacion laboral al nuevo lugar de trabajo.
+Art. 38 - En el marco de la ley 23551 y la ley 14250.
+cuenta 309178/30 del Banco de la Nacion Argentina y cuenta 4001 - 07500 - 6.
+"""
+
+    result = extract_generic_salary_lines(text)
+
+    assert result["categorias"] == []
+    assert result["escalas_salariales"] == []
+
+
+def test_generic_salary_lines_extracts_stacked_daily_monthly_scale():
+    text = """
+9. SALARIOS BASICOS CORRESPONDIENTES AL MES DE FEBRERO DE 1989
+Seccion del personal operativo
+Conductores
+a) Primera categoria:
+Los que conducen camiones semirremolques y/o con acoplados.
+Percibiran Por dia Por mes
+A 144,59 A 3.470,07
+b) Segunda categoria:
+Por dia Por mes
+A 138,92 A 3.334,02
+"""
+
+    result = extract_generic_salary_lines(text)
+    scales = result["escalas_salariales"]
+
+    primera = find_scale(scales, "Primera categoria", "Conductores")
+    segunda = find_scale(scales, "Segunda categoria", "Conductores")
+
+    assert primera["valor_diario"] == pytest.approx(144.59)
+    assert primera["basico_mensual"] == pytest.approx(3470.07)
+    assert segunda["basico_mensual"] == pytest.approx(3334.02)
+
+
+def test_generic_salary_lines_extracts_multiline_table_label():
+    text = """
+ANEXO 1
+Valores vigentes hasta el
+Remuneracion basica
+Grupo "I" Capataces
+1ra. categoria:
+capataz de
+obra
+$ 6.472 $ - $
+"""
+
+    result = extract_generic_salary_lines(text)
+    scale = find_scale(result["escalas_salariales"], "1ra. categoria capataz de obra", "Grupo")
+
+    assert scale["basico_mensual"] == pytest.approx(6472)
+
+
+def test_generic_salary_lines_ignores_indemnity_cap_pdf():
+    text = """
+Alimentacion. Obreros y empleados, CCT 244/1994.
+Tope indemnizatorio desde 1/5/2024, 1/6/2024, 1/7/2024 y 1/8/2024.
+Promedio remuneraciones y tope indemnizatorio $ 850.000 $ 920.000.
+"""
+
+    result = extract_generic_salary_lines(text)
+
+    assert result["categorias"] == []
+    assert result["escalas_salariales"] == []
