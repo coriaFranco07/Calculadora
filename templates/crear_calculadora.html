@@ -9,22 +9,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,650;9..144,800&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
     <style>
       :root {
-        --ink: #13231d;
-        --muted: #687871;
-        --paper: #fff8eb;
+        --logo-url: url("https://media.licdn.com/dms/image/v2/D4D0BAQGibhoMeCL-mg/company-logo_200_200/company-logo_200_200/0/1667320508791/e_sueldos_logo?e=2147483647&v=beta&t=6BpHD4ZVbBNymqB5aEkJNEXyJ-0qGr2At_F6mEePRAw");
+        --ink: #102033;
+        --muted: #63738a;
+        --paper: #f5f8ff;
         --surface: rgba(255, 255, 255, 0.84);
         --surface-strong: #fff;
-        --line: rgba(19, 35, 29, 0.13);
-        --forest: #0f5138;
-        --forest-2: #1d7a55;
-        --clay: #b75d3c;
-        --gold: #d8a64a;
-        --mint: #e0f0ea;
-        --ok: #19734d;
+        --line: rgba(16, 32, 51, 0.13);
+        --forest: #0b5ed7;
+        --forest-2: #1d4ed8;
+        --clay: #2563eb;
+        --gold: #7db2ff;
+        --mint: #eaf2ff;
+        --ok: #0b5ed7;
         --warn: #966a08;
         --danger: #a63628;
-        --shadow: 0 24px 70px rgba(37, 52, 43, 0.16);
-        --soft-shadow: 0 16px 34px rgba(37, 52, 43, 0.1);
+        --shadow: 0 24px 70px rgba(15, 43, 84, 0.16);
+        --soft-shadow: 0 16px 34px rgba(15, 43, 84, 0.1);
         --radius: 28px;
         --font-body: "Manrope", sans-serif;
         --font-display: "Fraunces", serif;
@@ -38,9 +39,9 @@
         color: var(--ink);
         font-family: var(--font-body);
         background:
-          radial-gradient(circle at 12% 12%, rgba(132, 165, 109, 0.3), transparent 28rem),
-          radial-gradient(circle at 84% 20%, rgba(183, 93, 60, 0.18), transparent 24rem),
-          linear-gradient(135deg, #fbf2db 0%, #eff6ee 48%, #dfeeea 100%);
+          radial-gradient(circle at 12% 12%, rgba(96, 165, 250, 0.32), transparent 28rem),
+          radial-gradient(circle at 84% 20%, rgba(37, 99, 235, 0.18), transparent 24rem),
+          linear-gradient(135deg, #f5f8ff 0%, #eef5ff 48%, #e5efff 100%);
       }
 
       body::before {
@@ -49,8 +50,8 @@
         inset: 0;
         pointer-events: none;
         background-image:
-          linear-gradient(rgba(19, 35, 29, 0.035) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(19, 35, 29, 0.035) 1px, transparent 1px);
+          linear-gradient(rgba(16, 32, 51, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(16, 32, 51, 0.035) 1px, transparent 1px);
         background-size: 44px 44px;
         mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.64), transparent 78%);
       }
@@ -81,13 +82,13 @@
         font-weight: 900;
       }
 
-      .brand-mark::before {
-        content: "";
+      .brand-logo {
         width: 34px;
         height: 34px;
         border-radius: 12px;
-        background: linear-gradient(135deg, var(--forest), var(--forest-2));
-        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.32), 0 10px 20px rgba(15, 81, 56, 0.2);
+        object-fit: cover;
+        background: #fff;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.32), 0 10px 20px rgba(11, 94, 215, 0.2);
       }
 
       .button {
@@ -96,7 +97,7 @@
         align-items: center;
         min-height: 46px;
         border-radius: 999px;
-        border: 1px solid rgba(19, 35, 29, 0.14);
+        border: 1px solid rgba(16, 32, 51, 0.14);
         background: rgba(255, 255, 255, 0.76);
         color: var(--ink);
         padding: 0 18px;
@@ -104,13 +105,13 @@
         font: inherit;
         font-weight: 900;
         cursor: pointer;
-        box-shadow: 0 10px 22px rgba(37, 52, 43, 0.08);
+        box-shadow: 0 10px 22px rgba(15, 43, 84, 0.08);
         transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
       }
 
       .button:hover:not(:disabled) {
         transform: translateY(-2px);
-        box-shadow: 0 16px 32px rgba(37, 52, 43, 0.14);
+        box-shadow: 0 16px 32px rgba(15, 43, 84, 0.14);
       }
 
       .button.primary {
@@ -128,11 +129,12 @@
         padding: clamp(26px, 5vw, 50px);
         margin-bottom: 20px;
         background:
-          linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 248, 235, 0.72)),
-          radial-gradient(circle at 82% 16%, rgba(216, 166, 74, 0.26), transparent 18rem);
+          linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(245, 248, 255, 0.72)),
+          radial-gradient(circle at 82% 16%, rgba(125, 178, 255, 0.3), transparent 18rem);
         box-shadow: var(--shadow);
         overflow: hidden;
         position: relative;
+        text-align: center;
       }
 
       .hero::after {
@@ -143,7 +145,7 @@
         width: 280px;
         height: 280px;
         border-radius: 50%;
-        background: conic-gradient(from 210deg, rgba(15, 81, 56, 0.16), rgba(183, 93, 60, 0.2), rgba(216, 166, 74, 0.18), rgba(15, 81, 56, 0.16));
+        background: conic-gradient(from 210deg, rgba(11, 94, 215, 0.16), rgba(37, 99, 235, 0.2), rgba(96, 165, 250, 0.18), rgba(11, 94, 215, 0.16));
       }
 
       .hero-grid {
@@ -161,7 +163,7 @@
         margin: 0 0 14px;
         padding: 8px 12px;
         border-radius: 999px;
-        background: rgba(15, 81, 56, 0.09);
+        background: rgba(11, 94, 215, 0.09);
         color: var(--forest);
         font-size: 12px;
         font-weight: 900;
@@ -262,18 +264,18 @@
       .upload-box {
         position: relative;
         min-height: 210px;
-        border: 1px dashed rgba(15, 81, 56, 0.35);
+        border: 1px dashed rgba(11, 94, 215, 0.35);
         border-radius: 26px;
         padding: 20px;
         background:
-          linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(224, 240, 234, 0.52));
+          linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(234, 242, 255, 0.52));
         transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
       }
 
       .upload-box:hover {
         transform: translateY(-2px);
-        border-color: rgba(15, 81, 56, 0.7);
-        box-shadow: 0 18px 34px rgba(37, 52, 43, 0.12);
+        border-color: rgba(11, 94, 215, 0.7);
+        box-shadow: 0 18px 34px rgba(15, 43, 84, 0.12);
       }
 
       .upload-box.required::before {
@@ -284,7 +286,7 @@
         border-radius: 999px;
         padding: 5px 9px;
         color: var(--forest);
-        background: rgba(15, 81, 56, 0.1);
+        background: rgba(11, 94, 215, 0.1);
         font-size: 11px;
         font-weight: 900;
         text-transform: uppercase;
@@ -316,7 +318,7 @@
       input[type="file"] {
         width: 100%;
         min-height: 52px;
-        border: 1px solid rgba(19, 35, 29, 0.14);
+        border: 1px solid rgba(16, 32, 51, 0.14);
         border-radius: 16px;
         padding: 12px;
         background: #fff;
@@ -370,16 +372,16 @@
       }
 
       .status-box.visible { display: block; }
-      .status-box.ok { background: #e4f4ec; border-color: #b9dfca; color: var(--ok); }
+      .status-box.ok { background: #eaf2ff; border-color: #bcd7ff; color: var(--ok); }
       .status-box.warn { background: #fff4cd; border-color: #edd68f; color: var(--warn); }
 
       .result-card {
         display: none;
         margin-top: 16px;
-        border: 1px solid rgba(25, 115, 77, 0.22);
+        border: 1px solid rgba(11, 94, 215, 0.22);
         border-radius: 22px;
         padding: 18px;
-        background: linear-gradient(145deg, #f4fff9, #ffffff);
+        background: linear-gradient(145deg, #f7faff, #ffffff);
       }
 
       .result-card.visible { display: block; }
@@ -393,7 +395,7 @@
       }
 
       .side-item {
-        border: 1px solid rgba(19, 35, 29, 0.1);
+        border: 1px solid rgba(16, 32, 51, 0.1);
         border-radius: 18px;
         padding: 14px;
         background: rgba(255, 255, 255, 0.58);
@@ -427,7 +429,7 @@
   <body>
     <div class="shell">
       <header class="topbar">
-        <a class="brand-mark" href="./portal-cct.html">e-Sueldos CCT</a>
+        <a class="brand-mark" href="./portal-cct.html"><img class="brand-logo" src="https://media.licdn.com/dms/image/v2/D4D0BAQGibhoMeCL-mg/company-logo_200_200/company-logo_200_200/0/1667320508791/e_sueldos_logo?e=2147483647&v=beta&t=6BpHD4ZVbBNymqB5aEkJNEXyJ-0qGr2At_F6mEePRAw" alt="e-Sueldos" />e-Sueldos CCT</a>
         <a class="button secondary" href="./portal-cct.html">Volver al portal</a>
       </header>
 
@@ -435,21 +437,16 @@
         <div class="hero-grid">
           <div>
             <p class="eyebrow">Generador desde PDF</p>
-            <h1>Convertí un CCT en calculadora.</h1>
+            <h2>Convertí un CCT en calculadora.</h2>
             <p class="hero-copy">
-              Subí el convenio y, si tenés una escala salarial separada, adjuntala también. El backend intenta enriquecer con Gemini,
-              pero el parser local recupera categorías, escalas y reglas aunque la IA no responda.
+              Subí el convenio y la escala salarial separada, adjuntala también.
             </p>
-          </div>
-          <div class="hero-note">
-            <strong>Salida esperada</strong>
-            <p>Un HTML en <b>templates/generated</b>, un JSON técnico descargable y una tarjeta automática en el portal.</p>
           </div>
         </div>
       </section>
 
       <section class="steps" aria-label="Pasos del generador">
-        <article class="step"><span>1</span><h3>Cargar PDFs</h3><p>El CCT es obligatorio. La escala salarial mejora el resultado.</p></article>
+        <article class="step"><span>1</span><h3>Cargar PDFs</h3><p>CCT y Escala Salarial.</p></article>
         <article class="step"><span>2</span><h3>Extraer reglas</h3><p>Se detectan categorías, salarios, subsidios, zona y antigüedad.</p></article>
         <article class="step"><span>3</span><h3>Abrir calculadora</h3><p>El HTML generado queda disponible desde el portal CCT.</p></article>
       </section>

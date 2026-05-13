@@ -65,6 +65,13 @@ class CctExtractionRequest(BaseModel):
     text: str = ""
 
 
+class CalculatorChatRequest(BaseModel):
+    question: str = ""
+    calculator: dict[str, Any] = Field(default_factory=dict)
+    page: str = ""
+    history: list[dict[str, str]] = Field(default_factory=list)
+
+
 app = FastAPI(title="Motor IA para Convenios y Calculadoras")
 
 app.add_middleware(
@@ -1955,6 +1962,7 @@ def health() -> dict[str, Any]:
         "status": "ok",
         "ai_enabled": bool(os.getenv("GEMINI_API_KEY", "").strip()),
         "model": os.getenv("GEMINI_MODEL", DEFAULT_MODEL),
+        "chat_model": os.getenv("GEMINI_CHAT_MODEL", os.getenv("GEMINI_MODEL", DEFAULT_MODEL)),
         "env_file_loaded": ENV_FILE.exists(),
     }
 
@@ -1977,6 +1985,319 @@ def audit(payload: AuditRequest) -> dict[str, Any]:
 @app.post("/extract-cct")
 def extract_cct(payload: CctExtractionRequest) -> dict[str, Any]:
     return extract_cct_from_text(payload.file_name, payload.text)
+
+
+CHAT_NO_INFO_MESSAGE = "No cuento con esa informacion en esta calculadora."
+
+CHAT_STOPWORDS = {
+    "para",
+    "pero",
+    "como",
+    "cual",
+    "cuales",
+    "cuando",
+    "donde",
+    "sobre",
+    "tiene",
+    "tener",
+    "esta",
+    "este",
+    "estos",
+    "estas",
+    "cuanto",
+    "cuanta",
+    "cuantos",
+    "cuantas",
+    "valor",
+    "valores",
+    "info",
+    "informacion",
+    "dato",
+    "datos",
+    "decime",
+    "dime",
+}
+
+
+def chat_format_money(value: Any) -> str:
+    number = parse_numeric_token(value)
+    if number is None:
+        return ""
+    return f"${number:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def chat_tokenize(value: Any) -> list[str]:
+    normalized = normalize_text(value)
+    raw_tokens = re.findall(r"[a-z0-9]+", normalized)
+    result: list[str] = []
+    seen: set[str] = set()
+    for token in raw_tokens:
+        if len(token) < 3 or token in CHAT_STOPWORDS:
+            continue
+        variants = [token]
+        if token.endswith("es") and len(token) > 5:
+            variants.append(token[:-2])
+        if token.endswith("s") and len(token) > 4:
+            variants.append(token[:-1])
+        for variant in variants:
+            if variant not in seen and variant not in CHAT_STOPWORDS:
+                seen.add(variant)
+                result.append(variant)
+    return result
+
+
+def chat_record(title: str, text_value: str, source: str, record_type: str) -> dict[str, str]:
+    return {
+        "titulo": compact_text(title, 120),
+        "texto": compact_text(text_value, 700),
+        "fuente": compact_text(source or "Calculadora", 140),
+        "tipo": record_type,
+    }
+
+
+def build_calculator_chat_records(calculator: dict[str, Any]) -> list[dict[str, str]]:
+    records: list[dict[str, str]] = []
+    if not isinstance(calculator, dict):
+        return records
+
+    convenio = calculator.get("convenio") if isinstance(calculator.get("convenio"), dict) else {}
+    if convenio:
+        parts = [
+            f"{key}: {value}"
+            for key, value in convenio.items()
+            if has_meaningful_value(value) and key not in {"raw", "texto_completo"}
+        ]
+        if parts:
+            records.append(chat_record("Convenio", ". ".join(parts), "Datos de la calculadora", "convenio"))
+
+    parametros = calculator.get("parametros") if isinstance(calculator.get("parametros"), dict) else {}
+    if parametros:
+        parts = [f"{key}: {value}" for key, value in parametros.items() if has_meaningful_value(value)]
+        if parts:
+            records.append(chat_record("Parametros de liquidacion", ". ".join(parts), "Datos de la calculadora", "parametros"))
+
+    for category in (calculator.get("categorias") or [])[:140]:
+        if not isinstance(category, dict):
+            continue
+        name = compact_text(category.get("nombre") or category.get("categoria") or category.get("id"), 140)
+        if not name:
+            continue
+        rama = compact_text(category.get("rama") or category.get("sector"), 120)
+        monthly = chat_format_money(
+            category.get("basico_mensual")
+            or category.get("sueldo_mensual")
+            or category.get("basico")
+            or category.get("valor")
+        )
+        hourly = chat_format_money(category.get("valor_hora"))
+        parts = [f"Categoria: {name}"]
+        if rama:
+            parts.append(f"Rama/sector: {rama}")
+        if monthly:
+            parts.append(f"Basico mensual: {monthly}")
+        if hourly:
+            parts.append(f"Valor hora: {hourly}")
+        if category.get("tipo"):
+            parts.append(f"Tipo: {category.get('tipo')}")
+        if category.get("fuente_textual"):
+            parts.append(f"Fuente textual: {category.get('fuente_textual')}")
+        records.append(chat_record(f"Categoria {name}", ". ".join(parts), rama or "Categorias", "categoria"))
+
+    for scale in (calculator.get("escalas_salariales") or [])[:180]:
+        if not isinstance(scale, dict):
+            continue
+        name = compact_text(scale.get("categoria") or scale.get("nombre") or scale.get("id"), 140)
+        if not name:
+            continue
+        rama = compact_text(scale.get("rama") or scale.get("sector"), 120)
+        period = compact_text(scale.get("periodo") or scale.get("vigencia") or scale.get("valid_from"), 80)
+        monthly = chat_format_money(
+            scale.get("basico_mensual")
+            or scale.get("sueldo_mensual")
+            or scale.get("valor")
+            or scale.get("base_salary")
+        )
+        hourly = chat_format_money(scale.get("valor_hora"))
+        extra_parts = []
+        for key in ("articulo_11", "multifuncionalidad", "adicional_1", "adicional_2", "adicional_3"):
+            amount = chat_format_money(scale.get(key))
+            if amount:
+                extra_parts.append(f"{key}: {amount}")
+        parts = [f"Categoria: {name}"]
+        if rama:
+            parts.append(f"Rama/sector: {rama}")
+        if period:
+            parts.append(f"Periodo: {period}")
+        if monthly:
+            parts.append(f"Basico mensual: {monthly}")
+        if hourly:
+            parts.append(f"Valor hora: {hourly}")
+        parts.extend(extra_parts)
+        if scale.get("fuente_textual"):
+            parts.append(f"Fuente textual: {scale.get('fuente_textual')}")
+        records.append(chat_record(f"Escala {name}", ". ".join(parts), period or rama or "Escalas", "escala"))
+
+    for bucket_name, record_type in (
+        ("adicionales", "adicional"),
+        ("subsidios", "subsidio"),
+        ("deducciones", "deduccion"),
+        ("conceptos_liquidables", "concepto"),
+    ):
+        for item in (calculator.get(bucket_name) or [])[:100]:
+            if not isinstance(item, dict):
+                continue
+            name = compact_text(item.get("nombre") or item.get("concepto") or item.get("codigo"), 140)
+            if not name:
+                continue
+            amount = chat_format_money(item.get("valor") or item.get("monto") or item.get("importe"))
+            parts = [f"{bucket_name}: {name}"]
+            if amount:
+                parts.append(f"Valor: {amount}")
+            for key in ("tipo", "base", "formula", "condicion", "fuente_textual"):
+                if has_meaningful_value(item.get(key)):
+                    parts.append(f"{key}: {item.get(key)}")
+            records.append(chat_record(name, ". ".join(parts), bucket_name, record_type))
+
+    rules = calculator.get("reglas_liquidacion") if isinstance(calculator.get("reglas_liquidacion"), dict) else {}
+    for name, value in rules.items():
+        if not has_meaningful_value(value):
+            continue
+        if isinstance(value, (dict, list)):
+            text_value = json.dumps(value, ensure_ascii=False)
+        else:
+            text_value = str(value)
+        records.append(chat_record(f"Regla {name}", f"{name}: {text_value}", "Reglas de liquidacion", "regla"))
+
+    for key in ("alertas", "pendientes_revision", "notas", "derechos"):
+        values = calculator.get(key)
+        if isinstance(values, list) and values:
+            records.append(chat_record(key, ". ".join(compact_text(item, 180) for item in values[:30]), key, key))
+        elif isinstance(values, str) and values.strip():
+            records.append(chat_record(key, values, key, key))
+
+    return [record for record in records if record["texto"]]
+
+
+def rank_calculator_chat_records(question: str, records: list[dict[str, str]], limit: int = 10) -> list[dict[str, Any]]:
+    tokens = chat_tokenize(question)
+    if not tokens:
+        return []
+
+    ranked: list[dict[str, Any]] = []
+    for record in records:
+        haystack = normalize_text(f"{record.get('titulo')} {record.get('texto')} {record.get('fuente')}")
+        score = 0
+        for token in tokens:
+            if token in haystack:
+                score += 2 if len(token) >= 5 else 1
+        if score:
+            ranked.append({**record, "score": score})
+
+    ranked.sort(key=lambda item: item["score"], reverse=True)
+    return ranked[:limit]
+
+
+def build_local_calculator_chat_answer(question: str, matches: list[dict[str, Any]]) -> str:
+    if not matches:
+        return CHAT_NO_INFO_MESSAGE
+
+    bullets = []
+    for item in matches[:6]:
+        bullets.append(f"- {item['texto']}")
+
+    return "Con la informacion cargada en esta calculadora:\n" + "\n".join(bullets)
+
+
+def build_calculator_chat_prompt(question: str, calculator: dict[str, Any], matches: list[dict[str, Any]]) -> str:
+    convenio = calculator.get("convenio") if isinstance(calculator.get("convenio"), dict) else {}
+    context = json.dumps(
+        [
+            {
+                "titulo": item.get("titulo"),
+                "texto": item.get("texto"),
+                "fuente": item.get("fuente"),
+                "tipo": item.get("tipo"),
+            }
+            for item in matches[:10]
+        ],
+        ensure_ascii=False,
+    )
+
+    return f"""
+Sos el asistente de una calculadora laboral argentina.
+Responde en espanol, breve y claro.
+
+Reglas obligatorias:
+- Usa SOLO el CONTEXTO de esta calculadora.
+- No inventes normas, importes, categorias ni escalas.
+- Si el CONTEXTO no alcanza para responder, responde exactamente: {CHAT_NO_INFO_MESSAGE}
+- No des asesoramiento legal definitivo; si corresponde, sugiere validar contra fuente oficial.
+
+Convenio/calculadora:
+{json.dumps(convenio, ensure_ascii=False)}
+
+Pregunta:
+{question}
+
+CONTEXTO:
+{context}
+""".strip()
+
+
+@app.post("/calculator-chat")
+def calculator_chat(payload: CalculatorChatRequest) -> dict[str, Any]:
+    question = compact_text(payload.question, 500)
+    if not question:
+        raise HTTPException(status_code=422, detail="Falta la pregunta.")
+
+    records = build_calculator_chat_records(payload.calculator)
+    matches = rank_calculator_chat_records(question, records)
+    sources = [
+        {
+            "titulo": item.get("titulo"),
+            "fuente": item.get("fuente"),
+            "tipo": item.get("tipo"),
+        }
+        for item in matches[:5]
+    ]
+
+    if not matches:
+        return {
+            "mode": "local-no-info",
+            "model": None,
+            "answer": CHAT_NO_INFO_MESSAGE,
+            "sources": [],
+        }
+
+    local_answer = build_local_calculator_chat_answer(question, matches)
+    if not os.getenv("GEMINI_API_KEY", "").strip():
+        return {
+            "mode": "local",
+            "model": None,
+            "answer": local_answer,
+            "sources": sources,
+        }
+
+    model = os.getenv("GEMINI_CHAT_MODEL", os.getenv("GEMINI_MODEL", DEFAULT_MODEL))
+    try:
+        answer = call_gemini(build_calculator_chat_prompt(question, payload.calculator, matches), model)
+        clean_answer = compact_text(answer, 3000)
+        if not clean_answer:
+            clean_answer = local_answer
+        return {
+            "mode": "gemini",
+            "model": model,
+            "answer": clean_answer,
+            "sources": sources,
+        }
+    except GeminiProxyError as exc:
+        return {
+            "mode": "local-fallback",
+            "model": model,
+            "answer": local_answer,
+            "sources": sources,
+            "warning": compact_text(exc, 300),
+        }
 
 
 def generated_calculator_summary(path: Path) -> dict[str, Any]:
