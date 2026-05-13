@@ -4,83 +4,540 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Crear Calculadora CCT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,650;9..144,800&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
     <style>
-      :root { --bg:#f4f6f3; --surface:#fff; --ink:#17221c; --muted:#66736c; --line:#d9e1db; --brand:#155a43; --ok:#23704e; --warn:#936500; --shadow:0 18px 45px rgba(23,34,28,.12); }
+      :root {
+        --ink: #13231d;
+        --muted: #687871;
+        --paper: #fff8eb;
+        --surface: rgba(255, 255, 255, 0.84);
+        --surface-strong: #fff;
+        --line: rgba(19, 35, 29, 0.13);
+        --forest: #0f5138;
+        --forest-2: #1d7a55;
+        --clay: #b75d3c;
+        --gold: #d8a64a;
+        --mint: #e0f0ea;
+        --ok: #19734d;
+        --warn: #966a08;
+        --danger: #a63628;
+        --shadow: 0 24px 70px rgba(37, 52, 43, 0.16);
+        --soft-shadow: 0 16px 34px rgba(37, 52, 43, 0.1);
+        --radius: 28px;
+        --font-body: "Manrope", sans-serif;
+        --font-display: "Fraunces", serif;
+      }
+
       * { box-sizing: border-box; }
-      body { margin:0; min-height:100vh; font-family:Aptos,"Segoe UI",sans-serif; color:var(--ink); background:linear-gradient(135deg,rgba(21,90,67,.1),transparent 38%),linear-gradient(180deg,#fbfcfa 0%,var(--bg) 100%); }
-      .shell { width:min(980px,calc(100% - 32px)); margin:0 auto; padding:32px 0 48px; }
-      .panel { border:1px solid var(--line); border-radius:12px; background:rgba(255,255,255,.92); box-shadow:var(--shadow); padding:24px; }
-      .topbar { display:flex; justify-content:space-between; align-items:center; gap:18px; margin-bottom:20px; }
-      h1 { margin:0; font-size:clamp(30px,4vw,48px); }
-      p { color:var(--muted); line-height:1.6; }
-      .button { display:inline-flex; align-items:center; justify-content:center; min-height:44px; border-radius:10px; border:1px solid var(--line); background:#fff; color:var(--ink); padding:0 16px; text-decoration:none; font-weight:800; cursor:pointer; }
-      .button.primary { background:var(--brand); border-color:var(--brand); color:#fff; }
-      .button:disabled { opacity:.6; cursor:not-allowed; }
-      .upload-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-top:18px; }
-      .upload-box { border:1px dashed rgba(21,90,67,.35); border-radius:12px; padding:18px; background:rgba(255,255,255,.7); }
-      label { display:grid; gap:8px; }
-      label span { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
-      input[type="file"] { width:100%; min-height:46px; border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:#fff; }
-      .hint { margin:10px 0 0; font-size:.92rem; }
-      .actions { margin-top:18px; display:flex; gap:12px; flex-wrap:wrap; }
-      .status-box { display:none; margin-top:18px; border-radius:10px; padding:14px; border:1px solid var(--line); white-space:pre-wrap; }
-      .status-box.visible { display:block; }
-      .status-box.ok { background:#e6f3ed; border-color:#b8dfcb; color:var(--ok); }
-      .status-box.warn { background:#fff5d7; border-color:#ead28b; color:var(--warn); }
-      @media (max-width:760px){ .topbar,.upload-grid{display:block;} .upload-box+.upload-box{margin-top:14px;} }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--ink);
+        font-family: var(--font-body);
+        background:
+          radial-gradient(circle at 12% 12%, rgba(132, 165, 109, 0.3), transparent 28rem),
+          radial-gradient(circle at 84% 20%, rgba(183, 93, 60, 0.18), transparent 24rem),
+          linear-gradient(135deg, #fbf2db 0%, #eff6ee 48%, #dfeeea 100%);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(19, 35, 29, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(19, 35, 29, 0.035) 1px, transparent 1px);
+        background-size: 44px 44px;
+        mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.64), transparent 78%);
+      }
+
+      a { color: inherit; }
+
+      .shell {
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 30px 0 54px;
+        position: relative;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 22px;
+      }
+
+      .brand-mark {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--forest);
+        text-decoration: none;
+        font-weight: 900;
+      }
+
+      .brand-mark::before {
+        content: "";
+        width: 34px;
+        height: 34px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, var(--forest), var(--forest-2));
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.32), 0 10px 20px rgba(15, 81, 56, 0.2);
+      }
+
+      .button {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 46px;
+        border-radius: 999px;
+        border: 1px solid rgba(19, 35, 29, 0.14);
+        background: rgba(255, 255, 255, 0.76);
+        color: var(--ink);
+        padding: 0 18px;
+        text-decoration: none;
+        font: inherit;
+        font-weight: 900;
+        cursor: pointer;
+        box-shadow: 0 10px 22px rgba(37, 52, 43, 0.08);
+        transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+      }
+
+      .button:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 32px rgba(37, 52, 43, 0.14);
+      }
+
+      .button.primary {
+        background: var(--forest);
+        border-color: var(--forest);
+        color: #fff;
+      }
+
+      .button.secondary { background: #fff; }
+      .button:disabled { opacity: 0.58; cursor: not-allowed; transform: none; box-shadow: none; }
+
+      .hero {
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        border-radius: 36px;
+        padding: clamp(26px, 5vw, 50px);
+        margin-bottom: 20px;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 248, 235, 0.72)),
+          radial-gradient(circle at 82% 16%, rgba(216, 166, 74, 0.26), transparent 18rem);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        position: relative;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        right: -70px;
+        bottom: -100px;
+        width: 280px;
+        height: 280px;
+        border-radius: 50%;
+        background: conic-gradient(from 210deg, rgba(15, 81, 56, 0.16), rgba(183, 93, 60, 0.2), rgba(216, 166, 74, 0.18), rgba(15, 81, 56, 0.16));
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(250px, 0.85fr);
+        gap: 30px;
+        align-items: end;
+        position: relative;
+        z-index: 1;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        width: fit-content;
+        margin: 0 0 14px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(15, 81, 56, 0.09);
+        color: var(--forest);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        max-width: 760px;
+        font-family: var(--font-display);
+        font-size: clamp(42px, 7vw, 78px);
+        line-height: 0.92;
+        letter-spacing: -0.055em;
+      }
+
+      h2, h3 { letter-spacing: -0.03em; }
+      h2 { margin: 0; font-size: 24px; }
+      h3 { margin: 0; font-size: 17px; }
+
+      p {
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .hero-copy {
+        max-width: 640px;
+        margin: 18px 0 0;
+        font-size: 17px;
+      }
+
+      .hero-note {
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 18px;
+        background: rgba(255, 255, 255, 0.76);
+        backdrop-filter: blur(18px);
+      }
+
+      .hero-note strong {
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      .steps {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .step {
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        border-radius: 22px;
+        padding: 16px;
+        background: rgba(255, 255, 255, 0.66);
+        box-shadow: var(--soft-shadow);
+      }
+
+      .step span {
+        display: inline-grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        background: var(--forest);
+        color: #fff;
+        font-weight: 900;
+      }
+
+      .step p { margin: 6px 0 0; font-size: 13px; }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 20px;
+        align-items: start;
+      }
+
+      .panel {
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: var(--soft-shadow);
+        backdrop-filter: blur(18px);
+      }
+
+      .panel-main, .panel-side { padding: 24px; }
+
+      .upload-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 20px;
+      }
+
+      .upload-box {
+        position: relative;
+        min-height: 210px;
+        border: 1px dashed rgba(15, 81, 56, 0.35);
+        border-radius: 26px;
+        padding: 20px;
+        background:
+          linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(224, 240, 234, 0.52));
+        transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+      }
+
+      .upload-box:hover {
+        transform: translateY(-2px);
+        border-color: rgba(15, 81, 56, 0.7);
+        box-shadow: 0 18px 34px rgba(37, 52, 43, 0.12);
+      }
+
+      .upload-box.required::before {
+        content: "Obligatorio";
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        border-radius: 999px;
+        padding: 5px 9px;
+        color: var(--forest);
+        background: rgba(15, 81, 56, 0.1);
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+      }
+
+      label {
+        display: grid;
+        gap: 10px;
+      }
+
+      label span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .upload-title {
+        display: block;
+        max-width: 76%;
+        margin: 0 0 12px;
+        font-size: 22px;
+        font-weight: 900;
+        letter-spacing: -0.04em;
+      }
+
+      input[type="file"] {
+        width: 100%;
+        min-height: 52px;
+        border: 1px solid rgba(19, 35, 29, 0.14);
+        border-radius: 16px;
+        padding: 12px;
+        background: #fff;
+        color: var(--ink);
+        font: inherit;
+      }
+
+      input[type="file"]::file-selector-button {
+        margin-right: 12px;
+        border: 0;
+        border-radius: 999px;
+        background: var(--forest);
+        color: #fff;
+        padding: 10px 14px;
+        font: inherit;
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .hint {
+        margin: 12px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .file-name {
+        min-height: 22px;
+        margin-top: 14px;
+        color: var(--forest);
+        font-size: 13px;
+        font-weight: 900;
+        overflow-wrap: anywhere;
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+      }
+
+      .status-box {
+        display: none;
+        margin-top: 18px;
+        border-radius: 20px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        white-space: pre-wrap;
+        background: rgba(255, 255, 255, 0.78);
+        color: var(--muted);
+      }
+
+      .status-box.visible { display: block; }
+      .status-box.ok { background: #e4f4ec; border-color: #b9dfca; color: var(--ok); }
+      .status-box.warn { background: #fff4cd; border-color: #edd68f; color: var(--warn); }
+
+      .result-card {
+        display: none;
+        margin-top: 16px;
+        border: 1px solid rgba(25, 115, 77, 0.22);
+        border-radius: 22px;
+        padding: 18px;
+        background: linear-gradient(145deg, #f4fff9, #ffffff);
+      }
+
+      .result-card.visible { display: block; }
+      .result-card h3 { margin-bottom: 6px; color: var(--ok); }
+      .result-card p { margin: 0 0 14px; }
+
+      .side-list {
+        display: grid;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .side-item {
+        border: 1px solid rgba(19, 35, 29, 0.1);
+        border-radius: 18px;
+        padding: 14px;
+        background: rgba(255, 255, 255, 0.58);
+      }
+
+      .side-item strong { display: block; margin-bottom: 4px; }
+      .side-item span { color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+      .loader {
+        display: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 3px solid rgba(255, 255, 255, 0.44);
+        border-top-color: #fff;
+        animation: spin 0.85s linear infinite;
+        margin-right: 8px;
+      }
+
+      .is-loading .loader { display: inline-block; }
+
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      @media (max-width: 900px) {
+        .topbar, .hero-grid, .workspace, .upload-grid, .steps { display: block; }
+        .hero-note, .panel-side, .step, .upload-box + .upload-box { margin-top: 14px; }
+        .upload-box { min-height: auto; }
+      }
     </style>
   </head>
   <body>
     <div class="shell">
-      <div class="topbar">
-        <div>
-          <h1>Crear Calculadora</h1>
-          <p>Subí el convenio y, si corresponde, la escala salarial para generar el JSON base de una nueva calculadora laboral.</p>
-        </div>
-        <a class="button" href="./portal-cct.html">Volver al portal</a>
-      </div>
+      <header class="topbar">
+        <a class="brand-mark" href="./portal-cct.html">e-Sueldos CCT</a>
+        <a class="button secondary" href="./portal-cct.html">Volver al portal</a>
+      </header>
 
-      <section class="panel">
-        <h2>Generador Gemini + Codex</h2>
-        <p>El sistema analiza los PDFs, detecta categorías, escalas, adicionales y reglas de liquidación, y descarga un borrador JSON listo para revisar.</p>
-
-        <div class="upload-grid">
-          <div class="upload-box">
-            <label>
-              <span>Archivo del Convenio</span>
-              <input id="convenio-pdf" type="file" accept="application/pdf,.pdf" />
-            </label>
-            <p class="hint">PDF principal del CCT, ley, acuerdo o norma.</p>
+      <section class="hero">
+        <div class="hero-grid">
+          <div>
+            <p class="eyebrow">Generador desde PDF</p>
+            <h1>Convertí un CCT en calculadora.</h1>
+            <p class="hero-copy">
+              Subí el convenio y, si tenés una escala salarial separada, adjuntala también. El backend intenta enriquecer con Gemini,
+              pero el parser local recupera categorías, escalas y reglas aunque la IA no responda.
+            </p>
           </div>
-
-          <div class="upload-box">
-            <label>
-              <span>Escalas Salariales</span>
-              <input id="escala-pdf" type="file" accept="application/pdf,.pdf" />
-            </label>
-            <p class="hint">PDF con escalas, anexos, paritarias o tabla salarial.</p>
+          <div class="hero-note">
+            <strong>Salida esperada</strong>
+            <p>Un HTML en <b>templates/generated</b>, un JSON técnico descargable y una tarjeta automática en el portal.</p>
           </div>
         </div>
-
-        <div class="actions">
-          <button id="create-calculator" class="button primary" type="button">Crear Calculadora</button>
-        </div>
-
-        <div id="upload-status" class="status-box"></div>
       </section>
+
+      <section class="steps" aria-label="Pasos del generador">
+        <article class="step"><span>1</span><h3>Cargar PDFs</h3><p>El CCT es obligatorio. La escala salarial mejora el resultado.</p></article>
+        <article class="step"><span>2</span><h3>Extraer reglas</h3><p>Se detectan categorías, salarios, subsidios, zona y antigüedad.</p></article>
+        <article class="step"><span>3</span><h3>Abrir calculadora</h3><p>El HTML generado queda disponible desde el portal CCT.</p></article>
+      </section>
+
+      <main class="workspace">
+        <section class="panel panel-main">
+          <h2>Crear nueva calculadora</h2>
+          <p>Usá PDFs con texto seleccionable. Si el archivo es una imagen escaneada, primero va a necesitar OCR.</p>
+
+          <div class="upload-grid">
+            <div class="upload-box required">
+              <label>
+                <span>Archivo del convenio</span>
+                <strong class="upload-title">CCT, ley o acuerdo principal</strong>
+                <input id="convenio-pdf" type="file" accept="application/pdf,.pdf" />
+              </label>
+              <p class="hint">Este archivo alimenta el campo obligatorio <b>file</b> del backend.</p>
+              <div id="convenio-name" class="file-name">Sin archivo seleccionado.</div>
+            </div>
+
+            <div class="upload-box">
+              <label>
+                <span>Escalas salariales</span>
+                <strong class="upload-title">Anexo, tabla o paritaria</strong>
+                <input id="escala-pdf" type="file" accept="application/pdf,.pdf" />
+              </label>
+              <p class="hint">Opcional, pero recomendado cuando la escala viene en otro PDF.</p>
+              <div id="escala-name" class="file-name">Sin archivo seleccionado.</div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button id="create-calculator" class="button primary" type="button">
+              <span class="loader" aria-hidden="true"></span>
+              Crear calculadora
+            </button>
+            <a class="button secondary" href="./portal-cct.html">Ver portal</a>
+          </div>
+
+          <div id="upload-status" class="status-box"></div>
+          <div id="result-card" class="result-card">
+            <h3>Calculadora generada</h3>
+            <p id="result-summary">El archivo quedó listo para revisar.</p>
+            <div class="actions">
+              <a id="open-generated" class="button primary" href="#" target="_blank" rel="noopener">Abrir calculadora</a>
+              <a class="button secondary" href="./portal-cct.html">Volver al portal</a>
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel panel-side">
+          <h2>Qué conviene subir</h2>
+          <p>Mientras más directo sea el texto del PDF, mejor queda la calculadora inicial.</p>
+          <div class="side-list">
+            <div class="side-item"><strong>Convenio completo</strong><span>Sirve para reglas de jornada, licencias, zona, antigüedad y categorías.</span></div>
+            <div class="side-item"><strong>Escala salarial vigente</strong><span>Prioriza importes actualizados y evita que la calculadora nazca sin básicos.</span></div>
+            <div class="side-item"><strong>Revisión humana</strong><span>El resultado es un borrador operativo. Conviene revisar fórmulas y conceptos antes de producción.</span></div>
+          </div>
+        </aside>
+      </main>
     </div>
 
     <script>
       const refs = {
         convenioPdf: document.querySelector("#convenio-pdf"),
         escalaPdf: document.querySelector("#escala-pdf"),
+        convenioName: document.querySelector("#convenio-name"),
+        escalaName: document.querySelector("#escala-name"),
         createCalculator: document.querySelector("#create-calculator"),
-        uploadStatus: document.querySelector("#upload-status")
+        uploadStatus: document.querySelector("#upload-status"),
+        resultCard: document.querySelector("#result-card"),
+        resultSummary: document.querySelector("#result-summary"),
+        openGenerated: document.querySelector("#open-generated"),
       };
 
       function setUploadStatus(message, type = "") {
         refs.uploadStatus.textContent = message;
         refs.uploadStatus.className = `status-box visible ${type}`.trim();
+      }
+
+      function setLoading(isLoading) {
+        refs.createCalculator.disabled = isLoading;
+        refs.createCalculator.classList.toggle("is-loading", isLoading);
+      }
+
+      function updateFileLabels() {
+        refs.convenioName.textContent = refs.convenioPdf.files?.[0]?.name || "Sin archivo seleccionado.";
+        refs.escalaName.textContent = refs.escalaPdf.files?.[0]?.name || "Sin archivo seleccionado.";
       }
 
       function downloadJson(payload, filename = "calculadora-cct.json") {
@@ -106,17 +563,19 @@
         const convenioFile = refs.convenioPdf.files?.[0];
         const escalaFile = refs.escalaPdf.files?.[0];
 
-        if (!convenioFile && !escalaFile) {
-          setUploadStatus("Seleccioná al menos un PDF: Archivo del Convenio o Escalas Salariales.", "warn");
+        refs.resultCard.classList.remove("visible");
+
+        if (!convenioFile) {
+          setUploadStatus("Seleccioná el PDF del convenio. La escala salarial puede ser opcional, pero el CCT principal es obligatorio.", "warn");
           return;
         }
 
         const formData = new FormData();
-        if (convenioFile) formData.append("file", convenioFile);
+        formData.append("file", convenioFile);
         if (escalaFile) formData.append("salary_file", escalaFile);
 
-        refs.createCalculator.disabled = true;
-        setUploadStatus("Procesando PDF(s) con Gemini/Codex...");
+        setLoading(true);
+        setUploadStatus("Procesando PDF(s). Esto puede tardar unos segundos si el documento es largo.");
 
         try {
           const response = await fetch("/extract-cct-pdf", { method: "POST", body: formData });
@@ -125,18 +584,30 @@
           if (!response.ok) throw new Error(payload?.detail || "No se pudo generar la calculadora.");
 
           const result = payload.result || payload;
-          const baseName = safeBaseName(convenioFile || escalaFile);
+          const baseName = safeBaseName(convenioFile);
           downloadJson(result, `${baseName}.json`);
 
-          setUploadStatus(`Calculadora generada correctamente.\nModo: ${payload.mode || "gemini-codex-cct"}`, "ok");
+          const counts = result.diagnostico_ia || {};
+          const htmlUrl = payload.html_url || payload.generated?.html_url || "";
+          refs.resultSummary.textContent = `Modo: ${payload.mode || "parser-local"}. Categorías: ${counts.categorias_detectadas ?? "-"}. Escalas válidas: ${counts.escalas_validas ?? "-"}.`;
+
+          if (htmlUrl) {
+            refs.openGenerated.href = htmlUrl;
+            refs.resultCard.classList.add("visible");
+          }
+
+          setUploadStatus(`Calculadora generada correctamente.\n${htmlUrl ? `HTML: ${htmlUrl}` : "El JSON fue descargado para revisión."}`, "ok");
         } catch (error) {
           setUploadStatus(error?.message || "Error inesperado.", "warn");
         } finally {
-          refs.createCalculator.disabled = false;
+          setLoading(false);
         }
       }
 
+      refs.convenioPdf.addEventListener("change", updateFileLabels);
+      refs.escalaPdf.addEventListener("change", updateFileLabels);
       refs.createCalculator.addEventListener("click", createCalculatorFromPdf);
+      updateFileLabels();
     </script>
   </body>
 </html>

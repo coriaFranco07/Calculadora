@@ -2077,6 +2077,19 @@ def crear_calculadora_page():
     return FileResponse(path)
 
 
+@app.get("/{page_name}.html", include_in_schema=False)
+def template_html_page(page_name: str):
+    safe_name = Path(page_name).name
+    if safe_name != page_name or not re.fullmatch(r"[A-Za-z0-9_.-]+", page_name):
+        raise HTTPException(status_code=404, detail="HTML no encontrado")
+
+    path = TEMPLATES_DIR / f"{page_name}.html"
+    if not path.exists() or not path.is_file():
+        raise HTTPException(status_code=404, detail="HTML no encontrado")
+
+    return FileResponse(path)
+
+
 @app.post("/extract-cct-pdf")
 async def extract_cct_pdf(
     file: UploadFile = File(...),

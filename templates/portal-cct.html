@@ -4,101 +4,634 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Portal de Calculadoras CCT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,650;9..144,800&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
     <style>
-      :root { --bg: #f4f6f3; --surface: #ffffff; --ink: #17221c; --muted: #66736c; --line: #d9e1db; --brand: #155a43; --brand-2: #b6502b; --ok: #23704e; --warn: #936500; --shadow: 0 18px 45px rgba(23, 34, 28, 0.12); }
+      :root {
+        --ink: #13231d;
+        --muted: #64746e;
+        --paper: #fffaf0;
+        --surface: rgba(255, 255, 255, 0.82);
+        --surface-strong: #ffffff;
+        --line: rgba(19, 35, 29, 0.12);
+        --forest: #0f5138;
+        --moss: #84a56d;
+        --clay: #b45d3f;
+        --gold: #d7a84f;
+        --sky: #dbeee9;
+        --ok: #19734d;
+        --warn: #9a6a08;
+        --shadow: 0 24px 70px rgba(36, 52, 43, 0.16);
+        --soft-shadow: 0 14px 34px rgba(36, 52, 43, 0.1);
+        --radius: 26px;
+        --font-body: "Manrope", sans-serif;
+        --font-display: "Fraunces", serif;
+      }
+
       * { box-sizing: border-box; }
-      body { margin: 0; min-height: 100vh; font-family: Aptos, "Segoe UI", sans-serif; color: var(--ink); background: linear-gradient(135deg, rgba(21, 90, 67, 0.1), transparent 38%), linear-gradient(180deg, #fbfcfa 0%, var(--bg) 100%); }
-      .shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 30px 0 46px; }
-      .topbar { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 20px; }
-      .brand small { display: block; color: var(--muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; }
-      h1 { margin: 4px 0 0; font-size: clamp(28px, 4vw, 44px); line-height: 1; }
-      h2 { margin: 0; font-size: 18px; }
-      p { color: var(--muted); line-height: 1.5; }
-      .actions, .card-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-      .button { display: inline-flex; justify-content: center; align-items: center; min-height: 42px; border-radius: 8px; border: 1px solid var(--line); background: #fff; color: var(--ink); padding: 0 14px; text-decoration: none; font-weight: 850; cursor: pointer; }
-      .button.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
-      .layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 18px; align-items: start; }
-      .panel { border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 255, 255, 0.86); box-shadow: var(--shadow); }
-      .filters, .content, .creator { padding: 18px; }
-      .creator { margin-bottom: 18px; background: linear-gradient(135deg, rgba(21, 90, 67, .09), rgba(182, 80, 43, .08)); }
-      .creator-grid { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; align-items: center; }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--ink);
+        font-family: var(--font-body);
+        background:
+          radial-gradient(circle at 8% 8%, rgba(132, 165, 109, 0.34), transparent 28rem),
+          radial-gradient(circle at 82% 16%, rgba(180, 93, 63, 0.18), transparent 24rem),
+          linear-gradient(135deg, #fbf4df 0%, #eff5ec 47%, #e0ede9 100%);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image:
+          linear-gradient(rgba(19, 35, 29, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(19, 35, 29, 0.035) 1px, transparent 1px);
+        background-size: 42px 42px;
+        mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.65), transparent 78%);
+      }
+
+      a { color: inherit; }
+
+      .shell {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 30px 0 54px;
+        position: relative;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 24px;
+      }
+
+      .brand-mark {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--forest);
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+
+      .brand-mark::before {
+        content: "";
+        width: 34px;
+        height: 34px;
+        border-radius: 11px;
+        background:
+          linear-gradient(135deg, var(--forest), #1f8a5f),
+          var(--forest);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.36), 0 8px 18px rgba(15, 81, 56, 0.24);
+      }
+
+      .actions, .card-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .button {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 44px;
+        border-radius: 999px;
+        border: 1px solid rgba(19, 35, 29, 0.14);
+        background: rgba(255, 255, 255, 0.74);
+        color: var(--ink);
+        padding: 0 18px;
+        text-decoration: none;
+        font-weight: 850;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(36, 52, 43, 0.08);
+        transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+      }
+
+      .button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 26px rgba(36, 52, 43, 0.14);
+      }
+
+      .button.primary {
+        background: var(--forest);
+        border-color: var(--forest);
+        color: #fff;
+      }
+
+      .button.ghost { background: transparent; box-shadow: none; }
+      .button[disabled] { opacity: 0.56; cursor: not-allowed; transform: none; box-shadow: none; }
+
+      .hero {
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        border-radius: 34px;
+        padding: clamp(26px, 5vw, 50px);
+        margin-bottom: 20px;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(255, 250, 240, 0.72)),
+          radial-gradient(circle at 84% 24%, rgba(215, 168, 79, 0.28), transparent 18rem);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        position: relative;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        right: -70px;
+        bottom: -90px;
+        width: 270px;
+        height: 270px;
+        border-radius: 50%;
+        background: conic-gradient(from 210deg, rgba(15, 81, 56, 0.14), rgba(180, 93, 63, 0.2), rgba(215, 168, 79, 0.16), rgba(15, 81, 56, 0.14));
+        filter: blur(1px);
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+        gap: 32px;
+        align-items: end;
+        position: relative;
+        z-index: 1;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        gap: 10px;
+        margin: 0 0 14px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(15, 81, 56, 0.09);
+        color: var(--forest);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        max-width: 780px;
+        font-family: var(--font-display);
+        font-size: clamp(42px, 7vw, 82px);
+        line-height: 0.9;
+        letter-spacing: -0.06em;
+      }
+
+      h2, h3 { letter-spacing: -0.03em; }
+      h2 { margin: 0; font-size: 22px; }
+      h3 { margin: 0; font-size: clamp(23px, 2.4vw, 34px); line-height: 1.05; }
+
+      p {
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .hero-copy {
+        max-width: 660px;
+        margin: 18px 0 0;
+        font-size: 17px;
+      }
+
+      .hero-panel {
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 18px;
+        background: rgba(255, 255, 255, 0.76);
+        backdrop-filter: blur(18px);
+      }
+
+      .hero-panel strong {
+        display: block;
+        font-size: 36px;
+        line-height: 1;
+      }
+
+      .hero-panel span { color: var(--muted); font-weight: 700; }
+
+      .creator {
+        margin-bottom: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        border-radius: 28px;
+        background: linear-gradient(135deg, rgba(15, 81, 56, 0.94), rgba(28, 111, 75, 0.88));
+        color: #fff;
+        box-shadow: var(--soft-shadow);
+      }
+
+      .creator p { color: rgba(255, 255, 255, 0.76); margin: 6px 0 0; }
+      .creator .button { background: #fff; color: var(--forest); border-color: #fff; }
+
+      .creator-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 18px;
+        align-items: center;
+        padding: 22px;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 320px minmax(0, 1fr);
+        gap: 20px;
+        align-items: start;
+      }
+
+      .panel {
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: var(--soft-shadow);
+        backdrop-filter: blur(18px);
+      }
+
+      .filters, .content { padding: 22px; }
       .filters { position: sticky; top: 18px; }
-      label { display: grid; gap: 7px; margin-top: 14px; }
-      label span { color: var(--muted); font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; }
-      input, select { width: 100%; min-height: 42px; border: 1px solid var(--line); border-radius: 8px; padding: 0 12px; font: inherit; }
-      .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
-      .stat { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #eef3ee; }
-      .stat strong { display: block; font-size: 26px; }
-      .cards { display: grid; gap: 12px; }
-      .cct-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); padding: 18px; }
+
+      label { display: grid; gap: 8px; margin-top: 16px; }
+
+      label span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      input, select {
+        width: 100%;
+        min-height: 48px;
+        border: 1px solid rgba(19, 35, 29, 0.14);
+        border-radius: 16px;
+        padding: 0 14px;
+        color: var(--ink);
+        background: rgba(255, 255, 255, 0.8);
+        font: inherit;
+        outline: none;
+      }
+
+      input:focus, select:focus {
+        border-color: rgba(15, 81, 56, 0.42);
+        box-shadow: 0 0 0 5px rgba(15, 81, 56, 0.1);
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .stat {
+        border: 1px solid rgba(19, 35, 29, 0.1);
+        border-radius: 20px;
+        padding: 15px;
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(219, 238, 233, 0.64));
+      }
+
+      .stat strong {
+        display: block;
+        font-family: var(--font-display);
+        font-size: 38px;
+        line-height: 0.9;
+      }
+
+      .stat small { color: var(--muted); font-weight: 800; }
+      .content-head { display: flex; justify-content: space-between; gap: 16px; align-items: start; margin-bottom: 16px; }
+      .content-head p { margin: 7px 0 0; }
+
+      .cards {
+        display: grid;
+        gap: 16px;
+      }
+
+      .cct-card {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 22px;
+        border: 1px solid rgba(19, 35, 29, 0.1);
+        border-radius: 28px;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.78)),
+          radial-gradient(circle at 0 0, rgba(132, 165, 109, 0.2), transparent 18rem);
+        padding: 24px;
+        box-shadow: 0 12px 30px rgba(36, 52, 43, 0.08);
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      }
+
+      .cct-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(15, 81, 56, 0.24);
+        box-shadow: 0 22px 46px rgba(36, 52, 43, 0.14);
+      }
+
       .cct-card[hidden] { display: none; }
-      .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-      .badge { border-radius: 999px; padding: 5px 9px; font-size: 12px; font-weight: 900; border: 1px solid transparent; }
-      .badge.ok { color: var(--ok); background: #e6f3ed; border-color: #b8dfcb; }
-      .badge.warn { color: var(--warn); background: #fff5d7; border-color: #ead28b; }
-      .badge.type { color: var(--brand-2); background: #f8ece6; border-color: #efcbbb; }
-      .cct-card h3 { margin: 0; font-size: 24px; }
-      .features { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 14px 0 0; list-style: none; }
-      .features li { border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; color: var(--muted); font-size: 13px; font-weight: 750; }
-      .meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
-      .meta div { border-top: 1px solid var(--line); padding-top: 10px; }
-      .meta small { display: block; color: var(--muted); font-weight: 800; }
-      .empty { display: none; padding: 24px; border: 1px dashed var(--line); border-radius: 8px; color: var(--muted); text-align: center; }
+
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+
+      .badge {
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 900;
+        border: 1px solid transparent;
+      }
+
+      .badge.ok { color: var(--ok); background: #e4f4ec; border-color: #b9dfca; }
+      .badge.warn { color: var(--warn); background: #fff4cd; border-color: #edd68f; }
+      .badge.type { color: var(--clay); background: #f8e9e2; border-color: #efc9b9; }
+      .badge.generated { color: var(--forest); background: #dff2ed; border-color: #a8d7c9; }
+
+      .features {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 0;
+        margin: 16px 0 0;
+        list-style: none;
+      }
+
+      .features li {
+        border: 1px solid rgba(19, 35, 29, 0.1);
+        border-radius: 999px;
+        padding: 8px 11px;
+        color: #4e625a;
+        background: rgba(255, 250, 240, 0.64);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .meta {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .meta div {
+        border-top: 1px solid rgba(19, 35, 29, 0.1);
+        padding-top: 11px;
+      }
+
+      .meta small {
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .meta strong { display: block; margin-top: 2px; }
+
+      .card-actions {
+        min-width: 176px;
+        align-content: start;
+        justify-content: flex-end;
+      }
+
+      .empty {
+        display: none;
+        padding: 30px;
+        border: 1px dashed rgba(19, 35, 29, 0.18);
+        border-radius: 24px;
+        color: var(--muted);
+        text-align: center;
+        background: rgba(255, 255, 255, 0.5);
+      }
+
       .empty.is-visible { display: block; }
-      @media (max-width: 860px) { .topbar, .layout, .cct-card, .creator-grid { display: block; } .actions, .card-actions { margin-top: 14px; } .filters { position: static; margin-bottom: 18px; } .meta { grid-template-columns: 1fr; } }
+
+      .fade-in {
+        animation: rise 0.45s ease both;
+      }
+
+      @keyframes rise {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @media (max-width: 900px) {
+        .topbar, .hero-grid, .layout, .cct-card, .creator-grid { display: block; }
+        .actions, .card-actions { margin-top: 14px; justify-content: flex-start; }
+        .filters { position: static; margin-bottom: 18px; }
+        .meta { grid-template-columns: 1fr; }
+        .hero-panel { margin-top: 22px; }
+      }
     </style>
   </head>
   <body>
     <div class="shell">
       <header class="topbar">
-        <div class="brand"><small>Biblioteca laboral</small><h1>Portal de Calculadoras CCT</h1></div>
-        <div class="actions"><a class="button" href="./Calculadora_CCT_244_94_Alimentacion.html">Alimentación</a><a class="button" href="./Calculadora_UOCRA_CCT_76_75.html">UOCRA</a><a class="button primary" href="./ley-26844-empleadas-domesticas-mayo-2026.html">Casas Particulares</a></div>
+        <a class="brand-mark" href="./portal-cct.html">e-Sueldos CCT</a>
+        <div class="actions">
+          <a class="button ghost" href="#biblioteca">Biblioteca</a>
+          <a class="button primary" href="./crear_calculadora.html">Crear calculadora</a>
+        </div>
       </header>
-      <section class="panel creator" aria-labelledby="creator-title"><div class="creator-grid"><div><h2 id="creator-title">Crear nueva calculadora</h2><p>Subí un CCT en PDF desde una pantalla dedicada para generar el borrador JSON de la calculadora.</p></div><a class="button primary" href="./crear_calculadora.html">Crear Calculadora</a></div></section>
-      <main class="layout">
-        <aside class="panel filters"><h2>Buscar convenio</h2><p>Elegí el CCT y abrí su calculadora final lista para operar.</p><label><span>Buscar</span><input id="search" type="search" placeholder="Ej: alimentación, UOCRA, domésticas, F.931" /></label><label><span>Estado</span><select id="status"><option value="all">Todos</option><option value="ready">Listos</option><option value="draft">En preparación</option></select></label><div class="stats"><div class="stat"><strong id="ready-count">0</strong><small>Listos</small></div><div class="stat"><strong id="total-count">0</strong><small>Total</small></div></div></aside>
-        <section class="panel content"><h2>Calculadoras disponibles</h2><p>Las tarjetas listas abren directamente el liquidador correspondiente.</p><div id="cards" class="cards"></div><div id="empty" class="empty">No hay convenios que coincidan con el filtro.</div></section>
+
+      <section class="hero">
+        <div class="hero-grid">
+          <div>
+            <p class="eyebrow">Biblioteca laboral inteligente</p>
+            <h1>Calculadoras CCT listas para liquidar.</h1>
+            <p class="hero-copy">
+              Elegí una calculadora verificada o abrí las que generás desde PDF. El portal reúne escalas,
+              reglas convencionales y borradores automáticos en un solo lugar.
+            </p>
+          </div>
+          <div class="hero-panel">
+            <strong id="hero-total">0</strong>
+            <span>calculadoras disponibles</span>
+            <p>Las nuevas calculadoras de la carpeta <b>generated</b> aparecen automáticamente cuando el backend está activo.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="creator" aria-labelledby="creator-title">
+        <div class="creator-grid">
+          <div>
+            <h2 id="creator-title">Crear nueva calculadora</h2>
+            <p>Subí el CCT y la escala en PDF. Gemini ayuda si está disponible; el parser local recupera datos estructurales.</p>
+          </div>
+          <a class="button" href="./crear_calculadora.html">Subir PDF</a>
+        </div>
+      </section>
+
+      <main class="layout" id="biblioteca">
+        <aside class="panel filters">
+          <h2>Encontrar convenio</h2>
+          <p>Filtrá por actividad, CCT, estado o conceptos detectados.</p>
+          <label>
+            <span>Buscar</span>
+            <input id="search" type="search" placeholder="Ej: alimentación, SMATA, domésticas" />
+          </label>
+          <label>
+            <span>Estado</span>
+            <select id="status">
+              <option value="all">Todos</option>
+              <option value="ready">Listos</option>
+              <option value="draft">En preparación</option>
+            </select>
+          </label>
+          <div class="stats">
+            <div class="stat"><strong id="ready-count">0</strong><small>Listos</small></div>
+            <div class="stat"><strong id="total-count">0</strong><small>Total</small></div>
+          </div>
+        </aside>
+
+        <section class="panel content">
+          <div class="content-head">
+            <div>
+              <h2>Calculadoras disponibles</h2>
+              <p>Las generadas desde PDF aparecen primero. Las tarjetas listas abren el liquidador correspondiente.</p>
+            </div>
+          </div>
+          <div id="cards" class="cards"></div>
+          <div id="empty" class="empty">No hay convenios que coincidan con el filtro.</div>
+        </section>
       </main>
     </div>
+
     <script>
-      const conventions = [
-        { title: "Industria de la Alimentación", cct: "CCT 244/94", status: "ready", href: "./Calculadora_CCT_244_94_Alimentacion.html", engine: "Motor universal + JSON", scope: "Mensual, vacaciones, final básica", validity: "Abril 2026", summary: "Liquidación avanzada con escalas, acuerdos NR, explicación, auditoría, simulador, F.931 y costo empresa detallado.", features: ["F.931", "Skill explicativa", "Auditoría", "Simulador", "Export JSON/CSV"] },
-        { title: "Construcción UOCRA", cct: "CCT 76/75", status: "ready", href: "./Calculadora_UOCRA_CCT_76_75.html", engine: "HTML autónomo", scope: "Jornal, quincena, adicionales, costo", validity: "2026", summary: "Liquidador operativo con trabajador, quincena, inasistencias, pluses UOCRA, contribuciones, simulador y comparador.", features: ["Quincena", "Inasistencias", "Costo empleador", "Gráfico", "Admin"] },
-        { title: "Personal de Casas Particulares", cct: "Ley 26.844", status: "ready", href: "./ley-26844-empleadas-domesticas-mayo-2026.html", engine: "HTML autónomo", scope: "Horas, extras, antigüedad, ARCA", validity: "Mayo 2026", summary: "Liquidador para empleadas domésticas y personal de casas particulares, con modalidad con retiro/sin retiro, recibo, simulador y comparador.", features: ["Ley 26.844", "ARCA", "Horas", "Simulador", "Comparador"] },
-        { title: "Empleados de Comercio", cct: "CCT 130/75", status: "draft", href: "", engine: "Pendiente JSON", scope: "Pendiente", validity: "Pendiente", summary: "Espacio preparado para sumar escalas, acuerdos y reglas de Comercio.", features: ["Multi-CCT", "Escalas JSON", "Reglas configurables"] }
+      const baseConventions = [
+        {
+          title: "Industria de la Alimentación",
+          cct: "CCT 244/94",
+          status: "ready",
+          href: "./Calculadora_CCT_244_94_Alimentacion.html",
+          engine: "Motor universal + JSON",
+          scope: "Mensual, vacaciones, final básica",
+          validity: "Abril 2026",
+          summary: "Liquidación avanzada con escalas, acuerdos no remunerativos, auditoría, simulador, F.931 y costo empresa.",
+          features: ["F.931", "Auditoría", "Simulador", "Export JSON/CSV"],
+          source: "static",
+        },
+        {
+          title: "Personal de Casas Particulares",
+          cct: "Ley 26.844",
+          status: "ready",
+          href: "./ley-26844-empleadas-domesticas-mayo-2026.html",
+          engine: "HTML autónomo",
+          scope: "Horas, extras, antigüedad, ARCA",
+          validity: "Mayo 2026",
+          summary: "Liquidador para personal de casas particulares con modalidad con retiro o sin retiro, recibo y comparador.",
+          features: ["Ley 26.844", "ARCA", "Horas", "Comparador"],
+          source: "static",
+        },
+        {
+          title: "Construcción UOCRA",
+          cct: "CCT 76/75",
+          status: "draft",
+          href: "",
+          engine: "Pendiente HTML",
+          scope: "Jornal, quincena, adicionales",
+          validity: "Pendiente",
+          summary: "Espacio reservado para sumar el liquidador UOCRA cuando el HTML esté disponible en el proyecto.",
+          features: ["Quincena", "Costo empleador", "Adicionales"],
+          source: "static",
+        },
+        {
+          title: "Empleados de Comercio",
+          cct: "CCT 130/75",
+          status: "draft",
+          href: "",
+          engine: "Pendiente JSON",
+          scope: "Pendiente",
+          validity: "Pendiente",
+          summary: "Espacio preparado para sumar escalas, acuerdos y reglas de Comercio.",
+          features: ["Multi-CCT", "Escalas JSON", "Reglas configurables"],
+          source: "static",
+        },
       ];
-      const refs = { cards: document.querySelector("#cards"), empty: document.querySelector("#empty"), search: document.querySelector("#search"), status: document.querySelector("#status"), readyCount: document.querySelector("#ready-count"), totalCount: document.querySelector("#total-count") };
+
+      let conventions = [...baseConventions];
+      const refs = {
+        cards: document.querySelector("#cards"),
+        empty: document.querySelector("#empty"),
+        search: document.querySelector("#search"),
+        status: document.querySelector("#status"),
+        readyCount: document.querySelector("#ready-count"),
+        totalCount: document.querySelector("#total-count"),
+        heroTotal: document.querySelector("#hero-total"),
+      };
+
       const normalize = (value) => String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      function render() { const term = normalize(refs.search.value); const status = refs.status.value; let visible = 0; refs.cards.innerHTML = conventions.map((item) => { const haystack = normalize([item.title, item.cct, item.summary, item.features.join(" ")].join(" ")); const matches = (!term || haystack.includes(term)) && (status === "all" || item.status === status); if (matches) visible += 1; const ready = item.status === "ready"; return `<article class="cct-card" ${matches ? "" : "hidden"}><div><div class="badges"><span class="badge ${ready ? "ok" : "warn"}">${ready ? "Listo" : "En preparación"}</span><span class="badge type">${item.cct}</span></div><h3>${item.title}</h3><p>${item.summary}</p><ul class="features">${item.features.map((feature) => `<li>${feature}</li>`).join("")}</ul><div class="meta"><div><small>Motor</small><strong>${item.engine}</strong></div><div><small>Alcance</small><strong>${item.scope}</strong></div><div><small>Vigencia</small><strong>${item.validity}</strong></div></div></div><div class="card-actions">${item.href ? `<a class="button primary" href="${item.href}">Abrir calculadora</a>` : `<button class="button" disabled>Próximamente</button>`}${item.href ? `<a class="button" href="${item.href}" target="_blank" rel="noopener">Abrir en pestaña</a>` : ""}</div></article>`; }).join(""); refs.readyCount.textContent = conventions.filter((item) => item.status === "ready").length; refs.totalCount.textContent = conventions.length; refs.empty.classList.toggle("is-visible", visible === 0); }
-      refs.search.addEventListener("input", render); refs.status.addEventListener("change", render); render();
-    </script>
-    <script>
-      async function cargarCalculadorasGeneradas() {
+      const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+
+      function mergeGenerated(items) {
+        const existingHrefs = new Set(baseConventions.map((item) => item.href).filter(Boolean));
+        const generated = (items || [])
+          .filter((item) => item && item.href && !existingHrefs.has(item.href))
+          .map((item) => ({
+            title: item.title || "Calculadora generada",
+            cct: item.cct || "CCT generado",
+            status: item.status || "ready",
+            href: item.href,
+            engine: item.engine || "Generada desde PDF",
+            scope: item.scope || "Escalas detectadas",
+            validity: item.validity || "Generada",
+            summary: item.summary || "Calculadora generada desde la carpeta generated.",
+            features: Array.isArray(item.features) && item.features.length ? item.features : ["Generada", "PDF", "JSON"],
+            source: "generated",
+          }));
+        conventions = [...generated, ...baseConventions];
+      }
+
+      function cardTemplate(item, matches, index) {
+        const ready = item.status === "ready";
+        const generatedBadge = item.source === "generated" ? '<span class="badge generated">Generada</span>' : "";
+        const features = (item.features || []).map((feature) => `<li>${escapeHtml(feature)}</li>`).join("");
+        const openButton = item.href ? `<a class="button primary" href="${escapeHtml(item.href)}">Abrir calculadora</a>` : `<button class="button" disabled>Próximamente</button>`;
+        const tabButton = item.href ? `<a class="button" href="${escapeHtml(item.href)}" target="_blank" rel="noopener">Abrir en pestaña</a>` : "";
+        return `<article class="cct-card fade-in" style="animation-delay:${Math.min(index * 35, 280)}ms" ${matches ? "" : "hidden"}><div><div class="badges"><span class="badge ${ready ? "ok" : "warn"}">${ready ? "Listo" : "En preparación"}</span>${generatedBadge}<span class="badge type">${escapeHtml(item.cct)}</span></div><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.summary)}</p><ul class="features">${features}</ul><div class="meta"><div><small>Motor</small><strong>${escapeHtml(item.engine)}</strong></div><div><small>Alcance</small><strong>${escapeHtml(item.scope)}</strong></div><div><small>Vigencia</small><strong>${escapeHtml(item.validity)}</strong></div></div></div><div class="card-actions">${openButton}${tabButton}</div></article>`;
+      }
+
+      function render() {
+        const term = normalize(refs.search.value);
+        const status = refs.status.value;
+        let visible = 0;
+        refs.cards.innerHTML = conventions.map((item, index) => {
+          const haystack = normalize([item.title, item.cct, item.summary, (item.features || []).join(" ")].join(" "));
+          const matches = (!term || haystack.includes(term)) && (status === "all" || item.status === status);
+          if (matches) visible += 1;
+          return cardTemplate(item, matches, index);
+        }).join("");
+        refs.readyCount.textContent = conventions.filter((item) => item.status === "ready").length;
+        refs.totalCount.textContent = conventions.length;
+        refs.heroTotal.textContent = conventions.length;
+        refs.empty.classList.toggle("is-visible", visible === 0);
+      }
+
+      async function loadGeneratedCalculators() {
         try {
           const response = await fetch("/generated-calculators", { cache: "no-store" });
           if (!response.ok) return;
           const payload = await response.json();
-          const existentes = new Set(conventions.map((item) => item.href).filter(Boolean));
-          const generadas = (payload.items || [])
-            .filter((item) => item && item.href && !existentes.has(item.href))
-            .map((item) => ({
-              title: item.title || "Calculadora generada",
-              cct: item.cct || "CCT generado",
-              status: item.status || "ready",
-              href: item.href,
-              engine: item.engine || "Generada desde PDF",
-              scope: item.scope || "Escalas detectadas",
-              validity: item.validity || "Generada",
-              summary: item.summary || "Calculadora generada desde la carpeta generated.",
-              features: Array.isArray(item.features) && item.features.length ? item.features : ["Generada", "PDF", "JSON"],
-            }));
-          conventions.unshift(...generadas);
+          mergeGenerated(Array.isArray(payload.items) ? payload.items : []);
           render();
         } catch (error) {
           console.warn("No se pudieron cargar calculadoras generadas", error);
         }
       }
-      cargarCalculadorasGeneradas();
+
+      refs.search.addEventListener("input", render);
+      refs.status.addEventListener("change", render);
+      render();
+      loadGeneratedCalculators();
     </script>
   </body>
 </html>
