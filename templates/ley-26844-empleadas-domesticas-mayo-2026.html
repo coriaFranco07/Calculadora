@@ -6,73 +6,856 @@
 <title>e-Sueldos - Casas Particulares Ley 26.844</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{--azul:#0B5ED7;--azul-dk:#073B8E;--azul-xdk:#041F4A;--azul-lt:#EAF2FF;--azul-mid:#3B82F6;--ok:#0B5ED7;--warn:#F4511E;--err:#D32F2F;--bg:#F7FAFF;--surface:#fff;--border:#DDE8F8;--text:#102033;--text-2:#63738A;--text-3:#8DA0B8;--radius:14px;--shadow:0 2px 5px rgba(15,43,84,.05),0 8px 24px rgba(15,43,84,.08);--font:"Plus Jakarta Sans",sans-serif;--mono:"JetBrains Mono",monospace;--max-w:1060px}
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:var(--font);background:radial-gradient(circle at top left,#DCEBFF 0,#F7FAFF 38%,#F7FAFF 100%);color:var(--text);font-size:14px;min-height:100vh}.hdr{background:linear-gradient(135deg,var(--azul-xdk),var(--azul));height:62px;display:flex;align-items:center;padding:0 28px;gap:18px;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.2)}.hdr-logo{display:flex;align-items:center;gap:9px;text-decoration:none;color:#fff;font-weight:800;font-size:20px}.brand-logo{width:36px;height:36px;border-radius:10px;object-fit:cover;background:#fff}.hdr-divider{width:1px;height:30px;background:rgba(255,255,255,.25)}.hdr-title{color:#fff;font-size:14px;font-weight:700;opacity:.92}.hdr-badge{background:rgba(255,255,255,.18);color:#fff;font-size:10px;font-weight:800;padding:4px 11px;border-radius:20px}.hdr-spacer{flex:1}.hbtn{height:34px;border-radius:8px;background:rgba(255,255,255,.13);border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;padding:0 14px;font-family:var(--font);text-decoration:none;display:inline-flex;align-items:center}.hbtn:hover{background:rgba(255,255,255,.24)}.page{max-width:var(--max-w);margin:0 auto;padding:30px 16px 50px}.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;margin-bottom:20px}.hero-card{background:linear-gradient(135deg,#fff,#EFF6FF);border:1px solid var(--border);box-shadow:var(--shadow);border-radius:22px;padding:24px}.hero h1{font-size:28px;line-height:1.08;letter-spacing:-.7px;margin-bottom:10px}.hero p{color:var(--text-2);line-height:1.6}.hero-kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}.kpi{background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 3px 14px rgba(15,43,84,.06)}.kpi small{font-size:10px;color:var(--text-3);font-weight:800;text-transform:uppercase;letter-spacing:.5px}.kpi strong{display:block;font-family:var(--mono);font-size:20px;margin-top:4px}.main-nav{display:flex;gap:5px;margin-bottom:20px;background:var(--surface);padding:5px;border-radius:var(--radius);width:fit-content;border:1px solid var(--border);box-shadow:var(--shadow);flex-wrap:wrap}.mn-tab{padding:8px 18px;border-radius:9px;font-size:13px;font-weight:800;cursor:pointer;color:var(--text-3);font-family:var(--font);border:none;background:transparent}.mn-tab.active{background:var(--azul);color:#fff}.main-section{display:none}.main-section.active{display:block}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}.card{background:var(--surface);border-radius:var(--radius);padding:22px 24px;box-shadow:var(--shadow);margin-bottom:16px;border:1px solid var(--border)}.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:14px;border-bottom:1.5px solid var(--border);gap:12px}.card-title{font-size:15px;font-weight:800;display:flex;align-items:center;gap:9px}.c-ic{width:29px;height:29px;border-radius:8px;background:var(--azul-lt);color:var(--azul);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:11px;font-weight:800;color:var(--text-2);text-transform:uppercase;letter-spacing:.5px}.field input,.field select{border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;font-size:13px;font-family:var(--font);color:var(--text);background:#fff;width:100%}.field input:focus,.field select:focus{outline:none;border-color:var(--azul);box-shadow:0 0 0 3px rgba(11,94,215,.12)}.hint{font-size:11px;color:var(--text-3);line-height:1.55}.hint.ok{color:var(--azul);font-weight:700}.badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800;background:var(--azul-lt);color:var(--azul)}.callout{display:flex;gap:10px;padding:12px 15px;border-radius:10px;font-size:12px;margin-bottom:14px;line-height:1.6;background:var(--azul-lt);border-left:4px solid var(--azul);color:#0A4DAE}.callout.warn{background:#FFEDE6;border-left-color:var(--warn);color:#A53612}.btn{padding:10px 20px;border:none;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:7px;font-family:var(--font);transition:.15s;text-decoration:none}.btn-primary{background:var(--azul);color:#fff}.btn-primary:hover{background:var(--azul-dk)}.btn-secondary{background:#fff;color:var(--text);border:1.5px solid var(--border)}.btn-row{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:12px;flex-wrap:wrap}.preview{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}.pill{background:var(--azul-lt);border:1px solid #BFDBFE;border-radius:12px;padding:11px}.pill span{display:block;font-size:10px;color:var(--text-3);font-weight:800;text-transform:uppercase}.pill strong{display:block;font-family:var(--mono);font-size:14px;margin-top:4px;color:var(--azul)}.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.sc{background:#fff;border:1px solid var(--border);border-radius:14px;padding:15px;box-shadow:var(--shadow)}.sc .sl{font-size:10px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px}.sc .sv{font-size:19px;font-weight:800;font-family:var(--mono);letter-spacing:-.4px;margin-top:5px}.sc .ss{font-size:11px;color:var(--text-3);margin-top:3px}.res-tabs{display:flex;gap:5px;margin-bottom:14px;flex-wrap:wrap}.rt{padding:8px 15px;border:1.5px solid var(--border);background:#fff;border-radius:20px;font-size:12px;font-weight:800;cursor:pointer;color:var(--text-2);font-family:var(--font)}.rt.active{background:var(--azul);color:#fff;border-color:var(--azul)}.rec-hdr{background:linear-gradient(135deg,var(--azul-xdk),var(--azul));color:#fff;padding:18px 20px;border-radius:14px;margin-bottom:15px}.rec-emp{font-size:18px;font-weight:800}.rec-meta{font-size:12px;opacity:.85;margin-top:5px;display:flex;flex-wrap:wrap;gap:12px}.rec-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}.rec-block h4{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;padding-bottom:8px;border-bottom:1.5px solid var(--border);margin-bottom:8px;color:var(--text-3)}.rec-row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid #F0F4FA}.rm{font-family:var(--mono);font-weight:700;white-space:nowrap}.pos{color:var(--ok)}.neg{color:var(--err)}.total{background:linear-gradient(135deg,var(--azul-dk),var(--azul-xdk));color:#fff;border-radius:14px;padding:17px 20px;margin-top:15px}.total div{display:flex;justify-content:space-between;padding:5px 0}.total .main{font-size:20px;font-weight:800;border-top:1px solid rgba(255,255,255,.25);padding-top:12px;margin-top:8px}.dt{width:100%;border-collapse:collapse;font-size:12px}.dt th{background:var(--bg);color:var(--text-2);padding:9px 10px;text-align:left;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;border-bottom:1.5px solid var(--border)}.dt td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}.dt .num{text-align:right;font-family:var(--mono);font-weight:700;white-space:nowrap}.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px}.law-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}.law-item{background:#fff;border:1px solid var(--border);border-radius:13px;padding:13px}.law-item strong{display:block;margin-bottom:4px}.law-item span{font-size:12px;color:var(--text-2);line-height:1.55}.mono{font-family:var(--mono)}.tc{position:fixed;top:72px;right:18px;z-index:999}.toast{background:#fff;border-radius:12px;padding:12px 16px;box-shadow:var(--shadow);font-size:13px;font-weight:700;border:1px solid var(--border);border-left:4px solid var(--azul);margin-bottom:8px}.footer{text-align:center;font-size:11px;color:var(--text-3);padding:22px}@media(max-width:820px){.hero,.grid,.grid-3,.rec-cols,.law-list{grid-template-columns:1fr}.preview,.stat-grid,.hero-kpis{grid-template-columns:1fr 1fr}.hdr{padding:0 14px}.hdr-title,.hdr-badge{display:none}}@media print{.hdr,.main-nav,.btn-row,.res-tabs,.tc{display:none!important}.page{padding:0}.card,.sc{box-shadow:none}}
+:root{
+  --azul:#0B5ED7;
+  --azul-dk:#073B8E;
+  --azul-xdk:#041F4A;
+  --azul-lt:#EAF2FF;
+  --azul-soft:#F4F8FF;
+  --border:#DDE8F8;
+  --text:#102033;
+  --text-2:#63738A;
+  --text-3:#8DA0B8;
+  --ok:#0B5ED7;
+  --warn:#F4511E;
+  --err:#D32F2F;
+  --bg:#F7FAFF;
+  --surface:#FFFFFF;
+  --radius:14px;
+  --shadow:0 2px 5px rgba(15,43,84,.05),0 8px 24px rgba(15,43,84,.08);
+  --font:"Plus Jakarta Sans",sans-serif;
+  --mono:"JetBrains Mono",monospace;
+  --max-w:1060px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:var(--font);
+  background:radial-gradient(circle at top left,#DCEBFF 0,#F7FAFF 38%,#F7FAFF 100%);
+  color:var(--text);
+  font-size:14px;
+  min-height:100vh;
+}
+.hdr{
+  position:sticky;
+  top:0;
+  z-index:100;
+  overflow:hidden;
+  isolation:isolate;
+  min-height:84px;
+  padding:14px 28px;
+  background:linear-gradient(135deg,var(--azul-xdk),var(--azul));
+  display:flex;
+  align-items:center;
+  gap:18px;
+  flex-wrap:wrap;
+  box-shadow:0 2px 16px rgba(0,0,0,.2);
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.hdr::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(120deg,rgba(255,255,255,.05),transparent 25%,transparent 75%,rgba(255,255,255,.07));
+  pointer-events:none;
+}
+.hdr-orb{
+  position:absolute;
+  border-radius:999px;
+  pointer-events:none;
+  filter:blur(12px);
+  mix-blend-mode:screen;
+  opacity:.7;
+}
+.hdr-orb-a{
+  width:190px;
+  height:190px;
+  top:-92px;
+  right:18%;
+  background:radial-gradient(circle,rgba(255,255,255,.34),rgba(255,255,255,.08) 56%,transparent 74%);
+  animation:hdrDrift 12s ease-in-out infinite;
+}
+.hdr-orb-b{
+  width:130px;
+  height:130px;
+  bottom:-58px;
+  left:10%;
+  background:radial-gradient(circle,rgba(125,211,252,.38),rgba(59,130,246,.08) 60%,transparent 74%);
+  animation:hdrDrift2 15s ease-in-out infinite;
+}
+.hdr-scan{
+  position:absolute;
+  left:-35%;
+  top:0;
+  width:35%;
+  height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);
+  transform:skewX(-16deg);
+  animation:hdrScan 9s linear infinite;
+  pointer-events:none;
+}
+.hdr-logo{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  text-decoration:none;
+  color:#fff;
+  font-weight:800;
+  font-size:20px;
+  position:relative;
+  z-index:1;
+}
+.brand-logo{
+  width:36px;
+  height:36px;
+  border-radius:10px;
+  object-fit:cover;
+  background:#fff;
+}
+.hdr-divider{width:1px;height:36px;background:rgba(255,255,255,.20)}
+.hdr-copy{
+  position:relative;
+  z-index:1;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  padding-top:2px;
+}
+.hdr-kicker{
+  color:rgba(255,255,255,.74);
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.22em;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.hdr-kicker::before{
+  content:"";
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#7DD3FC;
+  box-shadow:0 0 0 6px rgba(125,211,252,.12);
+  animation:hdrBeat 1.8s ease-in-out infinite;
+}
+.hdr-title{
+  color:#fff;
+  font-size:18px;
+  line-height:1.02;
+  font-weight:800;
+  letter-spacing:-.35px;
+}
+.hdr-subtitle{
+  color:rgba(255,255,255,.78);
+  font-size:12px;
+  line-height:1.4;
+}
+.hdr-badge{
+  position:relative;
+  z-index:1;
+  background:rgba(255,255,255,.12);
+  color:#fff;
+  font-size:10px;
+  font-weight:800;
+  padding:4px 11px;
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,.16);
+  backdrop-filter:blur(8px);
+  box-shadow:0 8px 18px rgba(0,0,0,.12);
+}
+.hdr-spacer{flex:1;min-width:16px}
+.hbtn{
+  position:relative;
+  z-index:1;
+  height:34px;
+  border-radius:8px;
+  background:rgba(255,255,255,.13);
+  border:none;
+  color:#fff;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  padding:0 14px;
+  font-family:var(--font);
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+}
+.hbtn:hover{background:rgba(255,255,255,.24)}
+@keyframes hdrDrift{
+  0%,100%{transform:translate3d(0,0,0) scale(1)}
+  50%{transform:translate3d(22px,12px,0) scale(1.08)}
+}
+@keyframes hdrDrift2{
+  0%,100%{transform:translate3d(0,0,0) scale(1)}
+  50%{transform:translate3d(-18px,-10px,0) scale(1.12)}
+}
+@keyframes hdrScan{
+  0%{transform:translateX(0) skewX(-16deg)}
+  100%{transform:translateX(420%) skewX(-16deg)}
+}
+@keyframes hdrBeat{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.18)}
+}
+.page{
+  max-width:none;
+  margin:0 auto;
+  padding:18px 18px 50px;
+}
+.calc-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.08fr) minmax(420px,.92fr);
+  gap:18px;
+  align-items:stretch;
+}
+.calc-content{
+  min-width:0;
+  width:100%;
+  max-width:none;
+  justify-self:start;
+}
+.calc-visual{
+  position:relative;
+  top:auto;
+  height:100%;
+  min-height:100%;
+  align-self:stretch;
+  border-radius:0 34px 34px 0;
+  margin-right:0;
+  overflow:hidden;
+  background:#eef4ff;
+  box-shadow:none;
+}
+.calc-visual__img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:65% center;
+  -webkit-mask-image:linear-gradient(90deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.22) 8%,rgba(0,0,0,.72) 18%,rgba(0,0,0,1) 32%);
+  mask-image:linear-gradient(90deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.22) 8%,rgba(0,0,0,.72) 18%,rgba(0,0,0,1) 32%);
+}
+.calc-visual::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(90deg,rgba(247,250,255,1) 0%,rgba(247,250,255,.96) 10%,rgba(247,250,255,.78) 20%,rgba(247,250,255,.35) 34%,rgba(247,250,255,.06) 52%,transparent 70%),
+    radial-gradient(circle at 76% 18%,rgba(255,255,255,.24),transparent 36%),
+    radial-gradient(circle at 72% 78%,rgba(11,94,215,.06),transparent 34%);
+  pointer-events:none;
+}
+.calc-visual::after{
+  content:"";
+  position:absolute;
+  inset:auto 0 0 0;
+  height:30%;
+  background:linear-gradient(180deg,transparent,rgba(247,250,255,.08) 55%,rgba(247,250,255,.22));
+  pointer-events:none;
+}
+.hero{
+  display:block;
+  margin-bottom:20px;
+}
+.hero-card{
+  background:linear-gradient(135deg,#fff,#EFF6FF);
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
+  border-radius:22px;
+  padding:28px 28px 24px;
+  max-width:none;
+  margin:0 0 16px;
+  text-align:left;
+}
+.hero h1{
+  max-width:15ch;
+  font-size:35px;
+  line-height:1.01;
+  letter-spacing:-1.08px;
+  margin-bottom:10px;
+}
+.hero p{
+  color:var(--text-2);
+  line-height:1.6;
+  max-width:680px;
+  margin:0;
+}
+.main-nav,
+.hero-card,
+#sec-calc,
+#sec-escalas,
+#sec-ley,
+.wizard-shell,
+#resultado{
+  width:100%;
+}
+.main-nav{
+  display:flex;
+  gap:5px;
+  margin-bottom:20px;
+  background:var(--surface);
+  padding:5px;
+  border-radius:var(--radius);
+  width:fit-content;
+  border:1px solid var(--border);
+  box-shadow:var(--shadow);
+  flex-wrap:wrap;
+}
+.mn-tab{
+  padding:8px 18px;
+  border-radius:9px;
+  font-size:13px;
+  font-weight:800;
+  cursor:pointer;
+  color:var(--text-3);
+  font-family:var(--font);
+  border:none;
+  background:transparent;
+}
+.mn-tab.active{background:var(--azul);color:#fff}
+.main-section{display:none}
+.main-section.active{display:block}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.card{
+  background:var(--surface);
+  border-radius:var(--radius);
+  padding:22px 24px;
+  box-shadow:var(--shadow);
+  margin-bottom:16px;
+  border:1px solid var(--border);
+}
+.card-hdr{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:18px;
+  padding-bottom:14px;
+  border-bottom:1.5px solid var(--border);
+  gap:12px;
+}
+.card-title{
+  font-size:15px;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.c-ic{
+  width:29px;
+  height:29px;
+  border-radius:8px;
+  background:var(--azul-lt);
+  color:var(--azul);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:13px;
+  font-weight:800;
+}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{
+  font-size:11px;
+  font-weight:800;
+  color:var(--text-2);
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.field input,.field select{
+  border:1.5px solid var(--border);
+  border-radius:9px;
+  padding:10px 12px;
+  font-size:13px;
+  font-family:var(--font);
+  color:var(--text);
+  background:#fff;
+  width:100%;
+}
+.field input:focus,.field select:focus{
+  outline:none;
+  border-color:var(--azul);
+  box-shadow:0 0 0 3px rgba(11,94,215,.12);
+}
+.hint{font-size:11px;color:var(--text-3);line-height:1.55}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:800;
+  background:var(--azul-lt);
+  color:var(--azul);
+}
+.callout{
+  display:flex;
+  gap:10px;
+  padding:12px 15px;
+  border-radius:10px;
+  font-size:12px;
+  margin-bottom:14px;
+  line-height:1.6;
+  background:var(--azul-lt);
+  border-left:4px solid var(--azul);
+  color:#0A4DAE;
+}
+.callout.warn{background:#FFEDE6;border-left-color:var(--warn);color:#A53612}
+.btn{
+  padding:10px 20px;
+  border:none;
+  border-radius:10px;
+  font-size:13px;
+  font-weight:800;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  font-family:var(--font);
+  transition:.15s;
+  text-decoration:none;
+}
+.btn-primary{background:var(--azul);color:#fff}
+.btn-primary:hover{background:var(--azul-dk)}
+.btn-secondary{background:#fff;color:var(--text);border:1.5px solid var(--border)}
+.btn-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:16px;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.btn-actions{display:flex;gap:10px;flex-wrap:wrap}
+.preview{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.pill{
+  background:var(--azul-lt);
+  border:1px solid #BFDBFE;
+  border-radius:12px;
+  padding:11px;
+}
+.pill span{
+  display:block;
+  font-size:10px;
+  color:var(--text-3);
+  font-weight:800;
+  text-transform:uppercase;
+}
+.pill strong{
+  display:block;
+  font-family:var(--mono);
+  font-size:14px;
+  margin-top:4px;
+  color:var(--azul);
+}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.sc{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:15px;
+  box-shadow:var(--shadow);
+}
+.sc .sl{
+  font-size:10px;
+  font-weight:800;
+  color:var(--text-3);
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+.sc .sv{
+  font-size:19px;
+  font-weight:800;
+  font-family:var(--mono);
+  letter-spacing:-.4px;
+  margin-top:5px;
+}
+.sc .ss{font-size:11px;color:var(--text-3);margin-top:3px}
+.res-tabs{display:flex;gap:5px;margin-bottom:14px;flex-wrap:wrap}
+.rt{
+  padding:8px 15px;
+  border:1.5px solid var(--border);
+  background:#fff;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:800;
+  cursor:pointer;
+  color:var(--text-2);
+  font-family:var(--font);
+}
+.rt.active{background:var(--azul);color:#fff;border-color:var(--azul)}
+.rec-hdr{
+  background:linear-gradient(135deg,var(--azul-xdk),var(--azul));
+  color:#fff;
+  padding:18px 20px;
+  border-radius:14px;
+  margin-bottom:15px;
+}
+.rec-emp{font-size:18px;font-weight:800}
+.rec-meta{font-size:12px;opacity:.85;margin-top:5px;display:flex;flex-wrap:wrap;gap:12px}
+.rec-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.rec-block h4{
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.6px;
+  padding-bottom:8px;
+  border-bottom:1.5px solid var(--border);
+  margin-bottom:8px;
+  color:var(--text-3);
+}
+.rec-row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:5px 0;
+  border-bottom:1px solid #F0F4FA;
+}
+.rm{font-family:var(--mono);font-weight:700;white-space:nowrap}
+.pos{color:var(--ok)}
+.neg{color:var(--err)}
+.total{
+  background:linear-gradient(135deg,var(--azul-dk),var(--azul-xdk));
+  color:#fff;
+  border-radius:14px;
+  padding:17px 20px;
+  margin-top:15px;
+}
+.total div{display:flex;justify-content:space-between;padding:5px 0}
+.total .main{
+  font-size:20px;
+  font-weight:800;
+  border-top:1px solid rgba(255,255,255,.25);
+  padding-top:12px;
+  margin-top:8px;
+}
+.dt{width:100%;border-collapse:collapse;font-size:12px}
+.dt th{
+  background:var(--bg);
+  color:var(--text-2);
+  padding:9px 10px;
+  text-align:left;
+  font-size:10px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.4px;
+  white-space:nowrap;
+  border-bottom:1.5px solid var(--border);
+}
+.dt td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+.dt .num{text-align:right;font-family:var(--mono);font-weight:700;white-space:nowrap}
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px}
+.law-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.law-item{background:#fff;border:1px solid var(--border);border-radius:13px;padding:13px}
+.law-item strong{display:block;margin-bottom:4px}
+.law-item span{font-size:12px;color:var(--text-2);line-height:1.55}
+.tc{position:fixed;top:72px;right:18px;z-index:999}
+.toast{
+  background:#fff;
+  border-radius:12px;
+  padding:12px 16px;
+  box-shadow:var(--shadow);
+  font-size:13px;
+  font-weight:700;
+  border:1px solid var(--border);
+  border-left:4px solid var(--azul);
+  margin-bottom:8px;
+}
+.footer{text-align:center;font-size:11px;color:var(--text-3);padding:22px}
+
+.wizard-shell{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  margin-bottom:16px;
+}
+.wizard-steps{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.wizard-step{
+  border:1px solid var(--border);
+  background:rgba(255,255,255,.82);
+  backdrop-filter:blur(8px);
+  border-radius:18px;
+  padding:14px 16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  box-shadow:var(--shadow);
+  cursor:pointer;
+  transition:.18s ease;
+}
+.wizard-step:hover{transform:translateY(-1px);border-color:#C4D9F8}
+.wizard-step.is-active{
+  border-color:#A8CAF8;
+  background:linear-gradient(135deg,#FFFFFF,#F1F7FF);
+}
+.wizard-step.is-complete{
+  border-color:#B7D6FF;
+  background:linear-gradient(135deg,#F8FBFF,#EEF5FF);
+}
+.wizard-step-num{
+  width:34px;
+  height:34px;
+  border-radius:12px;
+  background:var(--azul-lt);
+  color:var(--azul);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:13px;
+  font-weight:800;
+  flex:0 0 auto;
+}
+.wizard-step.is-active .wizard-step-num{
+  background:var(--azul);
+  color:#fff;
+}
+.wizard-step-copy{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  text-align:left;
+}
+.wizard-step-copy strong{font-size:13px}
+.wizard-step-copy small{font-size:11px;color:var(--text-3)}
+.wizard-panel{display:none}
+.wizard-panel.is-active{display:block}
+
+.help-tip{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  flex:0 0 auto;
+}
+.help-tip__icon{
+  width:18px;
+  height:18px;
+  border-radius:999px;
+  border:1px solid #C9DBF7;
+  background:linear-gradient(180deg,#FFFFFF,#EEF5FF);
+  color:#5A8FE2;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:10px;
+  font-weight:800;
+  box-shadow:0 4px 10px rgba(11,94,215,.08);
+  transition:.16s ease;
+}
+.help-tip__bubble{
+  position:absolute;
+  left:50%;
+  bottom:calc(100% + 10px);
+  transform:translateX(-50%) translateY(6px);
+  min-width:190px;
+  max-width:260px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid #D8E6FA;
+  background:rgba(255,255,255,.98);
+  color:var(--text-2);
+  box-shadow:0 14px 28px rgba(15,43,84,.12);
+  font-size:12px;
+  line-height:1.45;
+  text-transform:none;
+  letter-spacing:0;
+  font-weight:600;
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:.18s ease;
+  z-index:20;
+}
+.help-tip__bubble::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:100%;
+  transform:translateX(-50%);
+  border-width:7px 6px 0 6px;
+  border-style:solid;
+  border-color:#FFFFFF transparent transparent transparent;
+}
+.help-tip:hover .help-tip__icon,
+.help-tip:focus-within .help-tip__icon{
+  color:var(--azul);
+  border-color:#A9C6F4;
+  box-shadow:0 8px 16px rgba(11,94,215,.16);
+}
+.help-tip:hover .help-tip__bubble,
+.help-tip:focus-within .help-tip__bubble{
+  opacity:1;
+  visibility:visible;
+  transform:translateX(-50%) translateY(0);
+}
+.help-tip button{
+  border:none;
+  background:transparent;
+  padding:0;
+  cursor:help;
+  display:inline-flex;
+}
+
+@media(max-width:820px){
+  .calc-layout,.hero,.grid,.grid-3,.rec-cols,.law-list,.wizard-steps{grid-template-columns:1fr}
+  .preview,.stat-grid{grid-template-columns:1fr 1fr}
+  .hdr{padding:12px 14px;min-height:0}
+  .hdr-copy{flex-basis:100%}
+  .hdr-title{font-size:16px}
+  .hdr-subtitle{font-size:11px}
+  .hdr-badge{margin-left:auto}
+  .calc-visual{
+    position:relative;
+    top:auto;
+    height:320px;
+    min-height:320px;
+    order:2;
+    margin-top:6px;
+    margin-left:0;
+    border-radius:22px;
+  }
+  .calc-content{order:1}
+  .help-tip__bubble{
+    left:auto;
+    right:0;
+    transform:translateY(6px);
+  }
+  .help-tip__bubble::after{
+    left:auto;
+    right:12px;
+    transform:none;
+  }
+  .help-tip:hover .help-tip__bubble,
+  .help-tip:focus-within .help-tip__bubble{
+    transform:translateY(0);
+  }
+}
+@media print{
+  .hdr,.main-nav,.btn-row,.res-tabs,.tc,.wizard-steps{display:none!important}
+  .page{padding:0}
+  .card,.sc{box-shadow:none}
+}
 </style>
 <style media="print">
 body{background:#fff!important}
 body *{visibility:hidden!important}
 #resultado,#res-recibo,#res-recibo *{visibility:visible!important}
 #resultado{display:block!important}
-#res-recibo{display:block!important;position:absolute;left:0;top:0;width:100%;margin:0!important;border:none!important;box-shadow:none!important;padding:0!important;background:#fff!important}
+#res-recibo{
+  display:block!important;
+  position:absolute;
+  left:0;
+  top:0;
+  width:100%;
+  margin:0!important;
+  border:none!important;
+  box-shadow:none!important;
+  padding:0!important;
+  background:#fff!important;
+}
 #res-recibo .rec-hdr,#res-recibo .total{break-inside:avoid}
-</style>
-<style>
-.field label{display:inline-flex;align-items:center;gap:7px}
-.label-help{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;border:1px solid #B9D1F8;background:#F3F8FF;color:var(--azul);font-size:11px;font-weight:800;cursor:help;flex:0 0 auto}
 </style>
 </head>
 <body>
 <div class="tc" id="tc"></div>
 <header class="hdr">
+  <span class="hdr-orb hdr-orb-a" aria-hidden="true"></span>
+  <span class="hdr-orb hdr-orb-b" aria-hidden="true"></span>
+  <span class="hdr-scan" aria-hidden="true"></span>
   <a class="hdr-logo" href="./portal-cct.html"><img class="brand-logo" src="https://media.licdn.com/dms/image/v2/D4D0BAQGibhoMeCL-mg/company-logo_200_200/company-logo_200_200/0/1667320508791/e_sueldos_logo?e=2147483647&v=beta&t=6BpHD4ZVbBNymqB5aEkJNEXyJ-0qGr2At_F6mEePRAw" alt="e-Sueldos"><span>e-Sueldos</span></a>
-  <div class="hdr-divider"></div><span class="hdr-title">Liquidador Casas Particulares</span><span class="hdr-badge">Ley 26.844 - Abr/Jul 2026</span><div class="hdr-spacer"></div>
+  <div class="hdr-divider"></div>
+  <div class="hdr-copy">
+    <span class="hdr-kicker">Calculadora inteligente</span>
+    <span class="hdr-title">Liquidador Casas Particulares</span>
+    <span class="hdr-subtitle">Ley 26.844 - Abr/Jul 2026</span>
+  </div>
+  <span class="hdr-badge">Actualizado 2026</span>
+  <div class="hdr-spacer"></div>
   <button class="hbtn" onclick="printReceipt()">Imprimir</button>
 </header>
 <main class="page">
-  <section class="hero">
-    <div class="hero-card"><h1>Calculadora completa para personal de casas particulares</h1></div>
-  </section>
+  <div class="calc-layout">
+    <div class="calc-content">
+      <section class="hero">
+        <div class="hero-card">
+          <h1>Calculadora completa para personal de casas particulares</h1>
+          <p>Armá la liquidación en dos pasos, con escalas 2026, antigüedad automática por fecha de ingreso y recibo listo para imprimir.</p>
+        </div>
+      </section>
 
-  <nav class="main-nav">
-    <button class="mn-tab active" onclick="showSection('calc',this)">Calculadora</button>
-    <button class="mn-tab" onclick="showSection('escalas',this)">Escalas 2026</button>
-    <button class="mn-tab" onclick="showSection('ley',this)">Ley y guía</button>
-  </nav>
+      <nav class="main-nav">
+        <button class="mn-tab active" onclick="showSection('calc',this)">Calculadora</button>
+        <button class="mn-tab" onclick="showSection('escalas',this)">Escalas 2026</button>
+        <button class="mn-tab" onclick="showSection('ley',this)">Ley y guía</button>
+      </nav>
 
-  <section id="sec-calc" class="main-section active">
-    <div class="card">
-      <div class="card-hdr"><div class="card-title"><div class="c-ic">1</div><span>Datos de la liquidación</span></div><span class="badge">Escala CNTCP 2026</span></div>
-      <div class="grid">
-        <div class="field"><label>Nombre y apellido <span class="label-help" title="Nombre completo que va a figurar en el bono de sueldo.">?</span></label><input id="nombre" placeholder="Apellido, Nombre"></div>
-        <div class="field"><label>CUIL <span class="label-help" title="Clave unica laboral de la trabajadora o del trabajador.">?</span></label><input id="cuil" placeholder="20-12345678-0"></div>
+      <section id="sec-calc" class="main-section active">
+        <div class="wizard-shell" id="wizardStart">
+      <div class="wizard-steps">
+        <button class="wizard-step is-active" id="wizardNav1" type="button" onclick="goToStep(1)">
+          <span class="wizard-step-num">1</span>
+          <span class="wizard-step-copy"><strong>Datos de la liquidación</strong><small>Base del recibo y antigüedad</small></span>
+        </button>
+        <button class="wizard-step" id="wizardNav2" type="button" onclick="goToStep(2)">
+          <span class="wizard-step-num">2</span>
+          <span class="wizard-step-copy"><strong>Horas y adicionales</strong><small>Extras, descuentos y cálculo final</small></span>
+        </button>
       </div>
-      <div class="grid-3" style="margin-top:16px">
-        <div class="field"><label>Mes <span class="label-help" title="Periodo de escala salarial que se toma para hacer el calculo.">?</span></label><select id="mes" onchange="refreshPreview()"></select></div>
-        <div class="field"><label>Categor?a <span class="label-help" title="Tipo de tarea segun la escala oficial de casas particulares.">?</span></label><select id="categoria" onchange="refreshPreview()"></select></div>
-        <div class="field"><label>Modalidad <span class="label-help" title="Indica si la prestacion es con retiro o sin retiro.">?</span></label><select id="modalidad" onchange="refreshPreview()"><option value="con">Con retiro</option><option value="sin">Sin retiro</option></select></div>
-      </div>
-      <div class="grid-3" style="margin-top:16px">
-        <div class="field"><label>Tipo de liquidaci?n <span class="label-help" title="Elegi si queres liquidar por horas o como mensual proporcional.">?</span></label><select id="tipo" onchange="refreshPreview()"><option value="hora">Por horas</option><option value="mensual">Mensual proporcional</option></select></div>
-        <div class="field"><label>Fecha de ingreso <span class="label-help" title="Se usa para calcular automaticamente la antiguedad en anos.">?</span></label><input type="date" id="ingreso" onchange="refreshPreview()"><span class="hint" id="antHint"></span></div>
-        <div class="field"><label>D?as trabajados <span class="label-help" title="Cantidad de dias a liquidar en el periodo si haces una liquidacion mensual proporcional.">?</span></label><input type="number" id="dias" value="30" min="0" max="31" step="1" oninput="refreshPreview()"></div>
-      </div>
-      <div class="preview" id="preview"></div>
-    </div>
 
-    <div class="card">
-      <div class="card-hdr"><div class="card-title"><div class="c-ic">2</div><span>Horas, adicionales y descuentos</span></div></div>
-      <div class="grid-3">
-        <div class="field"><label>Horas normales <span class="label-help" title="Horas comunes trabajadas en el periodo cuando liquidas por hora.">?</span></label><input type="number" id="horas" value="80" min="0" step="0.5" oninput="refreshPreview()"></div>
-        <div class="field"><label>Horas extra 50% <span class="label-help" title="Horas extra con recargo del cincuenta por ciento.">?</span></label><input type="number" id="h50" value="0" min="0" step="0.5"></div>
-        <div class="field"><label>Horas extra 100% <span class="label-help" title="Horas extra con recargo del cien por ciento.">?</span></label><input type="number" id="h100" value="0" min="0" step="0.5"></div>
+      <div class="card wizard-panel is-active" id="wizardStep1">
+        <div class="card-hdr"><div class="card-title"><div class="c-ic">1</div><span>Datos de la liquidación</span></div><span class="badge">Escala CNTCP 2026</span></div>
+        <div class="grid">
+          <div class="field"><label>Nombre y apellido <span class="help-tip" tabindex="0"><span class="help-tip__icon">?</span><span class="help-tip__bubble">Nombre completo que va a figurar en el bono de sueldo.</span></span></label><input id="nombre" placeholder="Apellido, Nombre"></div>
+          <div class="field"><label>CUIL <span class="help-tip" tabindex="0"><span class="help-tip__icon">?</span><span class="help-tip__bubble">Clave única laboral de la trabajadora o del trabajador.</span></span></label><input id="cuil" placeholder="20-12345678-0"></div>
+        </div>
+        <div class="grid-3" style="margin-top:16px">
+          <div class="field"><label>Mes <span class="help-tip" tabindex="0"><span class="help-tip__icon">?</span><span class="help-tip__bubble">Período de escala salarial que se toma para hacer el cálculo.</span></span></label><select id="mes" onchange="refreshPreview()"></select></div>
+          <div class="field"><label>Categoría <span class="help-tip" tabindex="0"><span class="help-tip__icon">?</span><span class="help-tip__bubble">Tipo de tarea según la escala oficial de casas particulares.</span></span></label><select id="categoria" onchange="refreshPreview()"></select></div>
+          <div class="field"><label>Modalidad <span class="help-tip" tabindex="0"><span class="help-tip__icon">?</span><span class="help-tip__bubble">Indica si la prestación es con retiro o sin retiro.</span></span></label><select id="modalidad" onchange="refreshPreview()"><option value="con">Con retiro</option><option value="sin">Sin retiro</option></select></div>
+        </div>
+        <div class="grid-3" style="margin-top:16px">
+          <div class="field"><label>Tipo de liquidación <span class="help-tip" tabindex="0"><span class="help-tip__icon">?</span><span class="help-tip__bubble">Elegí si querés liquidar por horas o como mensual proporcional.</span></span></label><select id="tipo" onchange="refreshPreview()"><option value="hora">Por horas</option><option value="mensual">Mensual proporcional</option></select></div>
+          <div class="field"><label>Fecha de ingreso <span class="help-tip" tabindex="0"><span class="help-tip__icon">?</span><span class="help-tip__bubble">Se usa para calcular automáticamente la antigüedad en años.</span></span></label><input type="date" id="ingreso" onchange="refreshPreview()"><span class="hint" id="antHint"></span></div>
+          <div class="field"><label>Días trabajados <span class="help-tip" tabindex="0"><span class="help-tip__icon">?</span><span class="help-tip__bubble">Cantidad de días a liquidar en el período si hacés una liquidación mensual proporcional.</span></span></label><input type="number" id="dias" value="30" min="0" max="31" step="1" oninput="refreshPreview()"></div>
+        </div>
+        <div class="preview" id="preview"></div>
+        <div class="btn-row">
+          <span class="hint">La antigüedad se calcula sola desde la fecha de ingreso.</span>
+          <div class="btn-actions">
+            <button class="btn btn-primary" type="button" onclick="goToStep(2)">Siguiente</button>
+          </div>
+        </div>
       </div>
-      <div class="grid" style="margin-top:16px">
-        <div class="field"><label>Adicional manual ($) <span class="label-help" title="Importe extra que quieras sumar manualmente a la liquidacion.">?</span></label><input type="number" id="adicional" value="0" min="0" step="0.01"></div>
-        <div class="field"><label>Descuentos manuales ($) <span class="label-help" title="Importe que quieras restar manualmente antes de obtener el neto.">?</span></label><input type="number" id="descuentos" value="0" min="0" step="0.01"></div>
+
+      <div class="card wizard-panel" id="wizardStep2">
+        <div class="card-hdr"><div class="card-title"><div class="c-ic">2</div><span>Horas, adicionales y descuentos</span></div><span class="badge">Paso final</span></div>
+        <div class="grid-3">
+          <div class="field"><label>Horas normales <span class="help-tip" tabindex="0"><span class="help-tip__icon">?</span><span class="help-tip__bubble">Horas comunes trabajadas en el período cuando liquidás por hora.</span></span></label><input type="number" id="horas" value="80" min="0" step="0.5" oninput="refreshPreview()"></div>
+          <div class="field"><label>Horas extra 50% <span class="help-tip" tabindex="0"><span class="help-tip__icon">?</span><span class="help-tip__bubble">Horas extra con recargo del cincuenta por ciento.</span></span></label><input type="number" id="h50" value="0" min="0" step="0.5"></div>
+          <div class="field"><label>Horas extra 100% <span class="help-tip" tabindex="0"><span class="help-tip__icon">?</span><span class="help-tip__bubble">Horas extra con recargo del cien por ciento.</span></span></label><input type="number" id="h100" value="0" min="0" step="0.5"></div>
+        </div>
+        <div class="grid" style="margin-top:16px">
+          <div class="field"><label>Adicional manual ($) <span class="help-tip" tabindex="0"><span class="help-tip__icon">?</span><span class="help-tip__bubble">Importe extra que quieras sumar manualmente a la liquidación.</span></span></label><input type="number" id="adicional" value="0" min="0" step="0.01"></div>
+          <div class="field"><label>Descuentos manuales ($) <span class="help-tip" tabindex="0"><span class="help-tip__icon">?</span><span class="help-tip__bubble">Importe que quieras restar manualmente antes de obtener el neto.</span></span></label><input type="number" id="descuentos" value="0" min="0" step="0.01"></div>
+        </div>
+        <div class="callout warn" style="margin-top:16px">Las escalas cargadas surgen del documento aportado para abril-julio 2026. Validá contra publicación oficial antes de liquidar en producción.</div>
+        <div class="btn-row">
+          <span class="hint">Antigüedad: 1% anual sobre la base remunerativa calculada.</span>
+          <div class="btn-actions">
+            <button class="btn btn-secondary" type="button" onclick="goToStep(1)">Volver</button>
+            <button class="btn btn-primary" type="button" onclick="calcular()">Calcular liquidación</button>
+          </div>
+        </div>
       </div>
-      <div class="callout warn" style="margin-top:16px">Las escalas cargadas surgen del documento aportado para abril-julio 2026. Validar contra publicación oficial antes de liquidar en producción.</div>
-      <div class="btn-row"><span class="hint">Antigüedad: 1% anual sobre la base remunerativa calculada.</span><button class="btn btn-primary" onclick="calcular()">Calcular liquidación</button></div>
     </div>
 
     <div id="resultado" style="display:none">
@@ -91,7 +874,11 @@ body *{visibility:hidden!important}
   <section id="sec-ley" class="main-section">
     <div class="card"><div class="card-hdr"><div class="card-title"><div class="c-ic">L</div><span>Resumen operativo Ley 26.844</span></div><span class="badge">Casas particulares</span></div><div class="law-list" id="lawList"></div></div>
   </section>
-
+    </div>
+    <aside class="calc-visual" aria-hidden="true">
+      <img class="calc-visual__img" src="https://revistavive.com/wp-content/uploads/2020/11/MUJERES-GRANDE.png" alt="">
+    </aside>
+  </div>
   <footer class="footer">e-Sueldos - Calculadora Ley 26.844 - Escalas abril, mayo, junio y julio 2026</footer>
 </main>
 
@@ -122,30 +909,167 @@ const LAW_GUIDE=[
   ["Indemnización","Ante despido sin causa corresponde indemnización legal, preaviso e integración cuando aplique."]
 ];
 const WEEKS_PER_MONTH=52/12;
+let currentWizardStep=1;
+
 const fmt=n=>new Intl.NumberFormat("es-AR",{style:"currency",currency:"ARS"}).format(Number(n||0));
 const num=id=>Number(document.getElementById(id).value||0);
 const $=id=>document.getElementById(id);
+
 function category(){return CATEGORIES.find(c=>c.id===$("categoria").value)||CATEGORIES[0]}
 function rate(cat=category(),month=$("mes").value,mode=$("modalidad").value){return cat.rates[month]?.[mode]||null}
-function yearsFromDate(value){if(!value)return 0;const today=new Date(),d=new Date(`${value}T00:00:00`);let y=today.getFullYear()-d.getFullYear();const m=today.getMonth()-d.getMonth();if(m<0||(m===0&&today.getDate()<d.getDate()))y--;return Math.max(0,y)}
+function yearsFromDate(value){
+  if(!value)return 0;
+  const today=new Date();
+  const d=new Date(`${value}T00:00:00`);
+  let y=today.getFullYear()-d.getFullYear();
+  const m=today.getMonth()-d.getMonth();
+  if(m<0||(m===0&&today.getDate()<d.getDate()))y--;
+  return Math.max(0,y);
+}
 function years(){return yearsFromDate($("ingreso").value)}
-function toast(text){const node=document.createElement("div");node.className="toast";node.textContent=text;$("tc").appendChild(node);setTimeout(()=>node.remove(),2800)}
-function showSection(id,btn){document.querySelectorAll(".main-section").forEach(s=>s.classList.remove("active"));$("sec-"+id).classList.add("active");document.querySelectorAll(".mn-tab").forEach(b=>b.classList.remove("active"));btn.classList.add("active")}
-function showResult(id,btn){["recibo","detalle","validacion"].forEach(k=>$("res-"+k).style.display=k===id?"block":"none");document.querySelectorAll(".rt").forEach(b=>b.classList.remove("active"));btn.classList.add("active")}
-function printReceipt(){if(getComputedStyle($("resultado")).display==="none"){toast("Calcula la liquidacion antes de imprimir el bono.");return}const tab=[...document.querySelectorAll(".rt")].find(node=>node.textContent.trim()==="Recibo");if(tab)showResult("recibo",tab);window.print()}
-function initSelectors(){Object.entries(MONTHS).forEach(([id,m])=>$("mes").insertAdjacentHTML("beforeend",`<option value="${id}" ${id==="may26"?"selected":""}>${m.label}</option>`));CATEGORIES.forEach(c=>$("categoria").insertAdjacentHTML("beforeend",`<option value="${c.id}" ${c.id==="generales"?"selected":""}>${c.name}</option>`))}
-function refreshPreview(){const c=category();if(c.id==="caseros"&&$("modalidad").value==="con"){$("modalidad").value="sin";toast("Caseros solo tiene escala sin retiro.")}const r=rate(c);const y=years();$("antHint").textContent=$("ingreso").value?`Antigüedad estimada: ${y} año(s)`:"Completa la fecha de ingreso para calcular la antiguedad.";$("preview").innerHTML=`<div class="pill"><span>Categoría</span><strong>${c.name}</strong></div><div class="pill"><span>Valor hora</span><strong>${r?fmt(r.hour):"No aplica"}</strong></div><div class="pill"><span>Valor mensual</span><strong>${r?fmt(r.month):"No aplica"}</strong></div><div class="pill"><span>Antigüedad</span><strong>${y}%</strong></div>`}
-function calcData(){const c=category(),r=rate(c),tipo=$("tipo").value;if(!r)return null;const dias=Math.min(31,Math.max(0,num("dias"))),horas=num("horas"),base=tipo==="mensual"?r.month*dias/30:r.hour*horas,extra50=r.hour*num("h50")*1.5,extra100=r.hour*num("h100")*2,ant=base*years()/100,adic=num("adicional"),desc=num("descuentos"),bruto=base+extra50+extra100+ant+adic,neto=bruto-desc;return{c,r,tipo,dias,horas,extra50,extra100,ant,adic,desc,base,bruto,neto,month:MONTHS[$("mes").value],mode:$("modalidad").value==="con"?"Con retiro":"Sin retiro"}}
-function calcular(){const d=calcData();if(!d){toast("La modalidad elegida no tiene escala para esta categoría.");return}$("resultado").style.display="block";$("stats").innerHTML=`<div class="stat-grid"><div class="sc"><div class="sl">Valor hora</div><div class="sv">${fmt(d.r.hour)}</div><div class="ss">${d.mode}</div></div><div class="sc"><div class="sl">Base</div><div class="sv">${fmt(d.base)}</div><div class="ss">${d.tipo==="mensual"?`${d.dias} días`:`${d.horas} horas`}</div></div><div class="sc"><div class="sl">Bruto</div><div class="sv">${fmt(d.bruto)}</div><div class="ss">${d.month.label}</div></div><div class="sc"><div class="sl">Neto</div><div class="sv">${fmt(d.neto)}</div><div class="ss">Estimado</div></div></div>`;
-$("res-recibo").innerHTML=`<div class="rec-hdr"><div class="rec-emp">${$("nombre").value||"Trabajador/a de casas particulares"}</div><div class="rec-meta"><span>CUIL: ${$("cuil").value||"No informado"}</span><span>${d.c.name}</span><span>${d.mode}</span><span>${d.month.label}</span></div></div><div class="rec-cols"><div class="rec-block"><h4>Haberes</h4>${row("Base remunerativa",d.base,"pos")}${row("Horas extra 50%",d.extra50,"pos")}${row("Horas extra 100%",d.extra100,"pos")}${row(`Antigüedad ${years()}%`,d.ant,"pos")}${row("Adicional manual",d.adic,"pos")}</div><div class="rec-block"><h4>Descuentos</h4>${row("Descuentos manuales",d.desc,"neg")}</div></div><div class="total"><div><span>Total bruto</span><span>${fmt(d.bruto)}</span></div><div><span>Descuentos</span><span>-${fmt(d.desc)}</span></div><div class="main"><span>Neto estimado</span><span>${fmt(d.neto)}</span></div></div>`;
-$("res-detalle").innerHTML=`<div class="card-hdr"><div class="card-title"><div class="c-ic">D</div><span>Detalle de cálculo</span></div></div><div class="table-wrap"><table class="dt"><tbody><tr><td>Base</td><td>${d.tipo==="mensual"?`${fmt(d.r.month)} x ${d.dias}/30`:`${fmt(d.r.hour)} x ${d.horas} horas`}</td><td class="num">${fmt(d.base)}</td></tr><tr><td>Extra 50%</td><td>${fmt(d.r.hour)} x ${num("h50")} x 1,5</td><td class="num">${fmt(d.extra50)}</td></tr><tr><td>Extra 100%</td><td>${fmt(d.r.hour)} x ${num("h100")} x 2</td><td class="num">${fmt(d.extra100)}</td></tr><tr><td>Antigüedad</td><td>Base x ${years()}%</td><td class="num">${fmt(d.ant)}</td></tr></tbody></table></div>`;
-$("res-validacion").innerHTML=`<div class="card-hdr"><div class="card-title"><div class="c-ic">OK</div><span>Validación interna</span></div><span class="badge">Borrador operativo</span></div><p class="hint">La categoría tiene escala cargada para ${d.month.label}, modalidad ${d.mode}. Revisar novedades, aportes, obra social, ART y cualquier adicional particular no informado antes de usar como liquidación definitiva.</p>`;
-window.scrollTo({top:$("resultado").offsetTop-80,behavior:"smooth"})}
-function row(label,value,cls){return`<div class="rec-row"><span>${label}</span><span class="rm ${cls}">${cls==="neg"?"-":""}${fmt(value)}</span></div>`}
-function renderScaleRows(){let html="";for(const [monthId,month] of Object.entries(MONTHS)){for(const c of CATEGORIES){const r=c.rates[monthId];html+=`<tr><td>${month.label}</td><td><strong>${c.name}</strong><br><span class="hint">${c.desc}</span></td><td class="num">${r.con?fmt(r.con.hour):"-"}</td><td class="num">${r.sin?fmt(r.sin.hour):"-"}</td><td class="num">${r.con?fmt(r.con.month):"-"}</td><td class="num">${r.sin?fmt(r.sin.month):"-"}</td></tr>`}}$("scaleRows").innerHTML=html}
-function renderLaw(){$("lawList").innerHTML=LAW_GUIDE.map(([title,body])=>`<div class="law-item"><strong>${title}</strong><span>${body}</span></div>`).join("")}
-function buildChatData(){const categorias=CATEGORIES.map(c=>({id:c.id,nombre:c.name,descripcion:c.desc,tipo:"casas_particulares"}));const escalas=[];for(const [monthId,month] of Object.entries(MONTHS)){for(const c of CATEGORIES){for(const mode of ["con","sin"]){const r=c.rates[monthId][mode];if(r)escalas.push({id:`${monthId}-${c.id}-${mode}`,periodo:month.label,categoria:c.name,nombre:c.name,modalidad:mode==="con"?"Con retiro":"Sin retiro",valor_hora:r.hour,sueldo_mensual:r.month,tipo_valor:"hora_y_mensual",fuente_textual:"escala_servicio_domestico_abril_julio_2026.docx"})}}}return{convenio:{nombre:"Ley 26.844 Casas Particulares",actividad:"Personal de casas particulares",vigencia_detectada:"Escalas abril, mayo, junio y julio 2026"},categorias,escalas_salariales:escalas,reglas_liquidacion:{antiguedad:{tipo:"porcentaje_por_anio",porcentaje_por_anio:1,base:"base remunerativa calculada"},horas_extra:{recargo_50:50,recargo_100:100}},derechos:LAW_GUIDE.map(x=>`${x[0]}: ${x[1]}`),parametros:{fuente:"escala_servicio_domestico_abril_julio_2026.docx + ley_casas_particulares.docx",semanas_por_mes:WEEKS_PER_MONTH}}}
-initSelectors();renderScaleRows();renderLaw();refreshPreview();window.CCT_CHAT_DATA=buildChatData();
+function toast(text){
+  const node=document.createElement("div");
+  node.className="toast";
+  node.textContent=text;
+  $("tc").appendChild(node);
+  setTimeout(()=>node.remove(),2800);
+}
+function showSection(id,btn){
+  document.querySelectorAll(".main-section").forEach(s=>s.classList.remove("active"));
+  $("sec-"+id).classList.add("active");
+  document.querySelectorAll(".mn-tab").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+}
+function showResult(id,btn){
+  ["recibo","detalle","validacion"].forEach(k=>$("res-"+k).style.display=k===id?"block":"none");
+  document.querySelectorAll(".rt").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+}
+function printReceipt(){
+  if(getComputedStyle($("resultado")).display==="none"){
+    toast("Calcula la liquidación antes de imprimir el bono.");
+    return;
+  }
+  const tab=[...document.querySelectorAll(".rt")].find(node=>node.textContent.trim()==="Recibo");
+  if(tab)showResult("recibo",tab);
+  window.print();
+}
+function syncWizard(){
+  $("wizardStep1").classList.toggle("is-active",currentWizardStep===1);
+  $("wizardStep2").classList.toggle("is-active",currentWizardStep===2);
+  $("wizardNav1").classList.toggle("is-active",currentWizardStep===1);
+  $("wizardNav2").classList.toggle("is-active",currentWizardStep===2);
+  $("wizardNav1").classList.toggle("is-complete",currentWizardStep===2);
+}
+function validateStepOne(){
+  if(!$("ingreso").value){
+    toast("Completa la fecha de ingreso para continuar.");
+    $("ingreso").focus();
+    return false;
+  }
+  return true;
+}
+function goToStep(step){
+  if(step===2&&!validateStepOne())return;
+  currentWizardStep=step;
+  syncWizard();
+  window.scrollTo({top:$("wizardStart").offsetTop-80,behavior:"smooth"});
+}
+function initSelectors(){
+  Object.entries(MONTHS).forEach(([id,m])=>$("mes").insertAdjacentHTML("beforeend",`<option value="${id}" ${id==="may26"?"selected":""}>${m.label}</option>`));
+  CATEGORIES.forEach(c=>$("categoria").insertAdjacentHTML("beforeend",`<option value="${c.id}" ${c.id==="generales"?"selected":""}>${c.name}</option>`));
+}
+function refreshPreview(){
+  const c=category();
+  if(c.id==="caseros"&&$("modalidad").value==="con"){
+    $("modalidad").value="sin";
+    toast("Caseros solo tiene escala sin retiro.");
+  }
+  const r=rate(c);
+  const y=years();
+  $("antHint").textContent=$("ingreso").value?`Antigüedad estimada: ${y} año(s)`:"Completa la fecha de ingreso para calcular la antigüedad.";
+  $("preview").innerHTML=`<div class="pill"><span>Categoría</span><strong>${c.name}</strong></div><div class="pill"><span>Valor hora</span><strong>${r?fmt(r.hour):"No aplica"}</strong></div><div class="pill"><span>Valor mensual</span><strong>${r?fmt(r.month):"No aplica"}</strong></div><div class="pill"><span>Antigüedad</span><strong>${y}%</strong></div>`;
+}
+function calcData(){
+  const c=category();
+  const r=rate(c);
+  const tipo=$("tipo").value;
+  if(!r)return null;
+  const dias=Math.min(31,Math.max(0,num("dias")));
+  const horas=num("horas");
+  const base=tipo==="mensual"?r.month*dias/30:r.hour*horas;
+  const extra50=r.hour*num("h50")*1.5;
+  const extra100=r.hour*num("h100")*2;
+  const ant=base*years()/100;
+  const adic=num("adicional");
+  const desc=num("descuentos");
+  const bruto=base+extra50+extra100+ant+adic;
+  const neto=bruto-desc;
+  return{c,r,tipo,dias,horas,extra50,extra100,ant,adic,desc,base,bruto,neto,month:MONTHS[$("mes").value],mode:$("modalidad").value==="con"?"Con retiro":"Sin retiro"};
+}
+function calcular(){
+  if(!validateStepOne()){
+    currentWizardStep=1;
+    syncWizard();
+    return;
+  }
+  const d=calcData();
+  if(!d){
+    toast("La modalidad elegida no tiene escala para esta categoría.");
+    return;
+  }
+  $("resultado").style.display="block";
+  $("stats").innerHTML=`<div class="stat-grid"><div class="sc"><div class="sl">Valor hora</div><div class="sv">${fmt(d.r.hour)}</div><div class="ss">${d.mode}</div></div><div class="sc"><div class="sl">Base</div><div class="sv">${fmt(d.base)}</div><div class="ss">${d.tipo==="mensual"?`${d.dias} días`:`${d.horas} horas`}</div></div><div class="sc"><div class="sl">Bruto</div><div class="sv">${fmt(d.bruto)}</div><div class="ss">${d.month.label}</div></div><div class="sc"><div class="sl">Neto</div><div class="sv">${fmt(d.neto)}</div><div class="ss">Estimado</div></div></div>`;
+  $("res-recibo").innerHTML=`<div class="rec-hdr"><div class="rec-emp">${$("nombre").value||"Trabajador/a de casas particulares"}</div><div class="rec-meta"><span>CUIL: ${$("cuil").value||"No informado"}</span><span>${d.c.name}</span><span>${d.mode}</span><span>${d.month.label}</span></div></div><div class="rec-cols"><div class="rec-block"><h4>Haberes</h4>${row("Base remunerativa",d.base,"pos")}${row("Horas extra 50%",d.extra50,"pos")}${row("Horas extra 100%",d.extra100,"pos")}${row(`Antigüedad ${years()}%`,d.ant,"pos")}${row("Adicional manual",d.adic,"pos")}</div><div class="rec-block"><h4>Descuentos</h4>${row("Descuentos manuales",d.desc,"neg")}</div></div><div class="total"><div><span>Total bruto</span><span>${fmt(d.bruto)}</span></div><div><span>Descuentos</span><span>-${fmt(d.desc)}</span></div><div class="main"><span>Neto estimado</span><span>${fmt(d.neto)}</span></div></div>`;
+  $("res-detalle").innerHTML=`<div class="card-hdr"><div class="card-title"><div class="c-ic">D</div><span>Detalle de cálculo</span></div></div><div class="table-wrap"><table class="dt"><tbody><tr><td>Base</td><td>${d.tipo==="mensual"?`${fmt(d.r.month)} x ${d.dias}/30`:`${fmt(d.r.hour)} x ${d.horas} horas`}</td><td class="num">${fmt(d.base)}</td></tr><tr><td>Extra 50%</td><td>${fmt(d.r.hour)} x ${num("h50")} x 1,5</td><td class="num">${fmt(d.extra50)}</td></tr><tr><td>Extra 100%</td><td>${fmt(d.r.hour)} x ${num("h100")} x 2</td><td class="num">${fmt(d.extra100)}</td></tr><tr><td>Antigüedad</td><td>Base x ${years()}%</td><td class="num">${fmt(d.ant)}</td></tr></tbody></table></div>`;
+  $("res-validacion").innerHTML=`<div class="card-hdr"><div class="card-title"><div class="c-ic">OK</div><span>Validación interna</span></div><span class="badge">Borrador operativo</span></div><p class="hint">La categoría tiene escala cargada para ${d.month.label}, modalidad ${d.mode}. Revisá novedades, aportes, obra social, ART y cualquier adicional particular no informado antes de usar como liquidación definitiva.</p>`;
+  window.scrollTo({top:$("resultado").offsetTop-80,behavior:"smooth"});
+}
+function row(label,value,cls){
+  return`<div class="rec-row"><span>${label}</span><span class="rm ${cls}">${cls==="neg"?"-":""}${fmt(value)}</span></div>`;
+}
+function renderScaleRows(){
+  let html="";
+  for(const [monthId,month] of Object.entries(MONTHS)){
+    for(const c of CATEGORIES){
+      const r=c.rates[monthId];
+      html+=`<tr><td>${month.label}</td><td><strong>${c.name}</strong><br><span class="hint">${c.desc}</span></td><td class="num">${r.con?fmt(r.con.hour):"-"}</td><td class="num">${r.sin?fmt(r.sin.hour):"-"}</td><td class="num">${r.con?fmt(r.con.month):"-"}</td><td class="num">${r.sin?fmt(r.sin.month):"-"}</td></tr>`;
+    }
+  }
+  $("scaleRows").innerHTML=html;
+}
+function renderLaw(){
+  $("lawList").innerHTML=LAW_GUIDE.map(([title,body])=>`<div class="law-item"><strong>${title}</strong><span>${body}</span></div>`).join("");
+}
+function buildChatData(){
+  const categorias=CATEGORIES.map(c=>({id:c.id,nombre:c.name,descripcion:c.desc,tipo:"casas_particulares"}));
+  const escalas=[];
+  for(const [monthId,month] of Object.entries(MONTHS)){
+    for(const c of CATEGORIES){
+      for(const mode of ["con","sin"]){
+        const r=c.rates[monthId][mode];
+        if(r)escalas.push({id:`${monthId}-${c.id}-${mode}`,periodo:month.label,categoria:c.name,nombre:c.name,modalidad:mode==="con"?"Con retiro":"Sin retiro",valor_hora:r.hour,sueldo_mensual:r.month,tipo_valor:"hora_y_mensual",fuente_textual:"escala_servicio_domestico_abril_julio_2026.docx"});
+      }
+    }
+  }
+  return{
+    convenio:{nombre:"Ley 26.844 Casas Particulares",actividad:"Personal de casas particulares",vigencia_detectada:"Escalas abril, mayo, junio y julio 2026"},
+    categorias,
+    escalas_salariales:escalas,
+    reglas_liquidacion:{
+      antiguedad:{tipo:"porcentaje_por_anio",porcentaje_por_anio:1,base:"base remunerativa calculada"},
+      horas_extra:{recargo_50:50,recargo_100:100}
+    },
+    derechos:LAW_GUIDE.map(x=>`${x[0]}: ${x[1]}`),
+    parametros:{fuente:"escala_servicio_domestico_abril_julio_2026.docx + ley_casas_particulares.docx",semanas_por_mes:WEEKS_PER_MONTH}
+  };
+}
+initSelectors();
+renderScaleRows();
+renderLaw();
+syncWizard();
+refreshPreview();
+window.CCT_CHAT_DATA=buildChatData();
 </script>
 <script type="module" src="./js/cct-chatbot.js"></script>
 </body>
